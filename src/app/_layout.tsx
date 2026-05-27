@@ -3,10 +3,17 @@
 import { supabase } from '@/api/client'
 import { useAuthStore } from '@/store/auth.store'
 import { Slot, router } from 'expo-router'
+import * as SplashScreen from 'expo-splash-screen'
 import { useEffect } from 'react'
+
+SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
   const { setSession, setProfile, setHydrated, isHydrated } = useAuthStore()
+
+  useEffect(() => {
+    if (isHydrated) SplashScreen.hideAsync()
+  }, [isHydrated])
 
   useEffect(() => {
     bootHydrate()
