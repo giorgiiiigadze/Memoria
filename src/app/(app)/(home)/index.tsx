@@ -1,60 +1,115 @@
-// app/(app)/(home)/index.tsx
-
+import type { DropWithParticipants } from '@/api/drops.api'
+import { useDrops } from '@/hooks/useDrops'
 import { useAuthStore } from '@/store/auth.store'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import type { DropState } from '@/types/database.types'
+import { router, useFocusEffect } from 'expo-router'
+import { useCallback } from 'react'
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 
-export default function Home() {
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+function formatOpenDate(iso: string | null): string {
+  if (!iso) return 'No open date'
+  const d = new Date(iso)
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
+}
+
+const STATE_META: Record<DropState, { label: string; color: string }> = {
+  active:  { label: 'Active',   color: '#0044FF' },
+  ready:   { label: 'Ready',    color: '#4CAF7D' },
+  open:    { label: 'Open',     color: '#F59E0B' },
+  expired: { label: 'Expired',  color: '#626262' },
+}
+
+export default function HomeScreen() {
   const { user, profile, signOut } = useAuthStore()
+  const { drops, isLoaded, refresh } = useDrops()
 
-  const displayName = profile?.display_name ?? profile?.username ?? user?.email ?? 'Unknown'
+  const displayName = profile?.display_name ?? profile?.username ?? user?.email ?? 'You'
+
+  useFocusEffect(useCallback(() => { refresh() }, []))
 
   return (
-    <View style={s.root}>
+    <ScrollView style={s.root} contentContainerStyle={s.content}>
 
-      <View style={s.content}>
-        <Text style={s.greeting}>Hey, {displayName} 👋</Text>
-        <Text style={s.sub}>{user?.email}</Text>
+      <View style={s.header}>
+        <View>
+          <Text style={s.greeting}>Hey, {displayName}</Text>
+          <Text style={s.sub}>{drops.length} drop{drops.length !== 1 ? 's' : ''}</Text>
+        </View>
+        <TouchableOpacity style={s.signOutBtn} onPress={signOut} activeOpacity={0.7}>
+          <Text style={s.signOutLabel}>Sign out</Text>
+        </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={s.signOutBtn} onPress={signOut} activeOpacity={0.8}>
-        <Text style={s.signOutLabel}>Sign out</Text>
-      </TouchableOpacity>
+      {isLoaded && drops.length === 0 && (
+        <View style={s.empty}>
+          <Text style={s.emptyTitle}>No drops yet</Text>
+          <Text style={s.emptySub}>Tap Create to start your first one.</Text>
+        </View>
+      )}
 
-    </View>
+      {drops.map(drop => <DropCard key={drop.id} drop={drop} />)}
+
+    </ScrollView>
+  )
+}
+
+function DropCard({ drop }: { drop: DropWithParticipants }) {
+  const meta = STATE_META[drop.state]
+  const participantCount = drop.participants?.length ?? 0
+
+  return (
+    <TouchableOpacity
+      style={s.card}
+      onPress={() => router.push(`/drop/${drop.id}` as any)}
+      activeOpacity={0.75}
+    >
+      <View style={s.cardTop}>
+        <Text style={s.cardTitle} numberOfLines={1}>{drop.title}</Text>
+        <View style={[s.badge, { borderColor: meta.color }]}>
+          <Text style={[s.badgeLabel, { color: meta.color }]}>{meta.label}</Text>
+        </View>
+      </View>
+      <View style={s.cardBottom}>
+        <Text style={s.cardMeta}>{formatOpenDate(drop.open_date)}</Text>
+        {participantCount > 0 && (
+          <Text style={s.cardMeta}>{participantCount} participant{participantCount !== 1 ? 's' : ''}</Text>
+        )}
+      </View>
+    </TouchableOpacity>
   )
 }
 
 const s = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: '#121212',
-    paddingHorizontal: 24,
-    paddingTop: 80,
-    paddingBottom: 40,
-  },
-  content: {
-    flex: 1,
-  },
-  greeting: {
-    fontSize: 26,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-    marginBottom: 4,
-  },
-  sub: {
-    fontSize: 14,
-    color: '#898989',
-  },
-  signOutBtn: {
+  root: { flex: 1, backgroundColor: '#121212' },
+  content: { paddingHorizontal: 24, paddingTop: 72, paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 },
+  greeting: { fontSize: 22, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.5 },
+  sub: { fontSize: 13, color: '#626262', marginTop: 2 },
+  signOutBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 0.5, borderColor: '#3B3B3B' },
+  signOutLabel: { fontSize: 13, color: '#626262' },
+  empty: { alignItems: 'center', paddingTop: 80 },
+  emptyTitle: { fontSize: 17, fontWeight: '500', color: '#FFFFFF', marginBottom: 6 },
+  emptySub: { fontSize: 14, color: '#626262' },
+  card: {
+    backgroundColor: '#191919',
     borderWidth: 0.5,
     borderColor: '#3B3B3B',
-    borderRadius: 8,
-    paddingVertical: 13,
-    alignItems: 'center',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 10,
   },
-  signOutLabel: {
-    fontSize: 14,
-    color: '#EA4942',
-  },
+  cardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  cardTitle: { fontSize: 16, fontWeight: '600', color: '#FFFFFF', flex: 1, marginRight: 10 },
+  badge: { borderWidth: 0.5, borderRadius: 5, paddingHorizontal: 8, paddingVertical: 3 },
+  badgeLabel: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  cardBottom: { flexDirection: 'row', gap: 16 },
+  cardMeta: { fontSize: 12, color: '#626262' },
 })

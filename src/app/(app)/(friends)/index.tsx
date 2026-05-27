@@ -1,10 +1,10 @@
 import { useFriends } from '@/hooks/useFriends'
 import type { Profile } from '@/types/database.types'
+import { Image } from 'expo-image'
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
   ActivityIndicator,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,7 +14,7 @@ import {
 } from 'react-native'
 
 export default function FriendsScreen() {
-  const { friends, incoming, outgoing, loading, actionLoading, add, accept, decline, search } = useFriends()
+  const { friends, incoming, outgoing, isLoaded, actionLoading, add, accept, decline, search } = useFriends()
   const [query, setQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Profile[]>([])
   const [searching, setSearching] = useState(false)
@@ -133,9 +133,7 @@ export default function FriendsScreen() {
       {!isSearchMode && (
         <View style={s.section}>
           {friends.length > 0 && <Text style={s.sectionLabel}>Your friends</Text>}
-          {loading ? (
-            <ActivityIndicator color="#898989" style={{ marginTop: 24 }} />
-          ) : friends.length === 0 ? (
+          {!isLoaded ? null : friends.length === 0 ? (
             <Text style={s.empty}>No friends yet.{'\n'}Search for people to add.</Text>
           ) : (
             friends.map(profile => <UserRow key={profile.id} profile={profile} />)
@@ -155,7 +153,7 @@ function UserRow({ profile, right }: { profile: Profile; right?: ReactNode }) {
     <View style={s.row}>
       <View style={s.avatar}>
         {profile.avatar_url
-          ? <Image source={{ uri: profile.avatar_url }} style={s.avatarImg} />
+          ? <Image source={profile.avatar_url} style={s.avatarImg} contentFit="cover" />
           : <Text style={s.avatarInitial}>{initial}</Text>}
       </View>
       <View style={s.rowInfo}>

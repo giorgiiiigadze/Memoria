@@ -1,7 +1,11 @@
 // app/_layout.tsx
 
 import { supabase } from '@/api/client'
+import { getMyDrops } from '@/api/drops.api'
+import { getFriends, getIncomingRequests, getOutgoingRequests } from '@/api/friends.api'
 import { useAuthStore } from '@/store/auth.store'
+import { useDropsStore } from '@/store/drops.store'
+import { useFriendsStore } from '@/store/friends.store'
 import { Slot, router } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect } from 'react'
@@ -45,6 +49,7 @@ export default function RootLayout() {
         .maybeSingle()
 
       setProfile(profile ?? null)
+      prefetchInitialData(session.user.id)
       setHydrated()
 
       if (!profile?.username) {
@@ -57,6 +62,30 @@ export default function RootLayout() {
       console.error('[_layout] Boot hydration failed:', e)
       setHydrated()
       router.replace('/(auth)/sign-in')
+    }
+  }
+
+  // ─── Boot prefetch ──────────────────────────────────────────────────────────
+  // Fires in parallel with setHydrated so data is ready before screens render.
+  // Errors are swallowed — stores mark isLoaded=true regardless.
+
+  async function prefetchInitialData(userId: string) {
+    try {
+      const [drops, friends, incoming, outgoing] = await Promise.all([
+        getMyDrops(),
+        getFriends(userId),
+        getIncomingRequests(userId),
+        getOutgoingRequests(userId),
+      ])
+      useDropsStore.getState().setDrops(drops)
+      useFriendsStore.getState().setFriends(friends)
+      useFriendsStore.getState().setIncoming(incoming)
+      useFriendsStore.getState().setOutgoing(outgoing)
+    } catch (e) {
+      console.error('[prefetch]', e)
+    } finally {
+      useDropsStore.getState().setIsLoaded(true)
+      useFriendsStore.getState().setIsLoaded(true)
     }
   }
 
