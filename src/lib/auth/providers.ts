@@ -34,7 +34,8 @@ export async function verifyPhoneOtp(
     type: 'sms',
   })
   if (error) throw new AuthError(error.message, error.status?.toString())
-  return { session: data.session!, isNewUser: isNewUser(data.session!) }
+  if (!data.session) throw new AuthError('OTP verified but no session returned.')
+  return { session: data.session, isNewUser: isNewUser(data.session) }
 }
 
 // ─── Stubs ───────────────────────────────────────────────────────────────────

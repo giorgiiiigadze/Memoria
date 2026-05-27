@@ -1,23 +1,11 @@
 // src/store/auth.store.ts
 
 import { supabase } from '@/api/client'
+import type { Database } from '@/types/database.types'
 import { Session, User } from '@supabase/supabase-js'
 import { create } from 'zustand'
 
-// The shape of a Memoria user profile (from your `profiles` table)
-// src/store/auth.store.ts
-
-interface Profile {
-  id: string
-  username: string
-  display_name: string | null  // ← add this line
-  avatar_url: string | null
-  phone: string | null
-  bio: string | null            // ← add this too while you're here
-  push_token: string | null     // ← and this
-  created_at: string
-  updated_at: string            // ← and this
-}
+type Profile = Database['public']['Tables']['profiles']['Row']
 
 interface AuthState {
   // Data
