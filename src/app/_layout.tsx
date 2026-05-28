@@ -7,6 +7,7 @@ import { useFriendsStore } from '@/store/friends.store'
 import { Slot, router } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect } from 'react'
+import { StyleSheet, Text, View } from 'react-native'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -107,9 +108,28 @@ export default function RootLayout() {
     }
   }
 
-  // Render nothing until boot hydration is done.
-  // This is what prevents any loading flash.
-  if (!isHydrated) return null
+  if (!isHydrated) {
+    return (
+      <View style={styles.splash}>
+        <Text style={styles.splashText}>Memoria</Text>
+      </View>
+    )
+  }
 
   return <Slot />
 }
+
+const styles = StyleSheet.create({
+  splash: {
+    flex: 1,
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  splashText: {
+    color: '#fff',
+    fontSize: 32,
+    fontWeight: '600',
+    letterSpacing: 2,
+  },
+})

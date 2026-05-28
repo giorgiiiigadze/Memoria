@@ -1,4 +1,3 @@
-// src/types/database.types.ts
 // Auto-generated from Supabase schema — do not edit manually.
 // Regenerate with: npx supabase gen types typescript --project-id qdhspcdpksihgrtdmmiy --schema public
 

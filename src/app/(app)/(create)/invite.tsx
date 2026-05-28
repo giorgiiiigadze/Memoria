@@ -55,7 +55,7 @@ export default function InviteScreen() {
 
       <TouchableOpacity
         style={s.btn}
-        onPress={() => router.push('/(app)/(create)/confrim')}
+        onPress={() => router.push('/(app)/(create)/confirm')}
         activeOpacity={0.8}
       >
         <Text style={s.btnLabel}>

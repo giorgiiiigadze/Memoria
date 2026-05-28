@@ -7,7 +7,7 @@ export default function AppLayout() {
   if (!isAuthenticated) return <Redirect href="/(auth)/sign-in" />
 
   return (
-    <Tabs screenOptions={{ headerShown: false }}>
+    <Tabs screenOptions={{ headerShown: false, animation: 'none' }}>
       <Tabs.Screen name="(home)"     options={{ title: 'Home' }} />
       <Tabs.Screen name="(friends)"  options={{ title: 'Friends' }} />
       <Tabs.Screen name="(create)"   options={{ title: 'Create' }} />

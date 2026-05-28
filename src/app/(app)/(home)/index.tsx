@@ -1,6 +1,6 @@
 import type { DropWithParticipants } from '@/api/drops.api'
 import { useDrops } from '@/hooks/useDrops'
-import { useAuthStore } from '@/store/auth.store'
+import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
 import type { DropState } from '@/types/database.types'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback } from 'react'
@@ -28,12 +28,14 @@ const STATE_META: Record<DropState, { label: string; color: string }> = {
 }
 
 export default function HomeScreen() {
-  const { user, profile, signOut } = useAuthStore()
+  const user = useAuthStore(selectUser)
+  const profile = useAuthStore(selectProfile)
+  const signOut = useAuthStore(s => s.signOut)
   const { drops, isLoaded, refresh } = useDrops()
 
   const displayName = profile?.display_name ?? profile?.username ?? user?.email ?? 'You'
 
-  useFocusEffect(useCallback(() => { refresh() }, []))
+  useFocusEffect(useCallback(() => { if (isLoaded) refresh() }, [isLoaded]))
 
   return (
     <ScrollView style={s.root} contentContainerStyle={s.content}>

@@ -32,7 +32,7 @@ export default function ConfirmScreen() {
       await submitDrop()
       router.replace('/(app)/(home)')
     } catch (e) {
-      console.error('[confrim] submitDrop:', e)
+      console.error('[confirm] submitDrop:', e)
       setError('Something went wrong. Please try again.')
     } finally {
       setSubmitting(false)
