@@ -11,7 +11,7 @@ export async function getMyDrops(): Promise<DropWithParticipants[]> {
     .select('*, participants:drop_participants(id, user_id, status, has_uploaded)')
     .order('created_at', { ascending: false })
   if (error) throw error
-  return (data ?? []) as DropWithParticipants[]
+  return (data ?? []) as unknown as DropWithParticipants[]
 }
 
 export async function getDrop(dropId: string): Promise<DropWithParticipants | null> {

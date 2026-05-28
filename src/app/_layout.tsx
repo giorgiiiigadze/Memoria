@@ -1,5 +1,3 @@
-// app/_layout.tsx
-
 import { supabase } from '@/api/client'
 import { getMyDrops } from '@/api/drops.api'
 import { getFriends, getIncomingRequests, getOutgoingRequests } from '@/api/friends.api'
@@ -49,7 +47,7 @@ export default function RootLayout() {
         .maybeSingle()
 
       setProfile(profile ?? null)
-      prefetchInitialData(session.user.id)
+      await prefetchInitialData(session.user.id)
       setHydrated()
 
       if (!profile?.username) {
