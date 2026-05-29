@@ -1,14 +1,17 @@
 import { supabase } from '@/api/client'
-import type { Drop, DropParticipant } from '@/types/database.types'
+import type { Drop, DropParticipant, Profile } from '@/types/database.types'
 
 export type DropWithParticipants = Drop & {
   participants: Pick<DropParticipant, 'id' | 'user_id' | 'status' | 'has_uploaded'>[]
+  creator: Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url'>
 }
+
+const DROP_SELECT = '*, participants:drop_participants(id, user_id, status, has_uploaded), creator:profiles!creator_id(id, username, display_name, avatar_url)'
 
 export async function getMyDrops(): Promise<DropWithParticipants[]> {
   const { data, error } = await supabase
     .from('drops')
-    .select('*, participants:drop_participants(id, user_id, status, has_uploaded)')
+    .select(DROP_SELECT)
     .order('created_at', { ascending: false })
   if (error) throw error
   return (data ?? []) as unknown as DropWithParticipants[]
@@ -17,7 +20,7 @@ export async function getMyDrops(): Promise<DropWithParticipants[]> {
 export async function getDrop(dropId: string): Promise<DropWithParticipants | null> {
   const { data, error } = await supabase
     .from('drops')
-    .select('*, participants:drop_participants(id, user_id, status, has_uploaded)')
+    .select(DROP_SELECT)
     .eq('id', dropId)
     .maybeSingle()
   if (error) throw error
