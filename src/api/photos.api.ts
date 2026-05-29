@@ -44,10 +44,10 @@ export async function uploadDropPhoto(
 
   if (insertError) throw insertError
 
-  // Update participant upload tracking (best-effort)
+  // Update participant: accept invite if still pending + track upload count
   const { data: participant } = await supabase
     .from('drop_participants')
-    .select('id, upload_count')
+    .select('id, upload_count, status')
     .eq('drop_id', dropId)
     .eq('user_id', uploaderId)
     .maybeSingle()
@@ -55,7 +55,12 @@ export async function uploadDropPhoto(
   if (participant) {
     await supabase
       .from('drop_participants')
-      .update({ has_uploaded: true, upload_count: participant.upload_count + 1, uploaded_at: new Date().toISOString() })
+      .update({
+        status: 'accepted' as const,
+        has_uploaded: true,
+        upload_count: participant.upload_count + 1,
+        uploaded_at: new Date().toISOString(),
+      })
       .eq('id', participant.id)
   }
 
