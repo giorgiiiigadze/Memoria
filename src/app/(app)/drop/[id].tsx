@@ -149,7 +149,7 @@ export default function DropDetailScreen() {
       {/* Empty state for active/ready with no uploads yet */}
       {visiblePhotos.length === 0 && (drop.state === 'active' || drop.state === 'ready') && (
         <View style={s.emptyPhotos}>
-          <Text style={s.emptyPhotosText}>No photos yet. Be the first to upload.</Text>
+          <Text style={s.emptyPhotosText}>You haven't uploaded any photos yet.</Text>
         </View>
       )}
 
