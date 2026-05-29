@@ -21,7 +21,7 @@ export async function uploadDropPhoto(
   localUri: string,
   width: number | null,
   height: number | null
-): Promise<Photo> {
+): Promise<void> {
   const ext = localUri.split('.').pop()?.split('?')[0]?.toLowerCase() ?? 'jpg'
   const fileName = `${dropId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
 
@@ -36,15 +36,13 @@ export async function uploadDropPhoto(
 
   const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(fileName)
 
-  const { data: photo, error: insertError } = await supabase
+  const { error: insertError } = await supabase
     .from('photos')
     .insert({ drop_id: dropId, uploader_id: uploaderId, storage_path: fileName, cdn_url: publicUrl, width, height })
-    .select()
-    .single()
 
   if (insertError) throw insertError
 
-  // Update participant: accept invite if still pending + track upload count
+  // Accept invite and update upload count (best-effort; DB trigger also handles this)
   const { data: participant } = await supabase
     .from('drop_participants')
     .select('id, upload_count, status')
@@ -63,6 +61,4 @@ export async function uploadDropPhoto(
       })
       .eq('id', participant.id)
   }
-
-  return photo
 }
