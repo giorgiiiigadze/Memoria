@@ -223,7 +223,7 @@ export default function ProfileScreen() {
             <TouchableOpacity
               key={drop.id}
               style={s.dropCard}
-              onPress={() => router.push(`/drop/${drop.id}` as any)}
+              onPress={() => router.push({ pathname: `/drop/${drop.id}`, params: { from: '/(app)/(profile)' } } as any)}
               activeOpacity={0.75}
             >
               <View style={s.dropCardTop}>

@@ -95,7 +95,7 @@ export default function CalendarScreen() {
               <TouchableOpacity
                 key={drop.id}
                 style={s.row}
-                onPress={() => router.push(`/drop/${drop.id}` as any)}
+                onPress={() => router.push({ pathname: `/drop/${drop.id}`, params: { from: '/(app)/(calendar)' } } as any)}
                 activeOpacity={0.75}
               >
                 <View style={s.rowLeft}>

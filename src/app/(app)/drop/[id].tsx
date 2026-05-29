@@ -38,7 +38,7 @@ const STATE_META: Record<DropState, { label: string; color: string }> = {
 }
 
 export default function DropDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>()
+  const { id, from } = useLocalSearchParams<{ id: string; from?: string }>()
   const user = useAuthStore(selectUser)
   const cached = useDropsStore(s => s.drops.find(d => d.id === id))
   const [drop, setDrop] = useState<DropWithParticipants | null>(cached ?? null)
@@ -81,7 +81,7 @@ export default function DropDetailScreen() {
 
   return (
     <ScrollView style={s.root} contentContainerStyle={s.content}>
-      <TouchableOpacity style={s.back} onPress={() => router.back()}>
+      <TouchableOpacity style={s.back} onPress={() => router.navigate((from ?? '/(app)/(home)') as any)}>
         <Text style={s.backLabel}>← Back</Text>
       </TouchableOpacity>
 
