@@ -2,6 +2,7 @@ import { getMyDrops, type DropWithParticipants } from '@/api/drops.api'
 import { supabase } from '@/api/client'
 import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
 import type { DropState } from '@/types/database.types'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect } from 'expo-router'
@@ -36,7 +37,14 @@ export default function ProfileScreen() {
   const user = useAuthStore(selectUser)
   const profile = useAuthStore(selectProfile)
   const setProfile = useAuthStore(s => s.setProfile)
+  const setHasSeenOnboarding = useAuthStore(s => s.setHasSeenOnboarding)
   const signOut = useAuthStore(s => s.signOut)
+
+  async function replayOnboarding() {
+    await AsyncStorage.removeItem('@memoria/onboarding_complete')
+    setHasSeenOnboarding(false)
+    router.replace('/(onboarding)')
+  }
 
   const [drops, setDrops] = useState<DropWithParticipants[]>([])
   const [editing, setEditing] = useState(false)
@@ -137,9 +145,14 @@ export default function ProfileScreen() {
         {/* Header */}
         <View style={s.headerRow}>
           <Text style={s.heading}>Profile</Text>
-          <TouchableOpacity style={s.signOutBtn} onPress={signOut} activeOpacity={0.7}>
-            <Text style={s.signOutLabel}>Sign out</Text>
-          </TouchableOpacity>
+          <View style={s.headerActions}>
+            <TouchableOpacity style={s.signOutBtn} onPress={replayOnboarding} activeOpacity={0.7}>
+              <Text style={s.signOutLabel}>Intro</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.signOutBtn} onPress={signOut} activeOpacity={0.7}>
+              <Text style={s.signOutLabel}>Sign out</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Avatar + identity */}
@@ -249,6 +262,7 @@ const s = StyleSheet.create({
   content: { paddingHorizontal: 24, paddingTop: 72, paddingBottom: 48 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 },
   heading: { fontSize: 22, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.5 },
+  headerActions: { flexDirection: 'row', gap: 8 },
   signOutBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 0.5, borderColor: '#3B3B3B' },
   signOutLabel: { fontSize: 13, color: '#626262' },
   identity: { flexDirection: 'row', gap: 16, marginBottom: 36, alignItems: 'flex-start' },
