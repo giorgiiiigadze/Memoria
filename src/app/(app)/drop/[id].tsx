@@ -52,6 +52,25 @@ export default function DropDetailScreen() {
         <InfoRow label="Opens" value={formatDate(drop.open_date)} />
         <InfoRow label="Participants" value={String(participantCount)} />
       </View>
+
+      {(drop.state === 'active' || drop.state === 'ready') && (
+        <TouchableOpacity
+          style={[s.actionBtn, { backgroundColor: '#0044FF' }]}
+          onPress={() => router.push({ pathname: '/drop/upload', params: { id: drop.id } } as any)}
+          activeOpacity={0.8}
+        >
+          <Text style={s.actionBtnLabel}>Upload Photos</Text>
+        </TouchableOpacity>
+      )}
+      {drop.state === 'open' && (
+        <TouchableOpacity
+          style={[s.actionBtn, { backgroundColor: '#F59E0B' }]}
+          onPress={() => router.push({ pathname: '/drop/gallery', params: { id: drop.id } } as any)}
+          activeOpacity={0.8}
+        >
+          <Text style={s.actionBtnLabel}>View Gallery</Text>
+        </TouchableOpacity>
+      )}
     </View>
   )
 }
@@ -82,4 +101,6 @@ const s = StyleSheet.create({
   },
   infoLabel: { fontSize: 14, color: '#626262' },
   infoValue: { fontSize: 14, color: '#FFFFFF', fontWeight: '500' },
+  actionBtn: { marginTop: 32, borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
+  actionBtnLabel: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
 })

@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native'
 
+
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 function formatOpenDate(iso: string | null): string {
@@ -30,7 +31,6 @@ const STATE_META: Record<DropState, { label: string; color: string }> = {
 export default function HomeScreen() {
   const user = useAuthStore(selectUser)
   const profile = useAuthStore(selectProfile)
-  const signOut = useAuthStore(s => s.signOut)
   const { drops, isLoaded, refresh } = useDrops()
 
   const displayName = profile?.display_name ?? profile?.username ?? user?.email ?? 'You'
@@ -45,9 +45,6 @@ export default function HomeScreen() {
           <Text style={s.greeting}>Hey, {displayName}</Text>
           <Text style={s.sub}>{drops.length} drop{drops.length !== 1 ? 's' : ''}</Text>
         </View>
-        <TouchableOpacity style={s.signOutBtn} onPress={signOut} activeOpacity={0.7}>
-          <Text style={s.signOutLabel}>Sign out</Text>
-        </TouchableOpacity>
       </View>
 
       {isLoaded && drops.length === 0 && (
@@ -92,11 +89,9 @@ function DropCard({ drop }: { drop: DropWithParticipants }) {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#121212' },
   content: { paddingHorizontal: 24, paddingTop: 72, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 },
+  header: { marginBottom: 28 },
   greeting: { fontSize: 22, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.5 },
   sub: { fontSize: 13, color: '#626262', marginTop: 2 },
-  signOutBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 0.5, borderColor: '#3B3B3B' },
-  signOutLabel: { fontSize: 13, color: '#626262' },
   empty: { alignItems: 'center', paddingTop: 80 },
   emptyTitle: { fontSize: 17, fontWeight: '500', color: '#FFFFFF', marginBottom: 6 },
   emptySub: { fontSize: 14, color: '#626262' },
