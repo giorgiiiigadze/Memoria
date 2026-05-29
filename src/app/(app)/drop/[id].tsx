@@ -1,5 +1,6 @@
 import { getDrop, type DropWithParticipants } from '@/api/drops.api'
 import { getDropPhotos, type PhotoWithUploader } from '@/api/photos.api'
+import { subscribeToDropPhotos } from '@/api/realtime'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import type { DropState } from '@/types/database.types'
@@ -58,6 +59,11 @@ export default function DropDetailScreen() {
       getDropPhotos(id).then(setPhotos).catch(console.error)
     }, [id])
   )
+
+  useEffect(() => {
+    if (!id) return
+    return subscribeToDropPhotos(id, setPhotos)
+  }, [id])
 
   if (!drop) return <View style={s.root} />
 

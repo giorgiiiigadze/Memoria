@@ -1,13 +1,14 @@
 import { supabase } from '@/api/client'
 import { getMyDrops } from '@/api/drops.api'
 import { getFriends, getIncomingRequests, getOutgoingRequests } from '@/api/friends.api'
+import { subscribeToNotifications, subscribeToUserDrops } from '@/api/realtime'
 import { useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { useFriendsStore } from '@/store/friends.store'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Slot, router } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
 const ONBOARDING_KEY = '@memoria/onboarding_complete'
@@ -16,6 +17,7 @@ SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
   const { setSession, setProfile, setHydrated, setHasSeenOnboarding, isHydrated } = useAuthStore()
+  const realtimeCleanup = useRef<Array<() => void>>([])
 
   useEffect(() => {
     if (isHydrated) SplashScreen.hideAsync()
@@ -54,6 +56,11 @@ export default function RootLayout() {
       setHasSeenOnboarding(hasSeenOnboarding)
       await prefetchInitialData(session.user.id)
       setHydrated()
+
+      realtimeCleanup.current = [
+        subscribeToUserDrops(session.user.id),
+        subscribeToNotifications(session.user.id),
+      ]
 
       if (!profile?.username) {
         router.replace('/(auth)/setup-profile')
@@ -103,6 +110,8 @@ export default function RootLayout() {
     session: import('@supabase/supabase-js').Session | null
   ) {
     if (event === 'SIGNED_OUT') {
+      realtimeCleanup.current.forEach(fn => fn())
+      realtimeCleanup.current = []
       setSession(null)
       setProfile(null)
       router.replace('/(auth)/sign-in')
