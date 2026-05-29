@@ -67,7 +67,7 @@ function DropCard({ drop }: { drop: DropWithParticipants }) {
   return (
     <TouchableOpacity
       style={s.card}
-      onPress={() => router.push(`/drop/${drop.id}` as any)}
+      onPress={() => router.push({ pathname: `/drop/${drop.id}`, params: { from: '/(app)/(home)' } } as any)}
       activeOpacity={0.75}
     >
       <View style={s.cardTop}>
