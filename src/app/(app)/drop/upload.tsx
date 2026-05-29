@@ -60,7 +60,7 @@ export default function UploadScreen() {
     if (!result.canceled) {
       const a = result.assets[0]
       setPhotos(prev =>
-        [...prev, { uri: a.uri, width: a.width ?? null, height: a.height ?? null, status: 'pending' }].slice(
+        [...prev, { uri: a.uri, width: a.width ?? null, height: a.height ?? null, status: 'pending' as const }].slice(
           0,
           MAX_PHOTOS
         )
@@ -205,7 +205,7 @@ const s = StyleSheet.create({
   },
   cellImg: { width: '100%', height: '100%' },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.45)',
     alignItems: 'center',
     justifyContent: 'center',
