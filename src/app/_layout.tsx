@@ -4,15 +4,18 @@ import { getFriends, getIncomingRequests, getOutgoingRequests } from '@/api/frie
 import { useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { useFriendsStore } from '@/store/friends.store'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Slot, router } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
+const ONBOARDING_KEY = '@memoria/onboarding_complete'
+
 SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
-  const { setSession, setProfile, setHydrated, isHydrated } = useAuthStore()
+  const { setSession, setProfile, setHydrated, setHasSeenOnboarding, isHydrated } = useAuthStore()
 
   useEffect(() => {
     if (isHydrated) SplashScreen.hideAsync()
@@ -41,18 +44,21 @@ export default function RootLayout() {
 
       setSession(session)
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .maybeSingle()
+      const [{ data: profile }, seenOnboarding] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle(),
+        AsyncStorage.getItem(ONBOARDING_KEY),
+      ])
 
+      const hasSeenOnboarding = seenOnboarding === 'true'
       setProfile(profile ?? null)
+      setHasSeenOnboarding(hasSeenOnboarding)
       await prefetchInitialData(session.user.id)
       setHydrated()
 
       if (!profile?.username) {
         router.replace('/(auth)/setup-profile')
+      } else if (!hasSeenOnboarding) {
+        router.replace('/(onboarding)')
       } else {
         router.replace('/(app)/(home)')
       }
