@@ -12,7 +12,6 @@ import {
   View,
 } from 'react-native'
 
-
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 function formatOpenDate(iso: string | null): string {
@@ -37,14 +36,15 @@ export default function HomeScreen() {
 
   useFocusEffect(useCallback(() => { if (isLoaded) refresh() }, [isLoaded]))
 
+  const myDrops = drops.filter(d => d.creator_id === user?.id)
+  const invitedDrops = drops.filter(d => d.creator_id !== user?.id)
+
   return (
     <ScrollView style={s.root} contentContainerStyle={s.content}>
 
       <View style={s.header}>
-        <View>
-          <Text style={s.greeting}>Hey, {displayName}</Text>
-          <Text style={s.sub}>{drops.length} drop{drops.length !== 1 ? 's' : ''}</Text>
-        </View>
+        <Text style={s.greeting}>Hey, {displayName}</Text>
+        <Text style={s.sub}>{drops.length} drop{drops.length !== 1 ? 's' : ''}</Text>
       </View>
 
       {isLoaded && drops.length === 0 && (
@@ -54,15 +54,30 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {drops.map(drop => <DropCard key={drop.id} drop={drop} />)}
+      {myDrops.length > 0 && (
+        <View style={s.section}>
+          {invitedDrops.length > 0 && (
+            <Text style={s.sectionLabel}>Your Drops</Text>
+          )}
+          {myDrops.map(drop => <DropCard key={drop.id} drop={drop} />)}
+        </View>
+      )}
+
+      {invitedDrops.length > 0 && (
+        <View style={s.section}>
+          <Text style={s.sectionLabel}>Invited</Text>
+          {invitedDrops.map(drop => <DropCard key={drop.id} drop={drop} showCreator />)}
+        </View>
+      )}
 
     </ScrollView>
   )
 }
 
-function DropCard({ drop }: { drop: DropWithParticipants }) {
+function DropCard({ drop, showCreator = false }: { drop: DropWithParticipants; showCreator?: boolean }) {
   const meta = STATE_META[drop.state]
   const participantCount = drop.participants?.length ?? 0
+  const creatorName = drop.creator?.display_name ?? drop.creator?.username ?? null
 
   return (
     <TouchableOpacity
@@ -81,6 +96,9 @@ function DropCard({ drop }: { drop: DropWithParticipants }) {
         {participantCount > 0 && (
           <Text style={s.cardMeta}>{participantCount} participant{participantCount !== 1 ? 's' : ''}</Text>
         )}
+        {showCreator && creatorName && (
+          <Text style={s.cardCreator}>by {creatorName}</Text>
+        )}
       </View>
     </TouchableOpacity>
   )
@@ -95,6 +113,11 @@ const s = StyleSheet.create({
   empty: { alignItems: 'center', paddingTop: 80 },
   emptyTitle: { fontSize: 17, fontWeight: '500', color: '#FFFFFF', marginBottom: 6 },
   emptySub: { fontSize: 14, color: '#626262' },
+  section: { marginBottom: 8 },
+  sectionLabel: {
+    fontSize: 11, fontWeight: '600', color: '#626262',
+    textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10,
+  },
   card: {
     backgroundColor: '#191919',
     borderWidth: 0.5,
@@ -107,6 +130,7 @@ const s = StyleSheet.create({
   cardTitle: { fontSize: 16, fontWeight: '600', color: '#FFFFFF', flex: 1, marginRight: 10 },
   badge: { borderWidth: 0.5, borderRadius: 5, paddingHorizontal: 8, paddingVertical: 3 },
   badgeLabel: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  cardBottom: { flexDirection: 'row', gap: 16 },
+  cardBottom: { flexDirection: 'row', gap: 16, flexWrap: 'wrap' },
   cardMeta: { fontSize: 12, color: '#626262' },
+  cardCreator: { fontSize: 12, color: '#626262', marginLeft: 'auto' },
 })
