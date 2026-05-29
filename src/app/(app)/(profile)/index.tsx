@@ -86,10 +86,10 @@ export default function ProfileScreen() {
       try {
         const ext = avatarUri.split('.').pop() ?? 'jpg'
         const path = `${user.id}/avatar.${ext}`
-        const blob = await (await fetch(avatarUri)).blob()
+        const arrayBuffer = await (await fetch(avatarUri)).arrayBuffer()
         const { error: upErr } = await supabase.storage
           .from('avatars')
-          .upload(path, blob, { upsert: true, contentType: `image/${ext}` })
+          .upload(path, arrayBuffer, { upsert: true, contentType: `image/${ext}` })
         if (!upErr) {
           const { data } = supabase.storage.from('avatars').getPublicUrl(path)
           avatarUrl = data.publicUrl

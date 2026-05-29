@@ -55,11 +55,11 @@ export default function SetupProfileScreen() {
       const path = `${userId}/avatar.${ext}`
 
       const response = await fetch(uri)
-      const blob = await response.blob()
+      const arrayBuffer = await response.arrayBuffer()
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(path, blob, { upsert: true, contentType: `image/${ext}` })
+        .upload(path, arrayBuffer, { upsert: true, contentType: `image/${ext}` })
 
       if (uploadError) {
         console.error('[setup-profile] Avatar upload failed:', uploadError)

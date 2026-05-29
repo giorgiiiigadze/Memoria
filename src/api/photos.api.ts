@@ -26,11 +26,11 @@ export async function uploadDropPhoto(
   const fileName = `${dropId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
 
   const response = await fetch(localUri)
-  const blob = await response.blob()
+  const arrayBuffer = await response.arrayBuffer()
 
   const { error: storageError } = await supabase.storage
     .from('photos')
-    .upload(fileName, blob, { contentType: `image/${ext}` })
+    .upload(fileName, arrayBuffer, { contentType: `image/${ext}` })
 
   if (storageError) throw storageError
 
