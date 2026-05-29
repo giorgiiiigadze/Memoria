@@ -17,11 +17,13 @@ interface AuthState {
   isAuthenticated: boolean
   isOnboarded: boolean        // false = send to setup-profile after sign-in
   isHydrated: boolean         // false = app is still reading from SecureStore on boot
+  hasSeenOnboarding: boolean  // false = show onboarding tutorial on first launch
 
   // Actions
   setSession: (session: Session | null) => void
   setProfile: (profile: Profile | null) => void
   setHydrated: () => void
+  setHasSeenOnboarding: (value: boolean) => void
   signOut: () => Promise<void>
 }
 
@@ -33,6 +35,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   isOnboarded: false,
   isHydrated: false,
+  hasSeenOnboarding: false,
 
   /**
    * Called after sign-in, token refresh, or boot hydration.
@@ -67,6 +70,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isHydrated: true })
   },
 
+  setHasSeenOnboarding: (value) => {
+    set({ hasSeenOnboarding: value })
+  },
+
   /**
    * Signs the user out fully:
    * 1. Calls Supabase to invalidate the server session
@@ -92,3 +99,4 @@ export const selectProfile = (s: AuthState) => s.profile
 export const selectIsAuthenticated = (s: AuthState) => s.isAuthenticated
 export const selectIsOnboarded = (s: AuthState) => s.isOnboarded
 export const selectIsHydrated = (s: AuthState) => s.isHydrated
+export const selectHasSeenOnboarding = (s: AuthState) => s.hasSeenOnboarding

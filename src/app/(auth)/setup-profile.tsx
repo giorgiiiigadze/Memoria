@@ -151,7 +151,7 @@ export default function SetupProfileScreen() {
 
     setProfile(profile)
     setLoading(false)
-    router.replace('/(app)/(home)')
+    router.replace('/(onboarding)')
   }
 
   const disabled = loading || !username.trim()
