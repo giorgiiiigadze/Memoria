@@ -62,6 +62,11 @@ export async function updateDropThumbnail(dropId: string, uri: string): Promise<
   if (error) throw error
 }
 
+export async function deleteDrop(dropId: string): Promise<void> {
+  const { error } = await supabase.from('drops').delete().eq('id', dropId)
+  if (error) throw error
+}
+
 export async function inviteParticipants(
   dropId: string,
   userIds: string[],

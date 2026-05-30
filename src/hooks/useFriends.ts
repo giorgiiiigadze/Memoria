@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react'
 
 export function useFriends() {
   const user = useAuthStore(selectUser)
-  const { friends, incoming, outgoing, isLoaded, setFriends, setIncoming, setOutgoing, setIsLoaded } = useFriendsStore()
+  const { friends, incoming, outgoing, isLoaded, error, setFriends, setIncoming, setOutgoing, setIsLoaded, setError } = useFriendsStore()
   const [actionLoading, setActionLoading] = useState(false)
 
   useEffect(() => {
@@ -32,8 +32,10 @@ export function useFriends() {
       setFriends(f)
       setIncoming(inc)
       setOutgoing(out)
+      setError(null)
     } catch (e) {
       console.error('[useFriends] load error:', e)
+      setError('Failed to load friends. Check your connection.')
     } finally {
       setIsLoaded(true)
     }
@@ -50,8 +52,10 @@ export function useFriends() {
       setFriends(f)
       setIncoming(inc)
       setOutgoing(out)
+      setError(null)
     } catch (e) {
       console.error('[useFriends] refresh:', e)
+      setError('Failed to refresh friends.')
     }
   }
 
@@ -113,5 +117,5 @@ export function useFriends() {
     return searchUsers(query, user.id)
   }
 
-  return { friends, incoming, outgoing, isLoaded, actionLoading, add, accept, decline, cancel, search, refresh }
+  return { friends, incoming, outgoing, isLoaded, error, actionLoading, add, accept, decline, cancel, search, refresh, retry: load }
 }
