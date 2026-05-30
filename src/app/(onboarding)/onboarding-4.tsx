@@ -52,7 +52,7 @@ export default function Onboarding4() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#000000',
   },
   skipPlaceholder: {
     height: 48,

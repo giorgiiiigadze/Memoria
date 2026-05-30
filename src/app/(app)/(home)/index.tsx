@@ -77,7 +77,7 @@ export default function HomeScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#121212' },
+  root: { flex: 1, backgroundColor: '#000000' },
   content: { paddingHorizontal: 24, paddingTop: 72, paddingBottom: 40 },
   header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28 },
   greeting: { fontSize: 22, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.5 },

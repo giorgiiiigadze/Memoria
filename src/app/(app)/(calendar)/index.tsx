@@ -123,7 +123,7 @@ export default function CalendarScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#121212' },
+  root: { flex: 1, backgroundColor: '#000000' },
   content: { paddingHorizontal: 24, paddingTop: 72, paddingBottom: 48 },
   heading: { fontSize: 22, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 28 },
   empty: { alignItems: 'center', paddingTop: 60 },

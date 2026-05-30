@@ -200,7 +200,7 @@ export default function DropDetailScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#121212' },
+  root: { flex: 1, backgroundColor: '#000000' },
   content: { paddingHorizontal: H_PAD, paddingTop: 72, paddingBottom: 48 },
   heroThumb: {
     marginHorizontal: -H_PAD,

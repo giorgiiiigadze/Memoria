@@ -258,7 +258,7 @@ export default function ProfileScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#121212' },
+  root: { flex: 1, backgroundColor: '#000000' },
   content: { paddingHorizontal: 24, paddingTop: 72, paddingBottom: 48 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 },
   heading: { fontSize: 22, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.5 },
