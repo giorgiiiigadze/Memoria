@@ -13,7 +13,7 @@ import {
 } from 'react-native'
 
 export default function FriendsScreen() {
-  const { friends, incoming, outgoing, isLoaded, actionLoading, add, accept, decline, search } = useFriends()
+  const { friends, incoming, outgoing, isLoaded, error, actionLoading, add, accept, decline, search, retry } = useFriends()
   const [query, setQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Profile[]>([])
   const [searching, setSearching] = useState(false)
@@ -128,8 +128,18 @@ export default function FriendsScreen() {
         </View>
       )}
 
+      {/* ── Error state ─────────────────────────── */}
+      {!isSearchMode && isLoaded && error && (
+        <View style={s.errorBox}>
+          <Text style={s.errorMsg}>{error}</Text>
+          <TouchableOpacity onPress={retry} activeOpacity={0.7}>
+            <Text style={s.retryText}>Try again</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* ── Friends list ────────────────────────── */}
-      {!isSearchMode && (
+      {!isSearchMode && !error && (
         <View style={s.section}>
           {friends.length > 0 && <Text style={s.sectionLabel}>Your friends</Text>}
           {!isLoaded ? null : friends.length === 0 ? (
@@ -174,4 +184,7 @@ const s = StyleSheet.create({
   },
   empty: { fontSize: 14, color: '#626262', textAlign: 'center', paddingVertical: 24, lineHeight: 22 },
   requestActions: { flexDirection: 'row' },
+  errorBox: { alignItems: 'center', paddingVertical: 40, gap: 12 },
+  errorMsg: { fontSize: 14, color: '#626262', textAlign: 'center' },
+  retryText: { fontSize: 14, color: '#0044FF', fontWeight: '500' },
 })

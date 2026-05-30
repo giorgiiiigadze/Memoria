@@ -10,6 +10,11 @@ Deno.serve(async (req: Request) => {
     return new Response('ok', { headers: { 'Access-Control-Allow-Origin': '*' } })
   }
 
+  const authHeader = req.headers.get('Authorization')
+  if (!authHeader || authHeader !== `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`) {
+    return new Response('unauthorized', { status: 401 })
+  }
+
   try {
     const { notification_id } = await req.json()
     if (!notification_id) return new Response('missing notification_id', { status: 400 })

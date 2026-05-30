@@ -15,7 +15,7 @@ import {
 export default function HomeScreen() {
   const user = useAuthStore(selectUser)
   const profile = useAuthStore(selectProfile)
-  const { drops, isLoaded, refresh } = useDrops()
+  const { drops, isLoaded, error, refresh, retry } = useDrops()
   const unreadCount = useNotificationsStore(selectUnreadCount)
 
   const displayName = profile?.display_name ?? profile?.username ?? user?.email ?? 'You'
@@ -49,7 +49,16 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {isLoaded && drops.length === 0 && (
+      {isLoaded && error && (
+        <View style={s.errorBox}>
+          <Text style={s.errorText}>{error}</Text>
+          <TouchableOpacity onPress={retry} activeOpacity={0.7}>
+            <Text style={s.retryText}>Try again</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {isLoaded && !error && drops.length === 0 && (
         <View style={s.empty}>
           <Text style={s.emptyTitle}>No drops yet</Text>
           <Text style={s.emptySub}>Tap Create to start your first one.</Text>
@@ -105,4 +114,7 @@ const s = StyleSheet.create({
     fontSize: 11, fontWeight: '600', color: '#626262',
     textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10,
   },
+  errorBox: { alignItems: 'center', paddingTop: 60, gap: 12 },
+  errorText: { fontSize: 14, color: '#626262', textAlign: 'center' },
+  retryText: { fontSize: 14, color: '#0044FF', fontWeight: '500' },
 })
