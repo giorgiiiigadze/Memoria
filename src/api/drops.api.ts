@@ -41,6 +41,19 @@ export async function createDrop(
   return data
 }
 
+export async function updateDropThumbnail(dropId: string, uri: string): Promise<void> {
+  const ext = uri.split('.').pop() ?? 'jpg'
+  const path = `${dropId}/thumbnail.${ext}`
+  const arrayBuffer = await (await fetch(uri)).arrayBuffer()
+  const { error: upErr } = await supabase.storage
+    .from('photos')
+    .upload(path, arrayBuffer, { upsert: true, contentType: `image/${ext}` })
+  if (upErr) throw upErr
+  const { data } = supabase.storage.from('photos').getPublicUrl(path)
+  const { error } = await supabase.from('drops').update({ thumbnail_url: data.publicUrl }).eq('id', dropId)
+  if (error) throw error
+}
+
 export async function inviteParticipants(
   dropId: string,
   userIds: string[],

@@ -87,6 +87,14 @@ export default function DropDetailScreen() {
 
   return (
     <ScrollView style={s.root} contentContainerStyle={s.content}>
+      {drop.thumbnail_url && (
+        <Image
+          source={{ uri: drop.thumbnail_url }}
+          style={s.heroThumb}
+          contentFit="cover"
+        />
+      )}
+
       <TouchableOpacity style={s.back} onPress={() => router.navigate((from ?? '/(app)/(home)') as any)}>
         <Text style={s.backLabel}>← Back</Text>
       </TouchableOpacity>
@@ -209,6 +217,13 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#121212' },
   content: { paddingHorizontal: H_PAD, paddingTop: 72, paddingBottom: 48 },
+  heroThumb: {
+    marginHorizontal: -H_PAD,
+    marginTop: -72,
+    width: SW,
+    aspectRatio: 16 / 9,
+    marginBottom: 24,
+  },
   back: { marginBottom: 24 },
   backLabel: { fontSize: 15, color: '#898989' },
   title: { fontSize: 28, fontWeight: '700', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 12 },

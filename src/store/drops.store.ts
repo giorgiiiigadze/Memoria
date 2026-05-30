@@ -5,9 +5,10 @@ interface Draft {
   title: string
   openDate: Date | null
   invitedIds: string[]
+  thumbnailUri: string | null
 }
 
-const EMPTY_DRAFT: Draft = { title: '', openDate: null, invitedIds: [] }
+const EMPTY_DRAFT: Draft = { title: '', openDate: null, invitedIds: [], thumbnailUri: null }
 
 interface DropsState {
   drops: DropWithParticipants[]
@@ -18,6 +19,7 @@ interface DropsState {
   setDraftTitle: (title: string) => void
   setDraftOpenDate: (date: Date | null) => void
   setDraftInvitedIds: (ids: string[]) => void
+  setDraftThumbnailUri: (uri: string | null) => void
   clearDraft: () => void
 }
 
@@ -30,6 +32,7 @@ export const useDropsStore = create<DropsState>((set) => ({
   setDraftTitle: (title) => set((s) => ({ draft: { ...s.draft, title } })),
   setDraftOpenDate: (openDate) => set((s) => ({ draft: { ...s.draft, openDate } })),
   setDraftInvitedIds: (invitedIds) => set((s) => ({ draft: { ...s.draft, invitedIds } })),
+  setDraftThumbnailUri: (thumbnailUri) => set((s) => ({ draft: { ...s.draft, thumbnailUri } })),
   clearDraft: () => set({ draft: EMPTY_DRAFT }),
 }))
 

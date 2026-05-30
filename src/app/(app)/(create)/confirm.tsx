@@ -1,5 +1,6 @@
 import { useDrops } from '@/hooks/useDrops'
 import { useFriendsStore } from '@/store/friends.store'
+import { Image } from 'expo-image'
 import { router } from 'expo-router'
 import { useState } from 'react'
 import {
@@ -46,6 +47,13 @@ export default function ConfirmScreen() {
       <Text style={s.subtitle}>Review your drop before creating it.</Text>
 
       <View style={s.card}>
+        {draft.thumbnailUri && (
+          <Image
+            source={{ uri: draft.thumbnailUri }}
+            style={s.thumbPreview}
+            contentFit="cover"
+          />
+        )}
         <Row label="Title" value={draft.title} />
         <Row label="Opens" value={draft.openDate ? formatDate(draft.openDate) : 'No date set'} />
         <Row
@@ -98,8 +106,12 @@ const s = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: '#3B3B3B',
     borderRadius: 12,
-    paddingVertical: 4,
+    overflow: 'hidden',
     marginBottom: 24,
+  },
+  thumbPreview: {
+    width: '100%',
+    aspectRatio: 16 / 9,
   },
   row: {
     flexDirection: 'row',
