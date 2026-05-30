@@ -26,7 +26,11 @@ export default function RootLayout() {
   useEffect(() => {
     bootHydrate()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange)
-    return () => subscription.unsubscribe()
+    return () => {
+      subscription.unsubscribe()
+      realtimeCleanup.current.forEach(fn => fn())
+      realtimeCleanup.current = []
+    }
   }, [])
 
   // ─── Boot hydration ─────────────────────────────────────────────────────────
