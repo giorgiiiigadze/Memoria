@@ -1,4 +1,6 @@
 import { useDropsStore } from '@/store/drops.store'
+import { Image } from 'expo-image'
+import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
 import { useState } from 'react'
 import {
@@ -48,7 +50,17 @@ function buildCalendarDays(year: number, month: number) {
 }
 
 export default function CreateScreen() {
-  const { draft, setDraftTitle, setDraftOpenDate } = useDropsStore()
+  const { draft, setDraftTitle, setDraftOpenDate, setDraftThumbnailUri } = useDropsStore()
+
+  async function pickThumbnail() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.7,
+    })
+    if (!result.canceled) setDraftThumbnailUri(result.assets[0].uri)
+  }
 
   const [showCalendar, setShowCalendar] = useState(false)
   const [calYear, setCalYear] = useState(() => new Date().getFullYear())
@@ -103,6 +115,30 @@ export default function CreateScreen() {
           maxLength={80}
           returnKeyType="done"
         />
+      </View>
+
+      {/* ── Cover photo ─────────────────────────── */}
+      <View style={s.section}>
+        <Text style={s.label}>Cover photo <Text style={s.labelOptional}>(optional)</Text></Text>
+        <TouchableOpacity style={s.thumbPicker} onPress={pickThumbnail} activeOpacity={0.8}>
+          {draft.thumbnailUri ? (
+            <>
+              <Image source={{ uri: draft.thumbnailUri }} style={s.thumbPreview} contentFit="cover" />
+              <TouchableOpacity
+                style={s.thumbRemove}
+                onPress={() => setDraftThumbnailUri(null)}
+                hitSlop={8}
+              >
+                <Text style={s.thumbRemoveLabel}>✕</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <View style={s.thumbPlaceholder}>
+              <Text style={s.thumbIcon}>📷</Text>
+              <Text style={s.thumbPlaceholderLabel}>Add cover photo</Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
       {/* ── Open date ───────────────────────────── */}
@@ -199,7 +235,7 @@ export default function CreateScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#121212' },
+  root: { flex: 1, backgroundColor: '#000000' },
   content: { paddingHorizontal: 24, paddingTop: 80, paddingBottom: 40 },
   title: { fontSize: 26, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 6 },
   subtitle: { fontSize: 14, color: '#626262', marginBottom: 36 },
@@ -227,6 +263,32 @@ const s = StyleSheet.create({
   presetLabel: { fontSize: 14, color: '#898989' },
   presetLabelActive: { color: '#FFFFFF', fontWeight: '500' },
   datePreview: { fontSize: 13, color: '#4CAF7D', marginTop: 12 },
+  labelOptional: { fontWeight: '400', color: '#3B3B3B', textTransform: 'none', letterSpacing: 0 },
+  thumbPicker: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: '#191919',
+    borderWidth: 0.5,
+    borderColor: '#3B3B3B',
+  },
+  thumbPreview: { width: '100%', height: '100%' },
+  thumbRemove: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  thumbRemoveLabel: { fontSize: 13, color: '#FFFFFF', fontWeight: '600' },
+  thumbPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
+  thumbIcon: { fontSize: 28 },
+  thumbPlaceholderLabel: { fontSize: 13, color: '#626262' },
   btn: {
     backgroundColor: '#0044FF',
     borderRadius: 8,

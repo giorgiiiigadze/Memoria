@@ -243,7 +243,7 @@ export default function SetupProfileScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#000000',
   },
   inner: {
     flexGrow: 1,

@@ -138,8 +138,8 @@ function fmtDate(iso: string) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#121212' },
-  centered: { flex: 1, backgroundColor: '#121212', alignItems: 'center', justifyContent: 'center', padding: 40 },
+  root: { flex: 1, backgroundColor: '#000000' },
+  centered: { flex: 1, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center', padding: 40 },
   backRow: { paddingHorizontal: 24, paddingTop: 64, paddingBottom: 16 },
   back: { fontSize: 15, color: '#898989' },
   header: {

@@ -79,7 +79,7 @@ function Avatar({ profile }: { profile: Profile }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#121212' },
+  root: { flex: 1, backgroundColor: '#000000' },
   content: { paddingHorizontal: 24, paddingTop: 80, paddingBottom: 40 },
   title: { fontSize: 26, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 6 },
   subtitle: { fontSize: 14, color: '#626262', marginBottom: 28 },

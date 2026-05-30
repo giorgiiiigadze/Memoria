@@ -1,4 +1,4 @@
-import { createDrop, getMyDrops, inviteParticipants } from '@/api/drops.api'
+import { createDrop, getMyDrops, inviteParticipants, updateDropThumbnail } from '@/api/drops.api'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { useEffect } from 'react'
@@ -34,9 +34,18 @@ export function useDrops() {
 
   async function submitDrop(): Promise<void> {
     if (!user) throw new Error('Not authenticated')
-    const { title, openDate, invitedIds } = draft
+    const { title, openDate, invitedIds, thumbnailUri } = draft
 
     const drop = await createDrop(title, openDate, user.id)
+
+    if (thumbnailUri) {
+      try {
+        await updateDropThumbnail(drop.id, thumbnailUri)
+      } catch (e) {
+        console.error('[submitDrop] thumbnail upload failed:', e)
+      }
+    }
+
     await inviteParticipants(drop.id, invitedIds, user.id)
     clearDraft()
     await load()

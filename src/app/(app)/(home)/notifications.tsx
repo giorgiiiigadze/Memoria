@@ -130,7 +130,7 @@ export default function NotificationsScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#121212' },
+  root: { flex: 1, backgroundColor: '#000000' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
