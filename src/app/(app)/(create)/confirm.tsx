@@ -1,5 +1,6 @@
 import { useDrops } from '@/hooks/useDrops'
 import { useFriendsStore } from '@/store/friends.store'
+import { InfoRow } from '@/components/ui/InfoRow'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
 import { useState } from 'react'
@@ -54,9 +55,9 @@ export default function ConfirmScreen() {
             contentFit="cover"
           />
         )}
-        <Row label="Title" value={draft.title} />
-        <Row label="Opens" value={draft.openDate ? formatDate(draft.openDate) : 'No date set'} />
-        <Row
+        <InfoRow label="Title" value={draft.title} />
+        <InfoRow label="Opens" value={draft.openDate ? formatDate(draft.openDate) : 'No date set'} />
+        <InfoRow
           label="Invited"
           value={
             invitedFriends.length === 0
@@ -87,15 +88,6 @@ export default function ConfirmScreen() {
   )
 }
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={s.row}>
-      <Text style={s.rowLabel}>{label}</Text>
-      <Text style={s.rowValue}>{value}</Text>
-    </View>
-  )
-}
-
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#121212' },
   content: { paddingHorizontal: 24, paddingTop: 80, paddingBottom: 40 },
@@ -113,17 +105,6 @@ const s = StyleSheet.create({
     width: '100%',
     aspectRatio: 16 / 9,
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#252525',
-  },
-  rowLabel: { fontSize: 14, color: '#626262' },
-  rowValue: { fontSize: 14, color: '#FFFFFF', fontWeight: '500', flexShrink: 1, textAlign: 'right', marginLeft: 16 },
   error: { fontSize: 13, color: '#EA4942', marginBottom: 12 },
   btn: {
     backgroundColor: '#0044FF',

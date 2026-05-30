@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { Dots } from '@/components/ui/Dots'
 import { router } from 'expo-router'
 import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
@@ -35,16 +36,6 @@ export default function Onboarding2() {
         </TouchableOpacity>
       </View>
     </SafeAreaView>
-  )
-}
-
-function Dots({ active }: { active: number }) {
-  return (
-    <View style={styles.dots}>
-      {[0, 1, 2, 3].map((i) => (
-        <View key={i} style={[styles.dot, i === active && styles.dotActive]} />
-      ))}
-    </View>
   )
 }
 
@@ -94,20 +85,6 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
     gap: 24,
     alignItems: 'center',
-  },
-  dots: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#3B3B3B',
-  },
-  dotActive: {
-    backgroundColor: '#0044FF',
-    width: 18,
   },
   btn: {
     backgroundColor: '#0044FF',

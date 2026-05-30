@@ -1,9 +1,10 @@
 import { getDrop, type DropWithParticipants } from '@/api/drops.api'
 import { getDropPhotos, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
+import { STATE_META } from '@/components/drops/DropCard'
+import { InfoRow } from '@/components/ui/InfoRow'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
-import type { DropState } from '@/types/database.types'
 import { Image } from 'expo-image'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
@@ -29,13 +30,6 @@ function formatDate(iso: string | null) {
   if (!iso) return 'No open date'
   const d = new Date(iso)
   return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
-}
-
-const STATE_META: Record<DropState, { label: string; color: string }> = {
-  active:  { label: 'Active',   color: '#0044FF' },
-  ready:   { label: 'Ready',    color: '#4CAF7D' },
-  open:    { label: 'Open',     color: '#F59E0B' },
-  expired: { label: 'Expired',  color: '#626262' },
 }
 
 export default function DropDetailScreen() {
@@ -205,15 +199,6 @@ export default function DropDetailScreen() {
   )
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={s.infoRow}>
-      <Text style={s.infoLabel}>{label}</Text>
-      <Text style={s.infoValue}>{value}</Text>
-    </View>
-  )
-}
-
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#121212' },
   content: { paddingHorizontal: H_PAD, paddingTop: 72, paddingBottom: 48 },
@@ -230,15 +215,6 @@ const s = StyleSheet.create({
   badge: { borderWidth: 0.5, borderRadius: 5, paddingHorizontal: 8, paddingVertical: 4, alignSelf: 'flex-start', marginBottom: 28 },
   badgeLabel: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   rows: { gap: 0 },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#252525',
-  },
-  infoLabel: { fontSize: 14, color: '#626262' },
-  infoValue: { fontSize: 14, color: '#FFFFFF', fontWeight: '500' },
   actionBtn: { marginTop: 24, borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
   actionBtnLabel: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
   photoSection: { marginTop: 32 },

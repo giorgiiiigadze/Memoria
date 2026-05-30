@@ -1,15 +1,14 @@
 import { useFriends } from '@/hooks/useFriends'
+import { Chip } from '@/components/friends/Chip'
+import { UserRow } from '@/components/friends/UserRow'
 import type { Profile } from '@/types/database.types'
-import { Image } from 'expo-image'
 import { useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
 import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native'
 
@@ -145,58 +144,6 @@ export default function FriendsScreen() {
   )
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
-
-function UserRow({ profile, right }: { profile: Profile; right?: ReactNode }) {
-  const initial = (profile.display_name ?? profile.username).charAt(0).toUpperCase()
-  return (
-    <View style={s.row}>
-      <View style={s.avatar}>
-        {profile.avatar_url
-          ? <Image source={profile.avatar_url} style={s.avatarImg} contentFit="cover" />
-          : <Text style={s.avatarInitial}>{initial}</Text>}
-      </View>
-      <View style={s.rowInfo}>
-        <Text style={s.rowName}>{profile.display_name ?? profile.username}</Text>
-        <Text style={s.rowHandle}>@{profile.username}</Text>
-      </View>
-      {right && <View style={s.rowRight}>{right}</View>}
-    </View>
-  )
-}
-
-function Chip({
-  label, variant, onPress, disabled, style,
-}: {
-  label: string
-  variant: 'blue' | 'green' | 'muted'
-  onPress?: () => void
-  disabled?: boolean
-  style?: object
-}) {
-  const chipStyle = [
-    s.chip,
-    variant === 'blue' && s.chipBlue,
-    variant === 'green' && s.chipGreen,
-    variant === 'muted' && s.chipMuted,
-    style,
-  ]
-  const labelStyle = [
-    s.chipLabel,
-    variant === 'blue' && s.chipLabelWhite,
-    variant === 'green' && s.chipLabelGreen,
-    variant === 'muted' && s.chipLabelMuted,
-  ]
-
-  if (!onPress) return <View style={chipStyle}><Text style={labelStyle}>{label}</Text></View>
-
-  return (
-    <TouchableOpacity style={chipStyle} onPress={onPress} disabled={disabled} activeOpacity={0.7}>
-      <Text style={labelStyle}>{label}</Text>
-    </TouchableOpacity>
-  )
-}
-
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
@@ -226,30 +173,5 @@ const s = StyleSheet.create({
     marginBottom: 12,
   },
   empty: { fontSize: 14, color: '#626262', textAlign: 'center', paddingVertical: 24, lineHeight: 22 },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#252525',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-    overflow: 'hidden',
-  },
-  avatarImg: { width: 40, height: 40, borderRadius: 20 },
-  avatarInitial: { fontSize: 15, fontWeight: '500', color: '#898989' },
-  rowInfo: { flex: 1 },
-  rowName: { fontSize: 15, fontWeight: '500', color: '#FFFFFF' },
-  rowHandle: { fontSize: 12, color: '#626262', marginTop: 1 },
-  rowRight: { marginLeft: 12 },
   requestActions: { flexDirection: 'row' },
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  chipBlue: { backgroundColor: '#0044FF' },
-  chipGreen: { borderWidth: 0.5, borderColor: '#4CAF7D' },
-  chipMuted: { borderWidth: 0.5, borderColor: '#3B3B3B' },
-  chipLabel: { fontSize: 13, fontWeight: '500' },
-  chipLabelWhite: { color: '#FFFFFF' },
-  chipLabelGreen: { color: '#4CAF7D' },
-  chipLabelMuted: { color: '#626262' },
 })
