@@ -13,7 +13,8 @@ export const supabaseStorageAdapter = {
   getItem: async (key: string): Promise<string | null> => {
     try {
       return await SecureStore.getItemAsync(key)
-    } catch {
+    } catch (error) {
+      console.error('[session] Storage adapter getItem failed:', error)
       return null
     }
   },

@@ -1,6 +1,9 @@
 import { supabase } from '@/api/client'
 import type { Photo } from '@/types/database.types'
 
+const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'heic', 'heif', 'webp'])
+const MAX_BYTES = 50 * 1024 * 1024
+
 export type PhotoWithUploader = Photo & {
   uploader: { username: string; display_name: string | null; avatar_url: string | null } | null
 }
@@ -23,10 +26,14 @@ export async function uploadDropPhoto(
   height: number | null
 ): Promise<void> {
   const ext = localUri.split('.').pop()?.split('?')[0]?.toLowerCase() ?? 'jpg'
+  if (!ALLOWED_EXTENSIONS.has(ext)) throw new Error(`Unsupported file type: .${ext}`)
+
   const fileName = `${dropId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
 
   const response = await fetch(localUri)
   const arrayBuffer = await response.arrayBuffer()
+
+  if (arrayBuffer.byteLength > MAX_BYTES) throw new Error('Photo exceeds 50 MB limit')
 
   const { error: storageError } = await supabase.storage
     .from('photos')
@@ -42,23 +49,10 @@ export async function uploadDropPhoto(
 
   if (insertError) throw insertError
 
-  // Accept invite and update upload count (best-effort; DB trigger also handles this)
-  const { data: participant } = await supabase
+  // upload_count is managed by a DB trigger; only update status fields here
+  await supabase
     .from('drop_participants')
-    .select('id, upload_count, status')
+    .update({ status: 'accepted' as const, has_uploaded: true, uploaded_at: new Date().toISOString() })
     .eq('drop_id', dropId)
     .eq('user_id', uploaderId)
-    .maybeSingle()
-
-  if (participant) {
-    await supabase
-      .from('drop_participants')
-      .update({
-        status: 'accepted' as const,
-        has_uploaded: true,
-        upload_count: participant.upload_count + 1,
-        uploaded_at: new Date().toISOString(),
-      })
-      .eq('id', participant.id)
-  }
 }

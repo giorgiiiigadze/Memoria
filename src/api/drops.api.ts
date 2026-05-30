@@ -1,6 +1,9 @@
 import { supabase } from '@/api/client'
 import type { Drop, DropParticipant, Profile } from '@/types/database.types'
 
+const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'heic', 'heif', 'webp'])
+const MAX_BYTES = 50 * 1024 * 1024
+
 export type DropWithParticipants = Drop & {
   participants: Pick<DropParticipant, 'id' | 'user_id' | 'status' | 'has_uploaded'>[]
   creator: Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url'>
@@ -42,9 +45,14 @@ export async function createDrop(
 }
 
 export async function updateDropThumbnail(dropId: string, uri: string): Promise<void> {
-  const ext = uri.split('.').pop() ?? 'jpg'
+  const ext = uri.split('.').pop()?.split('?')[0]?.toLowerCase() ?? 'jpg'
+  if (!ALLOWED_EXTENSIONS.has(ext)) throw new Error(`Unsupported file type: .${ext}`)
+
   const path = `${dropId}/thumbnail.${ext}`
   const arrayBuffer = await (await fetch(uri)).arrayBuffer()
+
+  if (arrayBuffer.byteLength > MAX_BYTES) throw new Error('Photo exceeds 50 MB limit')
+
   const { error: upErr } = await supabase.storage
     .from('photos')
     .upload(path, arrayBuffer, { upsert: true, contentType: `image/${ext}` })
