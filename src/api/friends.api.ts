@@ -6,16 +6,16 @@ export type FriendRequest = {
   profile: Profile
 }
 
-export async function searchUsers(query: string, myId: string): Promise<Profile[]> {
+export async function searchUsers(query: string, myId: string): Promise<Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url'>[]> {
   if (!query.trim()) return []
   const { data, error } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, username, display_name, avatar_url')
     .ilike('username', `%${query.trim()}%`)
     .neq('id', myId)
     .limit(20)
   if (error) throw error
-  return data ?? []
+  return (data ?? []) as unknown as Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url'>[]
 }
 
 export async function getFriends(myId: string): Promise<Profile[]> {

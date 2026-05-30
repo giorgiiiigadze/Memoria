@@ -26,13 +26,15 @@ export async function getNotifications(userId: string): Promise<NotificationWith
 }
 
 export async function markNotificationRead(notificationId: string): Promise<void> {
-  await supabase.from('notifications').update({ read: true }).eq('id', notificationId)
+  const { error } = await supabase.from('notifications').update({ read: true }).eq('id', notificationId)
+  if (error) throw error
 }
 
 export async function markAllNotificationsRead(userId: string): Promise<void> {
-  await supabase
+  const { error } = await supabase
     .from('notifications')
     .update({ read: true })
     .eq('user_id', userId)
     .eq('read', false)
+  if (error) throw error
 }

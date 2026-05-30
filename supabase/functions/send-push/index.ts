@@ -26,7 +26,7 @@ Deno.serve(async (req: Request) => {
       .eq('sent_push', false)
       .maybeSingle()
 
-    if (error || !notif) return new Response('not found', { status: 200 })
+    if (error || !notif) return new Response('not found', { status: 404 })
 
     const pushToken = (notif.user as any)?.push_token
     if (!pushToken || !pushToken.startsWith('ExponentPushToken')) {
@@ -80,6 +80,7 @@ Deno.serve(async (req: Request) => {
 
     if (!expoRes.ok) {
       console.error('[send-push] Expo API error:', await expoRes.text())
+      return new Response('push failed', { status: 500 })
     }
 
     await supabase.from('notifications').update({ sent_push: true }).eq('id', notification_id)
