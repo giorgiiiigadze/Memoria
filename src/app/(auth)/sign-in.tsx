@@ -1,11 +1,11 @@
 import { supabase } from '@/api/client'
+import { Button } from '@/components/ui/Button'
 import { useAuthStore } from '@/store/auth.store'
-import type { Profile } from '@/types/database.types'
+import { AntDesign } from '@expo/vector-icons'
 import { Session } from '@supabase/supabase-js'
 import { router } from 'expo-router'
 import { useState } from 'react'
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -54,12 +54,7 @@ export default function SignInScreen() {
         email: email.trim(),
         password,
       })
-
-      if (sbError) {
-        setError(sbError.message)
-        return
-      }
-
+      if (sbError) { setError(sbError.message); return }
       setSession(data.session)
       await handlePostAuth(data.session, false)
     } catch {
@@ -78,12 +73,7 @@ export default function SignInScreen() {
         email: email.trim(),
         password,
       })
-
-      if (sbError) {
-        setError(sbError.message)
-        return
-      }
-
+      if (sbError) { setError(sbError.message); return }
       if (!data.session) {
         if (data.user?.identities?.length === 0) {
           setError('An account with this email already exists. Try signing in instead.')
@@ -92,7 +82,6 @@ export default function SignInScreen() {
         setInfo('Account created! Check your email to confirm, then sign in.')
         return
       }
-
       setSession(data.session)
       await handlePostAuth(data.session, true)
     } catch {
@@ -100,6 +89,16 @@ export default function SignInScreen() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // TODO: implement Google OAuth via supabase.auth.signInWithOAuth
+  async function handleGoogleSignIn() {
+    console.log('Google sign-in — TODO')
+  }
+
+  // TODO: implement Apple OAuth via supabase.auth.signInWithIdToken + expo-apple-authentication
+  async function handleAppleSignIn() {
+    console.log('Apple sign-in — TODO')
   }
 
   const disabled = loading || !email.trim() || !password
@@ -110,7 +109,6 @@ export default function SignInScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.inner}>
-
         <View style={styles.header}>
           <Text style={styles.wordmark}>memoria</Text>
           <Text style={styles.subtitle}>Sign in or create an account.</Text>
@@ -128,7 +126,6 @@ export default function SignInScreen() {
             autoCorrect={false}
             returnKeyType="next"
           />
-
           <TextInput
             style={styles.input}
             placeholder="Password"
@@ -143,27 +140,51 @@ export default function SignInScreen() {
           {error && <Text style={styles.error}>{error}</Text>}
           {info && <Text style={styles.info}>{info}</Text>}
 
-          <TouchableOpacity
-            style={[styles.btnPrimary, disabled && styles.btnDisabled]}
+          <Button
+            label="Sign in"
             onPress={handleSignIn}
             disabled={disabled}
+            loading={loading}
+            style={styles.signInBtn}
+          />
+
+          <Button
+            label="Create account"
+            onPress={handleSignUp}
+            variant="secondary"
+            disabled={disabled}
+          />
+        </View>
+
+        {/* Divider */}
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        {/* Social auth */}
+        <View style={styles.social}>
+          <TouchableOpacity
+            style={[styles.btnSocial, loading && styles.btnDisabled]}
+            onPress={handleAppleSignIn}
+            disabled={loading}
             activeOpacity={0.8}
           >
-            {loading
-              ? <ActivityIndicator color="#fff" size="small" />
-              : <Text style={styles.btnPrimaryLabel}>Sign in</Text>}
+            <AntDesign size={16} color="#FFFFFF" />
+            <Text style={styles.btnSocialLabel}>Continue with Apple</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.btnGhost, disabled && styles.btnDisabled]}
-            onPress={handleSignUp}
-            disabled={disabled}
+            style={[styles.btnSocial, loading && styles.btnDisabled]}
+            onPress={handleGoogleSignIn}
+            disabled={loading}
             activeOpacity={0.8}
           >
-            <Text style={styles.btnGhostLabel}>Create account</Text>
+            <AntDesign name="google" size={15} color="#FFFFFF" />
+            <Text style={styles.btnSocialLabel}>Continue with Google</Text>
           </TouchableOpacity>
         </View>
-
       </View>
     </KeyboardAvoidingView>
   )
@@ -217,29 +238,42 @@ const styles = StyleSheet.create({
     color: '#4CAF7D',
     paddingHorizontal: 2,
   },
-  btnPrimary: {
-    backgroundColor: '#0044FF',
-    borderRadius: 8,
-    paddingVertical: 13,
-    alignItems: 'center',
+  signInBtn: {
     marginTop: 4,
   },
   btnDisabled: {
     opacity: 0.5,
   },
-  btnPrimaryLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#FFFFFF',
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+    gap: 12,
   },
-  btnGhost: {
+  dividerLine: {
+    flex: 1,
+    height: 0.5,
+    backgroundColor: '#3B3B3B',
+  },
+  dividerText: {
+    fontSize: 12,
+    color: '#626262',
+  },
+  social: {
+    gap: 10,
+  },
+  btnSocial: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
     borderWidth: 0.5,
     borderColor: '#3B3B3B',
     borderRadius: 8,
     paddingVertical: 13,
-    alignItems: 'center',
+    backgroundColor: '#191919',
   },
-  btnGhostLabel: {
+  btnSocialLabel: {
     fontSize: 14,
     color: '#C4C4C4',
   },

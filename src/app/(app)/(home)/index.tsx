@@ -1,8 +1,8 @@
+import type { DropWithParticipants } from '@/api/drops.api'
+import { DropCard } from '@/components/drops/DropCard'
 import { useDrops } from '@/hooks/useDrops'
 import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
 import { selectUnreadCount, useNotificationsStore } from '@/store/notifications.store'
-import { DropCard } from '@/components/drops/DropCard'
-import type { DropWithParticipants } from '@/api/drops.api'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback } from 'react'
 import {
