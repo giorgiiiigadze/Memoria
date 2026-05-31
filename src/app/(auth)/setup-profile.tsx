@@ -1,12 +1,14 @@
 // app/(auth)/setup-profile.tsx
 
 import { supabase } from '@/api/client'
+import { Button } from '@/components/ui/Button'
 import { useAuthStore } from '@/store/auth.store'
+import { AntDesign } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
 import { useState } from 'react'
 import {
-  ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -38,12 +40,13 @@ export default function SetupProfileScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [1, 1],       // force square crop
+      aspect: [1, 1], // force square crop
       quality: 0.7,
     })
 
     if (!result.canceled) {
       setAvatarUri(result.assets[0].uri)
+      clearError()
     }
   }
 
@@ -89,12 +92,10 @@ export default function SetupProfileScreen() {
       setError('Username is required.')
       return
     }
-
     if (trimmedUsername.length < 3) {
       setError('Username must be at least 3 characters.')
       return
     }
-
     if (!/^[a-z0-9_]+$/.test(trimmedUsername)) {
       setError('Username can only contain letters, numbers, and underscores.')
       return
@@ -138,7 +139,6 @@ export default function SetupProfileScreen() {
       .single()
 
     if (insertError) {
-      // Unique constraint violation on username column
       if (insertError.code === '23505') {
         setError('That username is already taken.')
       } else {
@@ -166,50 +166,60 @@ export default function SetupProfileScreen() {
       <ScrollView
         contentContainerStyle={styles.inner}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
           <Text style={styles.title}>Set up your profile</Text>
-          <Text style={styles.subtitle}>This is how your friends will find and recognise you.</Text>
+          <Text style={styles.subtitle}>
+            This is how friends will find and recognise you.
+          </Text>
         </View>
 
         {/* Avatar picker */}
-        <TouchableOpacity style={styles.avatarBtn} onPress={pickAvatar} activeOpacity={0.8}>
-          {avatarUri ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <View style={styles.avatarPreview}>
-              <Text style={styles.avatarPreviewText}>✓ Photo selected</Text>
-            </View>
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarPlaceholderText}>Add photo</Text>
-              <Text style={styles.avatarPlaceholderSub}>Optional</Text>
-            </View>
-          )}
+        <TouchableOpacity style={styles.avatarWrap} onPress={pickAvatar} activeOpacity={0.85}>
+          <View style={styles.avatar}>
+            {avatarUri ? (
+              <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
+            ) : (
+              <AntDesign name="camera" size={26} color="#626262" />
+            )}
+          </View>
+          <View style={styles.avatarBadge}>
+            <AntDesign name="camera" size={13} color="#FFFFFF" />
+          </View>
         </TouchableOpacity>
+        <Text style={styles.avatarCaption}>
+          {avatarUri ? 'Tap to change' : 'Add a photo · optional'}
+        </Text>
 
         <View style={styles.form}>
           <View>
             <Text style={styles.label}>Username</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="giorgi_g"
-              placeholderTextColor="#898989"
-              value={username}
-              onChangeText={(v) => { setUsername(v); clearError() }}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="next"
-              maxLength={30}
-            />
+            <View style={styles.usernameRow}>
+              <Text style={styles.atSign}>@</Text>
+              <TextInput
+                style={styles.usernameInput}
+                placeholder="giorgi_g"
+                placeholderTextColor="#626262"
+                value={username}
+                onChangeText={(v) => { setUsername(v); clearError() }}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="next"
+                maxLength={30}
+              />
+            </View>
             <Text style={styles.hint}>Letters, numbers, underscores only.</Text>
           </View>
 
           <View>
-            <Text style={styles.label}>Display name <Text style={styles.optional}>(optional)</Text></Text>
+            <Text style={styles.label}>
+              Display name <Text style={styles.optional}>(optional)</Text>
+            </Text>
             <TextInput
               style={styles.input}
               placeholder="Giorgi"
-              placeholderTextColor="#898989"
+              placeholderTextColor="#626262"
               value={displayName}
               onChangeText={(v) => { setDisplayName(v); clearError() }}
               returnKeyType="done"
@@ -221,18 +231,14 @@ export default function SetupProfileScreen() {
           {avatarWarning && <Text style={styles.warning}>{avatarWarning}</Text>}
           {error && <Text style={styles.error}>{error}</Text>}
 
-          <TouchableOpacity
-            style={[styles.btnPrimary, disabled && styles.btnDisabled]}
+          <Button
+            label="Continue"
             onPress={handleSubmit}
             disabled={disabled}
-            activeOpacity={0.8}
-          >
-            {loading
-              ? <ActivityIndicator color="#fff" size="small" />
-              : <Text style={styles.btnPrimaryLabel}>Continue</Text>}
-          </TouchableOpacity>
+            loading={loading}
+            style={styles.cta}
+          />
         </View>
-
       </ScrollView>
     </KeyboardAvoidingView>
   )
@@ -252,61 +258,63 @@ const styles = StyleSheet.create({
     paddingVertical: 48,
   },
   header: {
+    alignItems: 'center',
     marginBottom: 32,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '600',
     color: '#FFFFFF',
     letterSpacing: -0.5,
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
     color: '#898989',
     lineHeight: 20,
+    textAlign: 'center',
   },
-  avatarBtn: {
+  avatarWrap: {
     alignSelf: 'center',
-    marginBottom: 32,
   },
-  avatarPlaceholder: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+  avatar: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     backgroundColor: '#191919',
     borderWidth: 0.5,
     borderColor: '#3B3B3B',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
-  avatarPlaceholderText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#C4C4C4',
+  avatarImage: {
+    width: '100%',
+    height: '100%',
   },
-  avatarPlaceholderSub: {
-    fontSize: 11,
-    color: '#626262',
-    marginTop: 2,
-  },
-  avatarPreview: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: '#191919',
-    borderWidth: 0.5,
-    borderColor: '#0044FF',
+  avatarBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#0044FF',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#000000',
   },
-  avatarPreviewText: {
+  avatarCaption: {
+    alignSelf: 'center',
+    marginTop: 10,
+    marginBottom: 36,
     fontSize: 12,
-    color: '#6798FF',
-    fontWeight: '500',
+    color: '#626262',
   },
   form: {
-    gap: 16,
+    gap: 18,
   },
   label: {
     fontSize: 12,
@@ -322,24 +330,44 @@ const styles = StyleSheet.create({
     textTransform: 'none',
     letterSpacing: 0,
   },
+  usernameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#191919',
+    borderWidth: 0.5,
+    borderColor: '#3B3B3B',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+  },
+  atSign: {
+    fontSize: 15,
+    color: '#626262',
+    marginRight: 2,
+  },
+  usernameInput: {
+    flex: 1,
+    paddingVertical: 13,
+    fontSize: 15,
+    color: '#FFFFFF',
+  },
   input: {
     backgroundColor: '#191919',
     borderWidth: 0.5,
     borderColor: '#3B3B3B',
-    borderRadius: 8,
+    borderRadius: 10,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 13,
     fontSize: 15,
     color: '#FFFFFF',
   },
   hint: {
     fontSize: 12,
     color: '#626262',
-    marginTop: 5,
+    marginTop: 6,
   },
   warning: {
     fontSize: 13,
-    color: '#F59E0B',
+    color: '#FFBB00',
     paddingHorizontal: 2,
   },
   error: {
@@ -347,19 +375,7 @@ const styles = StyleSheet.create({
     color: '#EA4942',
     paddingHorizontal: 2,
   },
-  btnPrimary: {
-    backgroundColor: '#0044FF',
-    borderRadius: 8,
-    paddingVertical: 13,
-    alignItems: 'center',
+  cta: {
     marginTop: 4,
-  },
-  btnDisabled: {
-    opacity: 0.5,
-  },
-  btnPrimaryLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#FFFFFF',
   },
 })

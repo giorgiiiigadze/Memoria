@@ -1,10 +1,10 @@
 import {
-    ActivityIndicator,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    type StyleProp,
-    type ViewStyle,
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native'
 
 type Variant = 'primary' | 'secondary'
@@ -63,8 +63,8 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: 14,
-    paddingVertical: 14,
+    borderRadius: 16,
+    paddingVertical: 18,
     paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     borderColor: '#626262',
   },
   disabled: {
-    backgroundColor: '#6E6E6E',
+    backgroundColor: '#565658',
     borderWidth: 0,
   },
   label: {
@@ -93,6 +93,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   labelDisabled: {
-    color: '#3B3B3B',
+    color: '0000',
   },
 })
