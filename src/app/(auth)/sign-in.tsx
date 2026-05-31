@@ -1,6 +1,8 @@
-import { AntDesign } from '@expo/vector-icons'
+import { AntDesign, FontAwesome } from '@expo/vector-icons'
 import { router } from 'expo-router'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+
+const serif = Platform.select({ ios: 'Georgia', default: 'serif' })
 
 export default function SignInScreen() {
   async function handleGoogleSignIn() {
@@ -13,34 +15,47 @@ export default function SignInScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <Text style={styles.wordmark}>memoria</Text>
-        <Text style={styles.tagline}>your memories, beautifully kept.</Text>
+      <View style={styles.brand}>
+        <Text style={styles.welcome}>Welcome to</Text>
+        <View style={styles.brandRow}>
+          <FontAwesome name="asterisk" size={26} color="#FFFFFF" />
+          <Text style={styles.brandName}>memoria</Text>
+        </View>
       </View>
 
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.btnSocial} onPress={handleAppleSignIn} activeOpacity={0.8}>
-          <AntDesign name="apple1" size={16} color="#FFFFFF" />
-          <Text style={styles.btnSocialLabel}>Continue with Apple</Text>
-        </TouchableOpacity>
+        <View style={styles.row}>
+          <TouchableOpacity
+            style={[styles.btn, styles.btnLight, styles.btnHalf]}
+            onPress={handleAppleSignIn}
+            activeOpacity={0.85}
+          >
+            <AntDesign name="apple1" size={16} color="#0A0A0A" />
+            <Text style={styles.btnLightLabel}>Apple</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.btnSocial} onPress={handleGoogleSignIn} activeOpacity={0.8}>
-          <AntDesign name="google" size={15} color="#FFFFFF" />
-          <Text style={styles.btnSocialLabel}>Continue with Google</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.btn, styles.btnLight, styles.btnHalf]}
+            onPress={handleGoogleSignIn}
+            activeOpacity={0.85}
+          >
+            <AntDesign name="google" size={15} color="#0A0A0A" />
+            <Text style={styles.btnLightLabel}>Google</Text>
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity
-          style={[styles.btnSocial, styles.btnEmail]}
+          style={[styles.btn, styles.btnDark]}
           onPress={() => router.push('/(auth)/sign-in-email')}
-          activeOpacity={0.8}
+          activeOpacity={0.85}
         >
           <AntDesign name="mail" size={16} color="#FFFFFF" />
-          <Text style={styles.btnSocialLabel}>Continue with Email</Text>
+          <Text style={styles.btnDarkLabel}>Continue with Email</Text>
         </TouchableOpacity>
 
         <Text style={styles.terms}>
-          By continuing, you agree to our{' '}
-          <Text style={styles.termsLink}>Terms</Text>
+          By signing up, you agree to{'\n'}memoria's{' '}
+          <Text style={styles.termsLink}>Terms of Service</Text>
           {' '}and{' '}
           <Text style={styles.termsLink}>Privacy Policy</Text>
         </Text>
@@ -54,55 +69,73 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
     paddingHorizontal: 24,
-    paddingBottom: 48,
-  },
-  header: {
-    flex: 1,
-    justifyContent: 'center',
     paddingBottom: 40,
   },
-  wordmark: {
-    fontSize: 40,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    letterSpacing: -1.5,
-    marginBottom: 10,
+  brand: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  tagline: {
-    fontSize: 15,
-    color: '#626262',
+  welcome: {
+    fontFamily: serif,
+    fontSize: 34,
+    color: '#FFFFFF',
+    marginBottom: 6,
+  },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  brandName: {
+    fontFamily: serif,
+    fontSize: 40,
+    color: '#FFFFFF',
   },
   actions: {
-    gap: 10,
+    gap: 12,
   },
-  btnSocial: {
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  btn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    borderWidth: 0.5,
-    borderColor: '#3B3B3B',
-    borderRadius: 14,
-    paddingVertical: 14,
-    backgroundColor: '#191919',
+    gap: 8,
+    paddingVertical: 16,
   },
-  btnEmail: {
-    borderColor: '#555555',
-    backgroundColor: '#1C1C1C',
+  btnHalf: {
+    flex: 1,
   },
-  btnSocialLabel: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#C4C4C4',
+  btnLight: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 30,
+  },
+  btnLightLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#0A0A0A',
+  },
+  btnDark: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 16,
+  },
+  btnDarkLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   terms: {
     textAlign: 'center',
-    fontSize: 12,
-    color: '#4A4A4A',
-    marginTop: 6,
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#555555',
+    marginTop: 12,
   },
   termsLink: {
-    color: '#626262',
+    color: '#888888',
     textDecorationLine: 'underline',
   },
 })
