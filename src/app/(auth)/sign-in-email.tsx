@@ -26,7 +26,6 @@ export default function SignInEmailScreen() {
     <KeyboardAvoidingView
       style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={0}
     >
       <TouchableOpacity style={styles.back} onPress={() => router.back()} hitSlop={12}>
         <AntDesign name="left" size={20} color="#FFFFFF" />
@@ -34,11 +33,12 @@ export default function SignInEmailScreen() {
 
       <View style={styles.body}>
         <View style={styles.top}>
+          <Text style={styles.wordmark}>memoria.</Text>
           <Text style={styles.heading}>What's your email?</Text>
           <TextInput
             style={styles.input}
             placeholder="your@email.com"
-            placeholderTextColor="#3B3B3B"
+            placeholderTextColor="#444444"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -50,18 +50,16 @@ export default function SignInEmailScreen() {
           />
         </View>
 
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[styles.btn, hasValue ? styles.btnActive : styles.btnInactive]}
-            onPress={handleContinue}
-            disabled={!hasValue}
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.btnLabel, hasValue ? styles.btnLabelActive : styles.btnLabelInactive]}>
-              Continue
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={[styles.btn, hasValue && styles.btnActive]}
+          onPress={handleContinue}
+          disabled={!hasValue}
+          activeOpacity={0.85}
+        >
+          <Text style={[styles.btnLabel, hasValue && styles.btnLabelActive]}>
+            Continue
+          </Text>
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   )
@@ -81,48 +79,51 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 24,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
     justifyContent: 'space-between',
   },
   top: {
-    marginTop: 32,
+    marginTop: 24,
+    alignItems: 'center',
   },
-  heading: {
-    fontSize: 26,
-    fontWeight: '600',
+  wordmark: {
+    fontSize: 22,
+    fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: -0.5,
-    marginBottom: 28,
+    marginBottom: 32,
+  },
+  heading: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 16,
   },
   input: {
-    fontSize: 28,
-    fontWeight: '500',
+    fontSize: 42,
+    fontWeight: '700',
     color: '#FFFFFF',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3B3B3B',
+    textAlign: 'center',
+    width: '100%',
+    paddingVertical: 4,
   },
-  footer: {},
   btn: {
-    borderRadius: 14,
+    borderRadius: 50,
     paddingVertical: 16,
     alignItems: 'center',
+    backgroundColor: '#2C2C2C',
   },
   btnActive: {
     backgroundColor: '#FFFFFF',
   },
-  btnInactive: {
-    backgroundColor: '#1C1C1C',
-  },
   btnLabel: {
     fontSize: 16,
     fontWeight: '700',
+    color: '#7A7A7A',
   },
   btnLabelActive: {
-    color: '#0A0A0A',
-  },
-  btnLabelInactive: {
-    color: '#3B3B3B',
+    color: '#000000',
   },
 })
