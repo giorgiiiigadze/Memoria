@@ -1,6 +1,6 @@
 import { AuthStepLayout } from '@/components/ui/AuthStepLayout'
 import { BigInput } from '@/components/ui/BigInput'
-import { PillButton } from '@/components/ui/PillButton'
+import { Button } from '@/components/ui/Button'
 import { router } from 'expo-router'
 import { useState } from 'react'
 
@@ -18,10 +18,9 @@ export default function SignInEmailScreen() {
     <AuthStepLayout
       heading="What's your email?"
       footer={
-        <PillButton
+        <Button
           label="Continue"
           onPress={handleContinue}
-          active={hasValue}
           disabled={!hasValue}
         />
       }

@@ -1,7 +1,7 @@
 import { supabase } from '@/api/client'
 import { AuthStepLayout } from '@/components/ui/AuthStepLayout'
 import { BigInput } from '@/components/ui/BigInput'
-import { PillButton } from '@/components/ui/PillButton'
+import { Button } from '@/components/ui/Button'
 import { useAuthStore } from '@/store/auth.store'
 import { Session } from '@supabase/supabase-js'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -80,19 +80,17 @@ export default function SignInPasswordScreen() {
       heading={`Hi ${email.split('@')[0]}, what's your password?`}
       footer={
         <>
-          <PillButton
+          <Button
             label="Sign in"
             onPress={handleSignIn}
-            active={hasValue}
             disabled={!hasValue}
             loading={loading}
           />
-          <PillButton
+          <Button
             label="Create account"
             onPress={handleSignUp}
-            active={hasValue}
-            disabled={!hasValue || loading}
             variant="secondary"
+            disabled={!hasValue || loading}
           />
         </>
       }
