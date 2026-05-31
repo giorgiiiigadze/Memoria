@@ -20,43 +20,48 @@ export default function SignInEmailScreen() {
     router.push({ pathname: '/(auth)/sign-in-password', params: { email: trimmed } })
   }
 
+  const hasValue = email.trim().length > 0
+
   return (
     <KeyboardAvoidingView
       style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
     >
       <TouchableOpacity style={styles.back} onPress={() => router.back()} hitSlop={12}>
         <AntDesign name="left" size={20} color="#FFFFFF" />
       </TouchableOpacity>
 
-      <View style={styles.inner}>
-        <Text style={styles.heading}>What's your email?</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
-          placeholderTextColor="#898989"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          autoFocus
-          returnKeyType="go"
-          onSubmitEditing={handleContinue}
-        />
-      </View>
+      <View style={styles.body}>
+        <View style={styles.top}>
+          <Text style={styles.heading}>What's your email?</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="your@email.com"
+            placeholderTextColor="#3B3B3B"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoFocus
+            returnKeyType="go"
+            onSubmitEditing={handleContinue}
+          />
+        </View>
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.continueBtn, !email.trim() && styles.continueBtnDisabled]}
-          onPress={handleContinue}
-          disabled={!email.trim()}
-          activeOpacity={0.85}
-        >
-          <Text style={[styles.continueBtnLabel, !email.trim() && styles.continueBtnLabelDisabled]}>
-            Continue
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[styles.btn, hasValue ? styles.btnActive : styles.btnInactive]}
+            onPress={handleContinue}
+            disabled={!hasValue}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.btnLabel, hasValue ? styles.btnLabelActive : styles.btnLabelInactive]}>
+              Continue
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   )
@@ -66,53 +71,58 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#000000',
-    paddingHorizontal: 24,
-    paddingBottom: 48,
   },
   back: {
     marginTop: 56,
+    marginLeft: 24,
     width: 40,
     height: 40,
     justifyContent: 'center',
   },
-  inner: {
+  body: {
     flex: 1,
-    justifyContent: 'center',
-    paddingBottom: 80,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    justifyContent: 'space-between',
+  },
+  top: {
+    marginTop: 32,
   },
   heading: {
     fontSize: 26,
     fontWeight: '600',
     color: '#FFFFFF',
     letterSpacing: -0.5,
-    marginBottom: 20,
+    marginBottom: 28,
   },
   input: {
-    backgroundColor: '#191919',
-    borderWidth: 0.5,
-    borderColor: '#3B3B3B',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
+    fontSize: 28,
+    fontWeight: '500',
     color: '#FFFFFF',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#3B3B3B',
   },
   footer: {},
-  continueBtn: {
-    backgroundColor: '#FFFFFF',
+  btn: {
     borderRadius: 14,
-    paddingVertical: 14,
+    paddingVertical: 16,
     alignItems: 'center',
   },
-  continueBtnDisabled: {
-    backgroundColor: '#2A2A2A',
+  btnActive: {
+    backgroundColor: '#FFFFFF',
   },
-  continueBtnLabel: {
+  btnInactive: {
+    backgroundColor: '#1C1C1C',
+  },
+  btnLabel: {
     fontSize: 16,
     fontWeight: '700',
+  },
+  btnLabelActive: {
     color: '#0A0A0A',
   },
-  continueBtnLabelDisabled: {
-    color: '#555555',
+  btnLabelInactive: {
+    color: '#3B3B3B',
   },
 })

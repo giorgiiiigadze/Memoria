@@ -5,6 +5,7 @@ import { Session } from '@supabase/supabase-js'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useState } from 'react'
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -79,60 +80,69 @@ export default function SignInPasswordScreen() {
     }
   }
 
-  const disabled = loading || !password
+  const hasValue = password.length > 0
 
   return (
     <KeyboardAvoidingView
       style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
     >
       <TouchableOpacity style={styles.back} onPress={() => router.back()} hitSlop={12}>
         <AntDesign name="left" size={20} color="#FFFFFF" />
       </TouchableOpacity>
 
-      <View style={styles.inner}>
-        <Text style={styles.heading}>Enter your password</Text>
-        <Text style={styles.emailHint}>{email}</Text>
+      <View style={styles.body}>
+        <View style={styles.top}>
+          <Text style={styles.heading}>Enter your password</Text>
+          <Text style={styles.emailHint}>{email}</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#898989"
-          value={password}
-          onChangeText={(v) => { setPassword(v); if (error) setError(null); if (info) setInfo(null) }}
-          secureTextEntry
-          autoFocus
-          returnKeyType="go"
-          onSubmitEditing={handleSignIn}
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#3B3B3B"
+            value={password}
+            onChangeText={(v) => {
+              setPassword(v)
+              if (error) setError(null)
+              if (info) setInfo(null)
+            }}
+            secureTextEntry
+            autoFocus
+            returnKeyType="go"
+            onSubmitEditing={handleSignIn}
+          />
 
-        {error && <Text style={styles.error}>{error}</Text>}
-        {info && <Text style={styles.info}>{info}</Text>}
-      </View>
+          {error && <Text style={styles.error}>{error}</Text>}
+          {info && <Text style={styles.info}>{info}</Text>}
+        </View>
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.primaryBtn, disabled && styles.primaryBtnDisabled]}
-          onPress={handleSignIn}
-          disabled={disabled}
-          activeOpacity={0.85}
-        >
-          {loading
-            ? null
-            : <Text style={[styles.primaryBtnLabel, disabled && styles.primaryBtnLabelDisabled]}>Sign in</Text>
-          }
-        </TouchableOpacity>
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[styles.primaryBtn, (!hasValue || loading) && styles.primaryBtnInactive]}
+            onPress={handleSignIn}
+            disabled={!hasValue || loading}
+            activeOpacity={0.85}
+          >
+            {loading
+              ? <ActivityIndicator color="#555555" size="small" />
+              : <Text style={[styles.primaryBtnLabel, (!hasValue || loading) && styles.primaryBtnLabelInactive]}>
+                  Sign in
+                </Text>
+            }
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.secondaryBtn, disabled && styles.secondaryBtnDisabled]}
-          onPress={handleSignUp}
-          disabled={disabled}
-          activeOpacity={0.85}
-        >
-          <Text style={[styles.secondaryBtnLabel, disabled && styles.secondaryBtnLabelDisabled]}>
-            Create account
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.secondaryBtn, (!hasValue || loading) && styles.secondaryBtnInactive]}
+            onPress={handleSignUp}
+            disabled={!hasValue || loading}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.secondaryBtnLabel, (!hasValue || loading) && styles.secondaryBtnLabelInactive]}>
+              Create account
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   )
@@ -142,19 +152,22 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#000000',
-    paddingHorizontal: 24,
-    paddingBottom: 48,
   },
   back: {
     marginTop: 56,
+    marginLeft: 24,
     width: 40,
     height: 40,
     justifyContent: 'center',
   },
-  inner: {
+  body: {
     flex: 1,
-    justifyContent: 'center',
-    paddingBottom: 80,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    justifyContent: 'space-between',
+  },
+  top: {
+    marginTop: 32,
   },
   heading: {
     fontSize: 26,
@@ -166,58 +179,54 @@ const styles = StyleSheet.create({
   emailHint: {
     fontSize: 14,
     color: '#626262',
-    marginBottom: 20,
+    marginBottom: 28,
   },
   input: {
-    backgroundColor: '#191919',
-    borderWidth: 0.5,
-    borderColor: '#3B3B3B',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
+    fontSize: 28,
+    fontWeight: '500',
     color: '#FFFFFF',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#3B3B3B',
   },
   error: {
-    marginTop: 8,
+    marginTop: 12,
     fontSize: 13,
     color: '#EA4942',
-    paddingHorizontal: 2,
   },
   info: {
-    marginTop: 8,
+    marginTop: 12,
     fontSize: 13,
     color: '#4CAF7D',
-    paddingHorizontal: 2,
   },
   footer: {
     gap: 10,
   },
   primaryBtn: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 14,
-    paddingVertical: 14,
+    paddingVertical: 16,
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
-  primaryBtnDisabled: {
-    backgroundColor: '#2A2A2A',
+  primaryBtnInactive: {
+    backgroundColor: '#1C1C1C',
   },
   primaryBtnLabel: {
     fontSize: 16,
     fontWeight: '700',
     color: '#0A0A0A',
   },
-  primaryBtnLabelDisabled: {
-    color: '#555555',
+  primaryBtnLabelInactive: {
+    color: '#3B3B3B',
   },
   secondaryBtn: {
     borderRadius: 14,
-    paddingVertical: 14,
+    paddingVertical: 16,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#626262',
   },
-  secondaryBtnDisabled: {
+  secondaryBtnInactive: {
     borderColor: '#2A2A2A',
   },
   secondaryBtnLabel: {
@@ -225,7 +234,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  secondaryBtnLabelDisabled: {
-    color: '#555555',
+  secondaryBtnLabelInactive: {
+    color: '#3B3B3B',
   },
 })
