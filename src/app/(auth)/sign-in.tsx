@@ -1,6 +1,9 @@
-import { AntDesign, FontAwesome } from '@expo/vector-icons'
+import { Button } from '@/components/ui/Button'
+import { AntDesign } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StatusBar } from 'expo-status-bar'
+import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const serif = Platform.select({ ios: 'Georgia', default: 'serif' })
 
@@ -15,12 +18,28 @@ export default function SignInScreen() {
 
   return (
     <View style={styles.root}>
+      <StatusBar style="light" />
+
       <View style={styles.brand}>
-        <Text style={styles.welcome}>Welcome to</Text>
-        <View style={styles.brandRow}>
-          <FontAwesome name="asterisk" size={26} color="#FFFFFF" />
-          <Text style={styles.brandName}>memoria</Text>
-        </View>
+        <Image
+          source={require('../../../assets/images/test-image.png')}
+          style={StyleSheet.absoluteFill}
+          resizeMode="cover"
+        />
+
+        {/* Top scrim — keeps the clock/battery legible over bright photos */}
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.85)', '#000000']}
+          locations={[0, 1, 1]}
+          style={styles.bottomScrim}
+          pointerEvents="none"
+        />
+
+        <LinearGradient
+          colors={['transparent', '#000000']}
+          style={styles.bottomScrim}
+          pointerEvents="none"
+        />
       </View>
 
       <View style={styles.actions}>
@@ -30,7 +49,7 @@ export default function SignInScreen() {
             onPress={handleAppleSignIn}
             activeOpacity={0.85}
           >
-            <AntDesign name="apple1" size={16} color="#0A0A0A" />
+            <AntDesign name="apple" size={16} color="#0A0A0A" />
             <Text style={styles.btnLightLabel}>Apple</Text>
           </TouchableOpacity>
 
@@ -39,19 +58,16 @@ export default function SignInScreen() {
             onPress={handleGoogleSignIn}
             activeOpacity={0.85}
           >
-            <AntDesign name="google" size={15} color="#0A0A0A" />
+            <AntDesign name="google" size={16} color="#0A0A0A" />
             <Text style={styles.btnLightLabel}>Google</Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          style={[styles.btn, styles.btnDark]}
+        <Button
+          label="Continue with Email"
           onPress={() => router.push('/(auth)/sign-in-email')}
-          activeOpacity={0.85}
-        >
-          <AntDesign name="mail" size={16} color="#FFFFFF" />
-          <Text style={styles.btnDarkLabel}>Continue with Email</Text>
-        </TouchableOpacity>
+          variant="secondary"
+        />
 
         <Text style={styles.terms}>
           By signing up, you agree to{'\n'}memoria's{' '}
@@ -68,64 +84,57 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#000000',
-    paddingHorizontal: 24,
-    paddingBottom: 40,
   },
   brand: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
-  welcome: {
-    fontFamily: serif,
-    fontSize: 34,
-    color: '#FFFFFF',
-    marginBottom: 6,
+  topScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 140,
   },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  brandName: {
-    fontFamily: serif,
-    fontSize: 40,
-    color: '#FFFFFF',
+  bottomScrim: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 220,
   },
   actions: {
-    gap: 12,
+    gap: 16,
+    backgroundColor: '#000000',
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 40,
+    marginTop: -28,
   },
   row: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   btn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 16,
+    paddingVertical: 18,
   },
   btnHalf: {
     flex: 1,
   },
   btnLight: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 30,
-  },
-  btnLightLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#0A0A0A',
-  },
-  btnDark: {
-    backgroundColor: '#1A1A1A',
     borderRadius: 16,
   },
-  btnDarkLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+  btnLightLabel: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#0A0A0A',
   },
   terms: {
     textAlign: 'center',
@@ -135,7 +144,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   termsLink: {
-    color: '#888888',
     textDecorationLine: 'underline',
   },
 })

@@ -7,8 +7,8 @@ import {
   Text,
   TouchableOpacity,
   View,
-  type ViewStyle,
   type StyleProp,
+  type ViewStyle,
 } from 'react-native'
 
 type Props = {
@@ -30,7 +30,6 @@ export function AuthStepLayout({ heading, footer, children, topStyle }: Props) {
 
       <View style={styles.body}>
         <View style={[styles.top, topStyle]}>
-          <Text style={styles.wordmark}>memoria.</Text>
           <Text style={styles.heading}>{heading}</Text>
           {children}
         </View>
@@ -72,12 +71,13 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 16,
   },
   footer: {
     gap: 10,
+    marginBottom: 20,
   },
 })

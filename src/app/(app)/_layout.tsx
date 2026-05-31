@@ -1,6 +1,7 @@
 import { useNotifications } from '@/hooks/useNotifications'
-import { useAuthStore } from '@/store/auth.store';
-import { Redirect, Tabs } from 'expo-router';
+import { useAuthStore } from '@/store/auth.store'
+import { Redirect } from 'expo-router'
+import { NativeTabs } from 'expo-router/unstable-native-tabs'
 
 export default function AppLayout() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -9,13 +10,33 @@ export default function AppLayout() {
   if (!isAuthenticated) return <Redirect href="/(auth)/sign-in" />
 
   return (
-    <Tabs screenOptions={{ headerShown: false, animation: 'none' }}>
-      <Tabs.Screen name="(home)"     options={{ title: 'Home' }} />
-      <Tabs.Screen name="(friends)"  options={{ title: 'Friends' }} />
-      <Tabs.Screen name="(create)"   options={{ title: 'Create' }} />
-      <Tabs.Screen name="(calendar)" options={{ title: 'Calendar' }} />
-      <Tabs.Screen name="(profile)"  options={{ title: 'Profile' }} />
-      <Tabs.Screen name="drop"       options={{ href: null }} />
-    </Tabs>
-  );
+    <NativeTabs>
+      <NativeTabs.Trigger name="(home)">
+        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="house.fill" md="home" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="(friends)">
+        <NativeTabs.Trigger.Label>Friends</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="person.2.fill" md="group" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="(create)">
+        <NativeTabs.Trigger.Label>Create</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="plus.circle.fill" md="add_circle" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="(calendar)">
+        <NativeTabs.Trigger.Label>Calendar</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="calendar" md="calendar_month" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="(profile)">
+        <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="person.crop.circle.fill" md="account_circle" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="drop" hidden />
+    </NativeTabs>
+  )
 }

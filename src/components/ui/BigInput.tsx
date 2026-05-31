@@ -3,7 +3,7 @@ import { StyleSheet, TextInput, type TextInputProps } from 'react-native'
 export function BigInput(props: TextInputProps) {
   return (
     <TextInput
-      placeholderTextColor="#444444"
+      placeholderTextColor="#474749"
       {...props}
       style={[styles.input, props.style]}
     />
@@ -12,7 +12,7 @@ export function BigInput(props: TextInputProps) {
 
 const styles = StyleSheet.create({
   input: {
-    fontSize: 42,
+    fontSize: 38,
     fontWeight: '700',
     color: '#FFFFFF',
     textAlign: 'center',

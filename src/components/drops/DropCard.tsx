@@ -1,5 +1,6 @@
 import type { DropWithParticipants } from '@/api/drops.api'
 import type { DropState } from '@/types/database.types'
+import { AntDesign } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
@@ -23,32 +24,62 @@ export function DropCard({ drop, showCreator = false }: { drop: DropWithParticip
   const meta = STATE_META[drop.state]
   const participantCount = drop.participants?.length ?? 0
   const creatorName = drop.creator?.display_name ?? drop.creator?.username ?? null
+  const creatorAvatar = drop.creator?.avatar_url ?? null
+  const initial = creatorName?.charAt(0).toUpperCase() ?? '?'
 
   return (
     <TouchableOpacity
-      style={s.card}
-      onPress={() => router.push({ pathname: `/drop/${drop.id}`, params: { from: '/(app)/(home)' } } as any)}
-      activeOpacity={0.75}
+      style={s.card} 
+      //  Fix this later
+      onPress={() =>
+        router.push({
+          pathname: '/drop/[id]',
+          params: { id: drop.id, from: '/(app)/(home)' },
+        })
+      }
+      activeOpacity={0.85}
     >
-      {drop.thumbnail_url && (
-        <Image source={{ uri: drop.thumbnail_url }} style={s.cardThumb} contentFit="cover" />
-      )}
-      <View style={s.cardBody}>
-        <View style={s.cardTop}>
-          <Text style={s.cardTitle} numberOfLines={1}>{drop.title}</Text>
-          <View style={[s.badge, { borderColor: meta.color }]}>
-            <Text style={[s.badgeLabel, { color: meta.color }]}>{meta.label}</Text>
-          </View>
-        </View>
-        <View style={s.cardBottom}>
-          <Text style={s.cardMeta}>{formatOpenDate(drop.open_date)}</Text>
-          {participantCount > 0 && (
-            <Text style={s.cardMeta}>{participantCount} participant{participantCount !== 1 ? 's' : ''}</Text>
-          )}
+      {/* ── Header: identity ───────────────────────────── */}
+      <View style={s.header}>
+        {showCreator && (
+          creatorAvatar ? (
+            <Image source={{ uri: creatorAvatar }} style={s.avatar} contentFit="cover" />
+          ) : (
+            <View style={[s.avatar, s.avatarFallback]}>
+              <Text style={s.avatarInitial}>{initial}</Text>
+            </View>
+          )
+        )}
+        <View style={s.headerText}>
+          <Text style={s.title} numberOfLines={1}>{drop.title}</Text>
           {showCreator && creatorName && (
-            <Text style={s.cardCreator}>by {creatorName}</Text>
+            <Text style={s.subtitle} numberOfLines={1}>by {creatorName}</Text>
           )}
         </View>
+      </View>
+
+      {/* ── Photo: the hero ────────────────────────────── */}
+      <View style={s.photoWrap}>
+        {drop.thumbnail_url ? (
+          <Image source={{ uri: drop.thumbnail_url }} style={s.photo} contentFit="cover" />
+        ) : (
+          <View style={s.photoPlaceholder}>
+            <AntDesign name="picture" size={28} color="#3B3B3B" />
+          </View>
+        )}
+      </View>
+
+      {/* ── Footer: status + meta ──────────────────────── */}
+      <View style={s.footer}>
+        <View style={[s.badge, { borderColor: meta.color }]}>
+          <Text style={[s.badgeLabel, { color: meta.color }]}>{meta.label}</Text>
+        </View>
+        <Text style={s.meta}>{formatOpenDate(drop.open_date)}</Text>
+        {participantCount > 0 && (
+          <Text style={s.meta}>
+            {participantCount} participant{participantCount !== 1 ? 's' : ''}
+          </Text>
+        )}
       </View>
     </TouchableOpacity>
   )
@@ -60,19 +91,88 @@ const s = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: '#3B3B3B',
     borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+    paddingHorizontal: 2,
+  },
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#2C2C2C',
+  },
+  avatarFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#C4C4C4',
+  },
+  headerText: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  subtitle: {
+    fontSize: 13,
+    color: '#898989',
+    marginTop: 1,
+  },
+
+  // Photo
+  photoWrap: {
+    aspectRatio: 3 / 4,
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: '#3B3B3B',
+    backgroundColor: '#121212',
     overflow: 'hidden',
-    marginBottom: 10,
   },
-  cardThumb: {
+  photo: {
     width: '100%',
-    aspectRatio: 16 / 9,
+    height: '100%',
   },
-  cardBody: { padding: 16 },
-  cardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  cardTitle: { fontSize: 16, fontWeight: '600', color: '#FFFFFF', flex: 1, marginRight: 10 },
-  badge: { borderWidth: 0.5, borderRadius: 5, paddingHorizontal: 8, paddingVertical: 3 },
-  badgeLabel: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  cardBottom: { flexDirection: 'row', gap: 16, flexWrap: 'wrap' },
-  cardMeta: { fontSize: 12, color: '#626262' },
-  cardCreator: { fontSize: 12, color: '#626262', marginLeft: 'auto' },
+  photoPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Footer
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 12,
+    paddingHorizontal: 2,
+  },
+  badge: {
+    borderWidth: 0.5,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  badgeLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  meta: {
+    fontSize: 12,
+    color: '#626262',
+  },
 })
