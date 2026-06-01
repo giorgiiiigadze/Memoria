@@ -116,7 +116,6 @@ const s = StyleSheet.create({
     backgroundColor: '#000000',
   },
   content: {
-    paddingTop: 72,
     paddingBottom: 40,
   },
 
@@ -139,7 +138,6 @@ const s = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Notification bell
   bellBtn: {
     position: 'relative',
     padding: 4,
