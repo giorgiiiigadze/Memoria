@@ -1,7 +1,6 @@
 import type { DropWithParticipants } from '@/api/drops.api'
-import { Avatar } from '@/components/ui/Avatar'
-import { DropStateBadge } from '@/components/drops/DropStateBadge'
-import { formatDate } from '@/utils/date'
+import { InitialAvatar } from '@/components/ui/InitialAvatar'
+import type { DropState } from '@/types/database.types'
 import { AntDesign } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -39,7 +38,9 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
       activeOpacity={0.9}
     >
       <View style={s.header}>
-        {showAvatar && <Avatar uri={creatorAvatar} name={creatorName} size={32} />}
+        {showAvatar && (
+          <InitialAvatar name={creatorName ?? '?'} avatarUrl={creatorAvatar} size={32} />
+        )}
         <View style={s.headerText}>
           <Text style={s.name} numberOfLines={1}>{primary}</Text>
           {secondary && (

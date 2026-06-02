@@ -1,8 +1,8 @@
+import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { useDropsStore } from '@/store/drops.store'
 import { useFriendsStore } from '@/store/friends.store'
 import type { Profile } from '@/types/database.types'
 import { router } from 'expo-router'
-import { Image } from 'expo-image'
 import {
   ScrollView,
   StyleSheet,
@@ -68,12 +68,10 @@ export default function InviteScreen() {
 }
 
 function Avatar({ profile }: { profile: Profile }) {
-  const initial = (profile.display_name ?? profile.username).charAt(0).toUpperCase()
+  const name = profile.display_name ?? profile.username
   return (
-    <View style={s.avatar}>
-      {profile.avatar_url
-        ? <Image source={{ uri: profile.avatar_url }} style={s.avatarImg} contentFit="cover" />
-        : <Text style={s.avatarInitial}>{initial}</Text>}
+    <View style={s.avatarWrap}>
+      <InitialAvatar name={name} avatarUrl={profile.avatar_url} size={42} />
     </View>
   )
 }
@@ -93,18 +91,7 @@ const s = StyleSheet.create({
     marginBottom: 6,
   },
   rowSelected: { backgroundColor: '#0A1A40' },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#252525',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-    overflow: 'hidden',
-  },
-  avatarImg: { width: 42, height: 42, borderRadius: 21 },
-  avatarInitial: { fontSize: 16, fontWeight: '500', color: '#898989' },
+  avatarWrap: { marginRight: 12 },
   info: { flex: 1 },
   name: { fontSize: 15, fontWeight: '500', color: '#FFFFFF' },
   handle: { fontSize: 12, color: '#626262', marginTop: 1 },
