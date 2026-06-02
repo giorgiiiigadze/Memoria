@@ -1,8 +1,9 @@
 import { getDrop, type DropWithParticipants } from '@/api/drops.api'
 import { getDropPhotos, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
-import { STATE_META } from '@/components/drops/DropCard'
+import { DropStateBadge } from '@/components/drops/DropStateBadge'
 import { InfoRow } from '@/components/ui/InfoRow'
+import { formatDate } from '@/utils/date'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { Image } from 'expo-image'
@@ -25,12 +26,6 @@ const H_PAD = 24
 const { width: SW, height: SH } = Dimensions.get('window')
 const THUMB = (SW - H_PAD * 2 - GAP * (COLS - 1)) / COLS
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-function formatDate(iso: string | null) {
-  if (!iso) return 'No open date'
-  const d = new Date(iso)
-  return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
-}
 
 export default function DropDetailScreen() {
   const { id, from } = useLocalSearchParams<{ id: string; from?: string }>()
@@ -61,7 +56,6 @@ export default function DropDetailScreen() {
 
   if (!drop) return <View style={s.root} />
 
-  const meta = STATE_META[drop.state]
   const participantCount = drop.participants?.length ?? 0
 
   // On active/ready drops, only show the current user's own photos
@@ -95,12 +89,12 @@ export default function DropDetailScreen() {
 
       <Text style={s.title} numberOfLines={2}>{drop.title}</Text>
 
-      <View style={[s.badge, { borderColor: meta.color }]}>
-        <Text style={[s.badgeLabel, { color: meta.color }]}>{meta.label}</Text>
+      <View style={s.badgeWrap}>
+        <DropStateBadge state={drop.state} />
       </View>
 
       <View style={s.rows}>
-        <InfoRow label="Opens" value={formatDate(drop.open_date)} />
+        <InfoRow label="Opens" value={formatDate(drop.open_date) ?? 'No open date'} />
         <InfoRow label="Participants" value={String(participantCount)} />
       </View>
 
@@ -212,8 +206,7 @@ const s = StyleSheet.create({
   back: { marginBottom: 24 },
   backLabel: { fontSize: 15, color: '#898989' },
   title: { fontSize: 28, fontWeight: '700', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 12 },
-  badge: { borderWidth: 0.5, borderRadius: 5, paddingHorizontal: 8, paddingVertical: 4, alignSelf: 'flex-start', marginBottom: 28 },
-  badgeLabel: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  badgeWrap: { marginBottom: 28 },
   rows: { gap: 0 },
   actionBtn: { marginTop: 24, borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
   actionBtnLabel: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },

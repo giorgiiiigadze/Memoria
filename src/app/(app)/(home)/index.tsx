@@ -3,7 +3,7 @@ import { DropCard } from '@/components/drops/DropCard'
 import { useDrops } from '@/hooks/useDrops'
 import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
 import { selectUnreadCount, useNotificationsStore } from '@/store/notifications.store'
-import { router, useFocusEffect } from 'expo-router'
+import { useFocusEffect } from 'expo-router'
 import { useCallback } from 'react'
 import {
   FlatList,
@@ -49,28 +49,28 @@ export default function HomeScreen() {
   const invitedDrops = drops.filter(d => d.creator_id !== user?.id)
   const items = buildItems(myDrops, invitedDrops)
 
-  const ListHeader = (
-    <View style={s.header}>
-      <View>
-        <Text style={s.greeting}>Hey, {displayName}</Text>
-        <Text style={s.sub}>{drops.length} drop{drops.length !== 1 ? 's' : ''}</Text>
-      </View>
-      <TouchableOpacity
-        style={s.bellBtn}
-        onPress={() => router.push('/(home)/notifications' as any)}
-        activeOpacity={0.7}
-      >
-        <View style={s.bellInner}>
-          <Text style={s.bellText}>&#9679;</Text>
-        </View>
-        {unreadCount > 0 && (
-          <View style={s.notifBadge}>
-            <Text style={s.notifBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    </View>
-  )
+  // const ListHeader = (
+  //   <View style={s.header}>
+  //     <View>
+  //       <Text style={s.greeting}>Hey, {displayName}</Text>
+  //       <Text style={s.sub}>{drops.length} drop{drops.length !== 1 ? 's' : ''}</Text>
+  //     </View>
+  //     <TouchableOpacity
+  //       style={s.bellBtn}
+  //       onPress={() => router.push('/(home)/notifications' as any)}
+  //       activeOpacity={0.7}
+  //     >
+  //       <View style={s.bellInner}>
+  //         <Text style={s.bellText}>&#9679;</Text>
+  //       </View>
+  //       {unreadCount > 0 && (
+  //         <View style={s.notifBadge}>
+  //           <Text style={s.notifBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+  //         </View>
+  //       )}
+  //     </TouchableOpacity>
+  //   </View>
+  // )
 
   const ListEmpty = isLoaded ? (
     error ? (
@@ -94,7 +94,7 @@ export default function HomeScreen() {
       contentContainerStyle={s.content}
       data={items}
       keyExtractor={item => item.key}
-      ListHeaderComponent={ListHeader}
+      // ListHeaderComponent={ListHeader}
       ListEmptyComponent={ListEmpty}
       renderItem={({ item }) => {
         if (item.kind === 'section-header') {
@@ -119,7 +119,6 @@ const s = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -190,7 +189,6 @@ const s = StyleSheet.create({
     color: '#626262',
   },
 
-  // Section label
   sectionLabel: {
     fontSize: 11,
     fontWeight: '600',
@@ -201,12 +199,10 @@ const s = StyleSheet.create({
     marginTop: 8,
   },
 
-  // Cards
   cardWrapper: {
     marginBottom: 8,
   },
 
-  // Error state
   errorBox: {
     alignItems: 'center',
     paddingTop: 60,
