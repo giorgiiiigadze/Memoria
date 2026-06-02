@@ -7,29 +7,13 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native'
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
-function formatDate(iso: string | null | undefined): string | null {
-  if (!iso) return null
-  const d = new Date(iso)
-  return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
-}
-
 function formatOpenDate(iso: string | null): string {
   return formatDate(iso) ?? 'No open date'
-}
-
-export const STATE_META: Record<DropState, { label: string; color: string }> = {
-  active:  { label: 'Active',   color: '#0044FF' },
-  ready:   { label: 'Ready',    color: '#4CAF7D' },
-  open:    { label: 'Open',     color: '#F59E0B' },
-  expired: { label: 'Expired',  color: '#626262' },
 }
 
 export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipants; showCreator?: boolean }) {
   const { width } = useWindowDimensions()
 
-  const meta = STATE_META[drop.state]
   const participantCount = drop.participants?.length ?? 0
   const creatorName = drop.creator?.display_name ?? drop.creator?.username ?? null
   const creatorAvatar = drop.creator?.avatar_url ?? null
@@ -78,33 +62,29 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
           </View>
         )}
 
-        {drop.thumbnail_url && (
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.88)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={s.scrim}
-            pointerEvents="none"
-          />
-        )}
-      </View>
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.88)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={s.scrim}
+          pointerEvents="none"
+        />
 
-      <View style={s.footer}>
-        <View style={[s.badge, { borderColor: meta.color }]}>
-          <Text style={[s.badgeLabel, { color: meta.color }]}>{meta.label}</Text>
+        <View style={s.footer}>
+          <DropStateBadge state={drop.state} />
+          <Text style={s.meta}>{formatOpenDate(drop.open_date)}</Text>
+          {participantCount > 0 && (
+            <Text style={s.meta}>
+              {participantCount} participant{participantCount !== 1 ? 's' : ''}
+            </Text>
+          )}
         </View>
-        <Text style={s.meta}>{formatOpenDate(drop.open_date)}</Text>
-        {participantCount > 0 && (
-          <Text style={s.meta}>
-            {participantCount} participant{participantCount !== 1 ? 's' : ''}
-          </Text>
-        )}
       </View>
     </TouchableOpacity>
   )
 }
 
-const SIDE = 8
+const SIDE = 6
 
 const s = StyleSheet.create({
   post: {
@@ -141,7 +121,7 @@ const s = StyleSheet.create({
     aspectRatio: 3 / 4,
     backgroundColor: '#121212',
     overflow: 'hidden',
-    borderRadius: 12,
+    borderRadius: 14,
   },
   photo: {
     width: '100%',
@@ -160,28 +140,21 @@ const s = StyleSheet.create({
     height: '50%',
   },
 
-  // Footer
+  // Footer — overlaid inside photo above scrim
   footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginTop: 10,
-    paddingHorizontal: SIDE,
-  },
-  badge: {
-    borderWidth: 0.5,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  badgeLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    paddingHorizontal: 12,
+    paddingBottom: 14,
+    zIndex: 1,
   },
   meta: {
     fontSize: 12,
-    color: '#626262',
+    color: 'rgba(255,255,255,0.65)',
   },
 })

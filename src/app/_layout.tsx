@@ -2,6 +2,7 @@ import { supabase } from '@/api/client'
 import { getMyDrops } from '@/api/drops.api'
 import { getFriends, getIncomingRequests, getOutgoingRequests } from '@/api/friends.api'
 import { subscribeToNotifications, subscribeToUserDrops } from '@/api/realtime'
+import { SplashView } from '@/components/ui/SplashView'
 import { useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { useFriendsStore } from '@/store/friends.store'
@@ -9,7 +10,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Slot, router } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useRef } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
 
 const ONBOARDING_KEY = '@memoria/onboarding_complete'
 
@@ -127,28 +127,7 @@ export default function RootLayout() {
     }
   }
 
-  if (!isHydrated) {
-    return (
-      <View style={styles.splash}>
-        <Text style={styles.splashText}>Memoria</Text>
-      </View>
-    )
-  }
+  if (!isHydrated) return <SplashView />
 
   return <Slot />
 }
-
-const styles = StyleSheet.create({
-  splash: {
-    flex: 1,
-    backgroundColor: '#000',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  splashText: {
-    color: '#fff',
-    fontSize: 32,
-    fontWeight: '600',
-    letterSpacing: 2,
-  },
-})
