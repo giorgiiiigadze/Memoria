@@ -1,9 +1,9 @@
 import { getMyDrops, type DropWithParticipants } from '@/api/drops.api'
 import { supabase } from '@/api/client'
+import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
 import type { DropState } from '@/types/database.types'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
@@ -158,15 +158,7 @@ export default function ProfileScreen() {
         {/* Avatar + identity */}
         <View style={s.identity}>
           <TouchableOpacity onPress={editing ? pickAvatar : undefined} activeOpacity={editing ? 0.7 : 1}>
-            {avatarSource ? (
-              <Image source={avatarSource} style={s.avatar} contentFit="cover" />
-            ) : (
-              <View style={s.avatarPlaceholder}>
-                <Text style={s.avatarInitial}>
-                  {displayedName.charAt(0).toUpperCase() || '?'}
-                </Text>
-              </View>
-            )}
+            <InitialAvatar name={displayedName || '?'} avatarUrl={avatarSource?.uri} size={72} />
             {editing && (
               <View style={s.avatarEditBadge}>
                 <Text style={s.avatarEditBadgeLabel}>Edit</Text>
@@ -266,13 +258,6 @@ const s = StyleSheet.create({
   signOutBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 0.5, borderColor: '#3B3B3B' },
   signOutLabel: { fontSize: 13, color: '#626262' },
   identity: { flexDirection: 'row', gap: 16, marginBottom: 36, alignItems: 'flex-start' },
-  avatar: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#191919' },
-  avatarPlaceholder: {
-    width: 72, height: 72, borderRadius: 36,
-    backgroundColor: '#191919', borderWidth: 0.5, borderColor: '#3B3B3B',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  avatarInitial: { fontSize: 26, fontWeight: '600', color: '#C4C4C4' },
   avatarEditBadge: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: 'rgba(0,0,0,0.55)', borderBottomLeftRadius: 36, borderBottomRightRadius: 36,

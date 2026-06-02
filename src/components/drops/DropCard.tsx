@@ -1,4 +1,5 @@
 import type { DropWithParticipants } from '@/api/drops.api'
+import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import type { DropState } from '@/types/database.types'
 import { AntDesign } from '@expo/vector-icons'
 import { Image } from 'expo-image'
@@ -32,7 +33,6 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
   const participantCount = drop.participants?.length ?? 0
   const creatorName = drop.creator?.display_name ?? drop.creator?.username ?? null
   const creatorAvatar = drop.creator?.avatar_url ?? null
-  const initial = creatorName?.charAt(0).toUpperCase() ?? '?'
 
   const showIdentity = showCreator && !!creatorName
   const primary = showIdentity ? creatorName : drop.title
@@ -55,13 +55,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
     >
       <View style={s.header}>
         {showAvatar && (
-          creatorAvatar ? (
-            <Image source={{ uri: creatorAvatar }} style={s.avatar} contentFit="cover" />
-          ) : (
-            <View style={[s.avatar, s.avatarFallback]}>
-              <Text style={s.avatarInitial}>{initial}</Text>
-            </View>
-          )
+          <InitialAvatar name={creatorName ?? '?'} avatarUrl={creatorAvatar} size={32} />
         )}
         <View style={s.headerText}>
           <Text style={s.name} numberOfLines={1}>{primary}</Text>
@@ -123,21 +117,6 @@ const s = StyleSheet.create({
     gap: 10,
     marginBottom: 10,
     paddingHorizontal: SIDE,
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#2C2C2C',
-  },
-  avatarFallback: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarInitial: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#C4C4C4',
   },
   headerText: {
     flex: 1,
