@@ -1,5 +1,5 @@
-import { getMyDrops, type DropWithParticipants } from '@/api/drops.api'
 import { supabase } from '@/api/client'
+import { getMyDrops, type DropWithParticipants } from '@/api/drops.api'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
 import type { DropState } from '@/types/database.types'

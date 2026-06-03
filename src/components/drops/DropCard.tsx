@@ -1,6 +1,7 @@
 import type { DropWithParticipants } from '@/api/drops.api'
+import { formatDate } from '@/utils/date'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
-import type { DropState } from '@/types/database.types'
+import { DropStateBadge } from '@/components/drops/DropStateBadge'
 import { AntDesign } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -30,10 +31,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
     <TouchableOpacity
       style={s.post}
       onPress={() =>
-        router.push({
-          pathname: '/drop/[id]',
-          params: { id: drop.id, from: '/(app)/(home)' },
-        })
+        router.push({ pathname: `/drop/${drop.id}`, params: { from: '/(app)/(home)' } } as any)
       }
       activeOpacity={0.9}
     >

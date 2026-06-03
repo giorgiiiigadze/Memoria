@@ -8,7 +8,11 @@
     "scheme": "memoria",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.giorgigiorgadzegood.Memoria",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -49,6 +53,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7944f004-270e-4695-9957-fb6e2483146a"
+      }
+    },
+    "owner": "giorgigiorgadzegood"
   }
 }

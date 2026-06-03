@@ -30,7 +30,7 @@ interface Props {
 
 export function InitialAvatar({ name, avatarUrl, size }: Props) {
   const radius = size / 2
-  const fontSize = Math.round(size * 0.38)
+  const fontSize = Math.round(size * 0.42)
 
   if (avatarUrl) {
     return (

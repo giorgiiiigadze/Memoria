@@ -1,5 +1,6 @@
-import { AntDesign } from '@expo/vector-icons'
+import { GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
 import { router } from 'expo-router'
+import { SymbolView } from 'expo-symbols'
 import {
   KeyboardAvoidingView,
   Platform,
@@ -18,14 +19,29 @@ type Props = {
   topStyle?: StyleProp<ViewStyle>
 }
 
+const glassAvailable = isGlassEffectAPIAvailable()
+
 export function AuthStepLayout({ heading, footer, children, topStyle }: Props) {
   return (
     <KeyboardAvoidingView
       style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <TouchableOpacity style={styles.back} onPress={() => router.back()} hitSlop={12}>
-        <AntDesign name="left" size={20} color="#FFFFFF" />
+      <TouchableOpacity
+        style={styles.backWrap}
+        onPress={() => router.back()}
+        hitSlop={12}
+        activeOpacity={0.8}
+      >
+        {glassAvailable ? (
+          <GlassView style={styles.backGlass}>
+            <SymbolView name="chevron.left" size={18} tintColor="#FFFFFF" />
+          </GlassView>
+        ) : (
+          <View style={styles.backFallback}>
+            <SymbolView name="chevron.left" size={18} tintColor="#FFFFFF" />
+          </View>
+        )}
       </TouchableOpacity>
 
       <View style={styles.body}>
@@ -45,12 +61,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
   },
-  back: {
+  backWrap: {
     marginTop: 56,
     marginLeft: 24,
+  },
+  backGlass: {
     width: 40,
     height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
     justifyContent: 'center',
+  },
+  backFallback: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#191919',
+    borderWidth: 0.5,
+    borderColor: '#3B3B3B',
   },
   body: {
     flex: 1,
