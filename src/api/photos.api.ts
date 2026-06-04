@@ -1,8 +1,6 @@
 import { supabase } from '@/api/client'
+import { ALLOWED_EXTENSIONS, MAX_BYTES } from '@/constants/media'
 import type { Photo } from '@/types/database.types'
-
-const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'heic', 'heif', 'webp'])
-const MAX_BYTES = 50 * 1024 * 1024
 
 export type PhotoWithUploader = Photo & {
   uploader: { username: string; display_name: string | null; avatar_url: string | null } | null

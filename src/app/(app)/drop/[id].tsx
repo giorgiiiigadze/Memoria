@@ -28,18 +28,12 @@ const THUMB = (SW - H_PAD * 2 - GAP * (COLS - 1)) / COLS
 
 
 export default function DropDetailScreen() {
-  const { id, from } = useLocalSearchParams<{ id: string; from?: string }>()
+  const { id } = useLocalSearchParams<{ id: string }>()
   const user = useAuthStore(selectUser)
   const cached = useDropsStore(s => s.drops.find(d => d.id === id))
   const [drop, setDrop] = useState<DropWithParticipants | null>(cached ?? null)
   const [photos, setPhotos] = useState<PhotoWithUploader[]>([])
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
-
-  useEffect(() => {
-    if (!cached && id) {
-      getDrop(id).then(d => { if (d) setDrop(d) }).catch(console.error)
-    }
-  }, [id])
 
   useFocusEffect(
     useCallback(() => {
@@ -83,7 +77,7 @@ export default function DropDetailScreen() {
         />
       )}
 
-      <TouchableOpacity style={s.back} onPress={() => router.navigate((from ?? '/(app)/(home)') as any)}>
+      <TouchableOpacity style={s.back} onPress={() => router.back()}>
         <Text style={s.backLabel}>← Back</Text>
       </TouchableOpacity>
 

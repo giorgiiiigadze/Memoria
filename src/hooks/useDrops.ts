@@ -1,11 +1,15 @@
 import { createDrop, deleteDrop, getMyDrops, inviteParticipants, updateDropThumbnail } from '@/api/drops.api'
 import { selectUser, useAuthStore } from '@/store/auth.store'
-import { useDropsStore } from '@/store/drops.store'
+import { selectDraft, selectDrops, selectDropsError, selectDropsLoaded, useDropsStore } from '@/store/drops.store'
 import { useEffect } from 'react'
 
 export function useDrops() {
   const user = useAuthStore(selectUser)
-  const { drops, isLoaded, error, draft, setDrops, setIsLoaded, setError, clearDraft } = useDropsStore()
+  const drops = useDropsStore(selectDrops)
+  const isLoaded = useDropsStore(selectDropsLoaded)
+  const error = useDropsStore(selectDropsError)
+  const draft = useDropsStore(selectDraft)
+  const { setDrops, setIsLoaded, setError, clearDraft } = useDropsStore.getState()
 
   useEffect(() => {
     if (user?.id && !isLoaded) load()
@@ -52,7 +56,12 @@ export function useDrops() {
       }
     }
 
-    await inviteParticipants(drop.id, invitedIds, user.id)
+    try {
+      await inviteParticipants(drop.id, invitedIds, user.id)
+    } catch (e) {
+      await deleteDrop(drop.id).catch(() => {})
+      throw new Error('Failed to invite participants. Please try again.')
+    }
     clearDraft()
     await load()
   }

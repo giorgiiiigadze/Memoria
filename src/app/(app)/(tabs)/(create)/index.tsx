@@ -1,4 +1,5 @@
 import { useDropsStore } from '@/store/drops.store'
+import { formatDate } from '@/utils/date'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
@@ -33,10 +34,6 @@ function startOfDay(d: Date) {
 
 function isSameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
-}
-
-function formatDate(d: Date) {
-  return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
 }
 
 function buildCalendarDays(year: number, month: number) {
@@ -172,7 +169,7 @@ export default function CreateScreen() {
         </View>
 
         {draft.openDate && (
-          <Text style={s.datePreview}>Opens {formatDate(draft.openDate)}</Text>
+          <Text style={s.datePreview}>Opens {formatDate(draft.openDate) ?? ''}</Text>
         )}
       </View>
 

@@ -6,11 +6,12 @@ import { SplashView } from '@/components/ui/SplashView'
 import { useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { useFriendsStore } from '@/store/friends.store'
+import { colors } from '@/theme'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Slot, router } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useRef } from 'react'
-import { View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 
 const ONBOARDING_KEY = '@memoria/onboarding_complete'
 
@@ -72,7 +73,7 @@ export default function RootLayout() {
       } else if (!hasSeenOnboarding) {
         router.replace('/(onboarding)')
       } else {
-        router.replace('/(app)/(home)')
+        router.replace('/(app)/(tabs)/(home)')
       }
 
     } catch (e) {
@@ -131,8 +132,15 @@ export default function RootLayout() {
   if (!isHydrated) return <SplashView />
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#000' }}>
+    <View style={styles.root}>
       <Slot />
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+})

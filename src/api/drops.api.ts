@@ -1,8 +1,6 @@
 import { supabase } from '@/api/client'
+import { ALLOWED_EXTENSIONS, MAX_BYTES } from '@/constants/media'
 import type { Drop, DropParticipant, Profile } from '@/types/database.types'
-
-const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'heic', 'heif', 'webp'])
-const MAX_BYTES = 50 * 1024 * 1024
 
 export type DropWithParticipants = Drop & {
   participants: Pick<DropParticipant, 'id' | 'user_id' | 'status' | 'has_uploaded'>[]
