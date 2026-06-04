@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Slot, router } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useRef } from 'react'
+import { View } from 'react-native'
 
 const ONBOARDING_KEY = '@memoria/onboarding_complete'
 
@@ -129,5 +130,9 @@ export default function RootLayout() {
 
   if (!isHydrated) return <SplashView />
 
-  return <Slot />
+  return (
+    <View style={{ flex: 1, backgroundColor: '#000' }}>
+      <Slot />
+    </View>
+  )
 }

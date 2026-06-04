@@ -1,5 +1,6 @@
 import { useNotifications } from '@/hooks/useNotifications'
 import { useAuthStore } from '@/store/auth.store'
+import { colors } from '@/theme'
 import { Redirect } from 'expo-router'
 import { NativeTabs } from 'expo-router/unstable-native-tabs'
 
@@ -10,7 +11,7 @@ export default function AppLayout() {
   if (!isAuthenticated) return <Redirect href="/(auth)/sign-in" />
 
   return (
-    <NativeTabs>
+    <NativeTabs screenOptions={{ contentStyle: { backgroundColor: colors.background } }}>
       <NativeTabs.Trigger name="(home)">
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="house.fill" md="home" />

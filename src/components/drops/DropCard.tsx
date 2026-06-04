@@ -1,7 +1,7 @@
 import type { DropWithParticipants } from '@/api/drops.api'
-import { formatDate } from '@/utils/date'
-import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { DropStateBadge } from '@/components/drops/DropStateBadge'
+import { InitialAvatar } from '@/components/ui/InitialAvatar'
+import { formatDate } from '@/utils/date'
 import { AntDesign } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -50,7 +50,6 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
         </View>
       </View>
 
-      {/* ── Photo: the hero, full bleed ─────────────────── */}
       <View style={[s.photoWrap, { width }]}>
         {drop.thumbnail_url ? (
           <Image source={{ uri: drop.thumbnail_url }} style={s.photo} contentFit="cover" />
@@ -138,7 +137,6 @@ const s = StyleSheet.create({
     height: '50%',
   },
 
-  // Footer — overlaid inside photo above scrim
   footer: {
     position: 'absolute',
     bottom: 0,

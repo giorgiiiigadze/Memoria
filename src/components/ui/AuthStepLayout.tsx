@@ -59,7 +59,6 @@ export function AuthStepLayout({ heading, footer, children, topStyle }: Props) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   backWrap: {
     marginTop: 56,
