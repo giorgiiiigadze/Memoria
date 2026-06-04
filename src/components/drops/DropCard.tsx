@@ -31,7 +31,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
     <TouchableOpacity
       style={s.post}
       onPress={() =>
-        router.push({ pathname: `/drop/${drop.id}`, params: { from: '/(app)/(home)' } } as any)
+        router.push({ pathname: '/drop/[id]', params: { id: drop.id, from: '/(app)/(home)' } } as any)
       }
       activeOpacity={0.9}
     >

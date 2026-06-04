@@ -36,8 +36,8 @@ export function useNotifications() {
       const data = response.notification.request.content.data as Record<string, string>
       if (data.drop_id) {
         router.push({
-          pathname: `/drop/${data.drop_id}`,
-          params: { from: '/(app)/(home)' },
+          pathname: '/drop/[id]',
+          params: { id: data.drop_id, from: '/(app)/(home)' },
         } as any)
       } else if (data.type === 'friend_request' || data.type === 'friend_accepted') {
         router.navigate('/(app)/(friends)' as any)
