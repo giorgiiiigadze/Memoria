@@ -73,7 +73,7 @@ export default function RootLayout() {
       } else if (!hasSeenOnboarding) {
         router.replace('/(onboarding)')
       } else {
-        router.replace('/(app)/(home)')
+        router.replace('/(app)/(tabs)/(home)')
       }
 
     } catch (e) {
