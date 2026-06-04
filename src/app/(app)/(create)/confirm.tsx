@@ -1,6 +1,7 @@
 import { useDrops } from '@/hooks/useDrops'
 import { useFriendsStore } from '@/store/friends.store'
 import { InfoRow } from '@/components/ui/InfoRow'
+import { formatDate } from '@/utils/date'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
 import { useState } from 'react'
@@ -12,12 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
-function formatDate(d: Date) {
-  return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
-}
 
 export default function ConfirmScreen() {
   const { draft, submitDrop } = useDrops()
@@ -56,7 +51,7 @@ export default function ConfirmScreen() {
           />
         )}
         <InfoRow label="Title" value={draft.title} />
-        <InfoRow label="Opens" value={draft.openDate ? formatDate(draft.openDate) : 'No date set'} />
+        <InfoRow label="Opens" value={formatDate(draft.openDate) ?? 'No date set'} />
         <InfoRow
           label="Invited"
           value={

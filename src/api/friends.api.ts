@@ -27,6 +27,7 @@ export async function getFriends(myId: string): Promise<Profile[]> {
       addressee:profiles!friendships_addressee_id_fkey(id, username, display_name, avatar_url)
     `)
     .eq('status', 'accepted')
+    .or(`requester_id.eq.${myId},addressee_id.eq.${myId}`)
   if (error) throw error
   return (data ?? []).map((f: any) =>
     f.requester_id === myId ? f.addressee : f.requester

@@ -35,12 +35,6 @@ export default function DropDetailScreen() {
   const [photos, setPhotos] = useState<PhotoWithUploader[]>([])
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
-  useEffect(() => {
-    if (!cached && id) {
-      getDrop(id).then(d => { if (d) setDrop(d) }).catch(console.error)
-    }
-  }, [id])
-
   useFocusEffect(
     useCallback(() => {
       if (!id) return

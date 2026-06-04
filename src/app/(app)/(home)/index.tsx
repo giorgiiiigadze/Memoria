@@ -1,8 +1,8 @@
 import type { DropWithParticipants } from '@/api/drops.api'
 import { DropCard } from '@/components/drops/DropCard'
 import { useDrops } from '@/hooks/useDrops'
-import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
-import { selectUnreadCount, useNotificationsStore } from '@/store/notifications.store'
+import { selectUser, useAuthStore } from '@/store/auth.store'
+import { colors } from '@/theme'
 import { useFocusEffect } from 'expo-router'
 import { useCallback } from 'react'
 import {
@@ -37,40 +37,13 @@ function buildItems(
 
 export default function HomeScreen() {
   const user = useAuthStore(selectUser)
-  const profile = useAuthStore(selectProfile)
   const { drops, isLoaded, error, refresh, retry } = useDrops()
-  const unreadCount = useNotificationsStore(selectUnreadCount)
-
-  const displayName = profile?.display_name ?? profile?.username ?? user?.email ?? 'You'
 
   useFocusEffect(useCallback(() => { if (isLoaded) refresh() }, [isLoaded]))
 
   const myDrops = drops.filter(d => d.creator_id === user?.id)
   const invitedDrops = drops.filter(d => d.creator_id !== user?.id)
   const items = buildItems(myDrops, invitedDrops)
-
-  // const ListHeader = (
-  //   <View style={s.header}>
-  //     <View>
-  //       <Text style={s.greeting}>Hey, {displayName}</Text>
-  //       <Text style={s.sub}>{drops.length} drop{drops.length !== 1 ? 's' : ''}</Text>
-  //     </View>
-  //     <TouchableOpacity
-  //       style={s.bellBtn}
-  //       onPress={() => router.push('/(home)/notifications' as any)}
-  //       activeOpacity={0.7}
-  //     >
-  //       <View style={s.bellInner}>
-  //         <Text style={s.bellText}>&#9679;</Text>
-  //       </View>
-  //       {unreadCount > 0 && (
-  //         <View style={s.notifBadge}>
-  //           <Text style={s.notifBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-  //         </View>
-  //       )}
-  //     </TouchableOpacity>
-  //   </View>
-  // )
 
   const ListEmpty = isLoaded ? (
     error ? (
@@ -94,7 +67,6 @@ export default function HomeScreen() {
       contentContainerStyle={s.content}
       data={items}
       keyExtractor={item => item.key}
-      // ListHeaderComponent={ListHeader}
       ListEmptyComponent={ListEmpty}
       renderItem={({ item }) => {
         if (item.kind === 'section-header') {
@@ -113,66 +85,11 @@ export default function HomeScreen() {
 const s = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   content: {
     paddingBottom: 40,
   },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: 28,
-  },
-  greeting: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-  },
-  sub: {
-    fontSize: 13,
-    color: '#626262',
-    marginTop: 2,
-  },
-
-  bellBtn: {
-    position: 'relative',
-    padding: 4,
-  },
-  bellInner: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#191919',
-    borderWidth: 0.5,
-    borderColor: '#3B3B3B',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bellText: {
-    fontSize: 14,
-    color: '#898989',
-  },
-  notifBadge: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#EA4942',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  notifBadgeText: {
-    fontSize: 10,
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-
-  // Empty state
   empty: {
     alignItems: 'center',
     paddingTop: 80,
@@ -187,7 +104,6 @@ const s = StyleSheet.create({
     fontSize: 14,
     color: '#626262',
   },
-
   sectionLabel: {
     fontSize: 11,
     fontWeight: '600',
@@ -197,11 +113,9 @@ const s = StyleSheet.create({
     marginBottom: 10,
     marginTop: 8,
   },
-
   cardWrapper: {
     marginBottom: 8,
   },
-
   errorBox: {
     alignItems: 'center',
     paddingTop: 60,
