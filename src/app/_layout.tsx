@@ -42,7 +42,19 @@ export default function RootLayout() {
 
   async function bootHydrate() {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
+      const [seenOnboarding, { data: { session } }] = await Promise.all([
+        AsyncStorage.getItem(ONBOARDING_KEY),
+        supabase.auth.getSession(),
+      ])
+
+      const hasSeenOnboarding = seenOnboarding === 'true'
+      setHasSeenOnboarding(hasSeenOnboarding)
+
+      if (!hasSeenOnboarding) {
+        setHydrated()
+        router.replace('/(onboarding)')
+        return
+      }
 
       if (!session) {
         setHydrated()
@@ -52,14 +64,13 @@ export default function RootLayout() {
 
       setSession(session)
 
-      const [{ data: profile }, seenOnboarding] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle(),
-        AsyncStorage.getItem(ONBOARDING_KEY),
-      ])
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .maybeSingle()
 
-      const hasSeenOnboarding = seenOnboarding === 'true'
       setProfile(profile ?? null)
-      setHasSeenOnboarding(hasSeenOnboarding)
       await prefetchInitialData(session.user.id)
       setHydrated()
 
@@ -70,8 +81,6 @@ export default function RootLayout() {
 
       if (!profile?.username) {
         router.replace('/(auth)/setup-profile')
-      } else if (!hasSeenOnboarding) {
-        router.replace('/(onboarding)')
       } else {
         router.replace('/(app)/(tabs)/(home)')
       }
