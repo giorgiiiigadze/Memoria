@@ -1,25 +1,14 @@
 import { Image } from 'expo-image'
 import { StyleSheet, Text, View } from 'react-native'
 
-const COLORS = [
-  '#E74C3C',
-  '#E67E22',
-  '#27AE60',
-  '#2ECC71',
-  '#1ABC9C',
-  '#2980B9',
-  '#8E44AD',
-  '#D81B60',
-  '#0097A7',
-  '#FF5722',
-]
+import { avatarColors } from '@/theme/colors'
 
 function pickColor(name: string): string {
   let hash = 0
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash)
   }
-  return COLORS[Math.abs(hash) % COLORS.length]
+  return avatarColors[Math.abs(hash) % avatarColors.length]
 }
 
 interface Props {

@@ -4,7 +4,6 @@ import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { formatDate } from '@/utils/date'
 import { AntDesign } from '@expo/vector-icons'
 import { Image } from 'expo-image'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native'
 
@@ -59,13 +58,13 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
           </View>
         )}
 
-        <LinearGradient
+        {/* <LinearGradient
           colors={['transparent', 'rgba(0,0,0,0.88)']}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={s.scrim}
           pointerEvents="none"
-        />
+        /> */}
 
         <View style={s.footer}>
           <DropStateBadge state={drop.state} />
@@ -81,7 +80,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
   )
 }
 
-const SIDE = 6
+const SIDE = 10
 
 const s = StyleSheet.create({
   post: {
