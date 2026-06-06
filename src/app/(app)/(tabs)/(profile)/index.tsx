@@ -2,6 +2,7 @@ import { supabase } from '@/api/client'
 import { getMyDrops, type DropWithParticipants } from '@/api/drops.api'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
+import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
 import type { DropState } from '@/types/database.types'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as ImagePicker from 'expo-image-picker'
@@ -27,10 +28,10 @@ function fmtDate(iso: string | null) {
 }
 
 const STATE_META: Record<DropState, { label: string; color: string }> = {
-  active:  { label: 'Active',   color: '#0044FF' },
-  ready:   { label: 'Ready',    color: '#4CAF7D' },
-  open:    { label: 'Open',     color: '#F59E0B' },
-  expired: { label: 'Expired',  color: '#626262' },
+  active:  { label: 'Active',   color: colors.primary },
+  ready:   { label: 'Ready',    color: colors.success },
+  open:    { label: 'Open',     color: colors.warning },
+  expired: { label: 'Expired',  color: colors.textTertiary },
 }
 
 export default function ProfileScreen() {
@@ -174,7 +175,7 @@ export default function ProfileScreen() {
                 value={displayName}
                 onChangeText={setDisplayName}
                 placeholder="Your name"
-                placeholderTextColor="#626262"
+                placeholderTextColor={colors.textTertiary}
                 maxLength={50}
                 returnKeyType="next"
               />
@@ -184,7 +185,7 @@ export default function ProfileScreen() {
                 value={bio}
                 onChangeText={setBio}
                 placeholder="A little about you"
-                placeholderTextColor="#626262"
+                placeholderTextColor={colors.textTertiary}
                 maxLength={160}
                 multiline
                 returnKeyType="done"
@@ -196,7 +197,7 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity style={[s.btnSave, saving && s.btnDisabled]} onPress={handleSave} disabled={saving}>
                   {saving
-                    ? <ActivityIndicator color="#fff" size="small" />
+                    ? <ActivityIndicator color={colors.white} size="small" />
                     : <Text style={s.btnSaveLabel}>Save</Text>}
                 </TouchableOpacity>
               </View>
@@ -250,49 +251,49 @@ export default function ProfileScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
-  content: { paddingHorizontal: 24, paddingTop: 72, paddingBottom: 48 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 },
-  heading: { fontSize: 22, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.5 },
-  headerActions: { flexDirection: 'row', gap: 8 },
-  signOutBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 0.5, borderColor: '#3B3B3B' },
-  signOutLabel: { fontSize: 13, color: '#626262' },
-  identity: { flexDirection: 'row', gap: 16, marginBottom: 36, alignItems: 'flex-start' },
+  root: { flex: 1, backgroundColor: colors.background },
+  content: { paddingHorizontal: spacing[6], paddingTop: 72, paddingBottom: spacing[12] },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[8] },
+  heading: { fontSize: fontSize.xl, fontWeight: fontWeight.semiBold, color: colors.white, letterSpacing: -0.5 },
+  headerActions: { flexDirection: 'row', gap: spacing[2] },
+  signOutBtn: { paddingHorizontal: spacing[3], paddingVertical: 6, borderRadius: 6, borderWidth: 0.5, borderColor: colors.borderDefault },
+  signOutLabel: { fontSize: 13, color: colors.textTertiary },
+  identity: { flexDirection: 'row', gap: spacing[4], marginBottom: 36, alignItems: 'flex-start' },
   avatarEditBadge: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: 'rgba(0,0,0,0.55)', borderBottomLeftRadius: 36, borderBottomRightRadius: 36,
-    alignItems: 'center', paddingBottom: 4,
+    alignItems: 'center', paddingBottom: spacing[1],
   },
-  avatarEditBadgeLabel: { fontSize: 10, color: '#fff', fontWeight: '500' },
-  identityInfo: { flex: 1, paddingTop: 4, gap: 4 },
-  displayName: { fontSize: 17, fontWeight: '600', color: '#FFFFFF' },
-  username: { fontSize: 13, color: '#898989' },
-  bio: { fontSize: 13, color: '#C4C4C4', lineHeight: 18, marginTop: 4 },
-  editBtn: { marginTop: 10, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 0.5, borderColor: '#3B3B3B' },
-  editBtnLabel: { fontSize: 13, color: '#C4C4C4' },
-  editFields: { flex: 1, gap: 8 },
-  fieldLabel: { fontSize: 11, fontWeight: '500', color: '#626262', textTransform: 'uppercase', letterSpacing: 0.4 },
-  input: { backgroundColor: '#191919', borderWidth: 0.5, borderColor: '#3B3B3B', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#FFFFFF' },
+  avatarEditBadgeLabel: { fontSize: 10, color: colors.white, fontWeight: fontWeight.medium },
+  identityInfo: { flex: 1, paddingTop: spacing[1], gap: spacing[1] },
+  displayName: { fontSize: 17, fontWeight: fontWeight.semiBold, color: colors.white },
+  username: { fontSize: 13, color: colors.textMuted },
+  bio: { fontSize: 13, color: colors.textLight, lineHeight: 18, marginTop: spacing[1] },
+  editBtn: { marginTop: 10, alignSelf: 'flex-start', paddingHorizontal: spacing[3], paddingVertical: 6, borderRadius: 6, borderWidth: 0.5, borderColor: colors.borderDefault },
+  editBtnLabel: { fontSize: 13, color: colors.textLight },
+  editFields: { flex: 1, gap: spacing[2] },
+  fieldLabel: { fontSize: 11, fontWeight: fontWeight.medium, color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.4 },
+  input: { backgroundColor: colors.surfaceInput, borderWidth: 0.5, borderColor: colors.borderDefault, borderRadius: radii.sm, paddingHorizontal: spacing[3], paddingVertical: 10, fontSize: fontSize.sm, color: colors.white },
   inputMulti: { height: 72, textAlignVertical: 'top' },
-  errorText: { fontSize: 12, color: '#EA4942' },
-  editActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  btnCancel: { flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 0.5, borderColor: '#3B3B3B', alignItems: 'center' },
-  btnCancelLabel: { fontSize: 13, color: '#898989' },
-  btnSave: { flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: '#0044FF', alignItems: 'center' },
+  errorText: { fontSize: fontSize.xs, color: colors.error },
+  editActions: { flexDirection: 'row', gap: spacing[2], marginTop: spacing[1] },
+  btnCancel: { flex: 1, paddingVertical: 10, borderRadius: radii.sm, borderWidth: 0.5, borderColor: colors.borderDefault, alignItems: 'center' },
+  btnCancelLabel: { fontSize: 13, color: colors.textMuted },
+  btnSave: { flex: 1, paddingVertical: 10, borderRadius: radii.sm, backgroundColor: colors.primary, alignItems: 'center' },
   btnDisabled: { opacity: 0.5 },
-  btnSaveLabel: { fontSize: 13, color: '#FFFFFF', fontWeight: '600' },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  sectionTitle: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
-  sectionCount: { fontSize: 13, color: '#626262' },
-  emptyDrops: { paddingVertical: 24, alignItems: 'center' },
-  emptyText: { fontSize: 14, color: '#626262' },
+  btnSaveLabel: { fontSize: 13, color: colors.white, fontWeight: fontWeight.semiBold },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[3] },
+  sectionTitle: { fontSize: 15, fontWeight: fontWeight.semiBold, color: colors.white },
+  sectionCount: { fontSize: 13, color: colors.textTertiary },
+  emptyDrops: { paddingVertical: spacing[6], alignItems: 'center' },
+  emptyText: { fontSize: fontSize.sm, color: colors.textTertiary },
   dropCard: {
-    backgroundColor: '#191919', borderWidth: 0.5, borderColor: '#3B3B3B',
-    borderRadius: 10, padding: 14, marginBottom: 8,
+    backgroundColor: colors.surfaceInput, borderWidth: 0.5, borderColor: colors.borderDefault,
+    borderRadius: 10, padding: 14, marginBottom: spacing[2],
   },
   dropCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
-  dropTitle: { fontSize: 15, fontWeight: '600', color: '#FFFFFF', flex: 1, marginRight: 10 },
+  dropTitle: { fontSize: 15, fontWeight: fontWeight.semiBold, color: colors.white, flex: 1, marginRight: spacing[3] },
   badge: { borderWidth: 0.5, borderRadius: 5, paddingHorizontal: 7, paddingVertical: 3 },
-  badgeLabel: { fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  dropMeta: { fontSize: 12, color: '#626262' },
+  badgeLabel: { fontSize: 10, fontWeight: fontWeight.semiBold, textTransform: 'uppercase', letterSpacing: 0.5 },
+  dropMeta: { fontSize: fontSize.xs, color: colors.textTertiary },
 })

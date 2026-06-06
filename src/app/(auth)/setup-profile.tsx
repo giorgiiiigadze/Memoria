@@ -3,6 +3,7 @@
 import { supabase } from '@/api/client'
 import { Button } from '@/components/ui/Button'
 import { useAuthStore } from '@/store/auth.store'
+import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import { AntDesign } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
@@ -181,11 +182,11 @@ export default function SetupProfileScreen() {
             {avatarUri ? (
               <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
             ) : (
-              <AntDesign name="camera" size={26} color="#626262" />
+              <AntDesign name="camera" size={26} color={colors.textTertiary} />
             )}
           </View>
           <View style={styles.avatarBadge}>
-            <AntDesign name="camera" size={13} color="#FFFFFF" />
+            <AntDesign name="camera" size={13} color={colors.white} />
           </View>
         </TouchableOpacity>
         <Text style={styles.avatarCaption}>
@@ -200,7 +201,7 @@ export default function SetupProfileScreen() {
               <TextInput
                 style={styles.usernameInput}
                 placeholder="giorgi_g"
-                placeholderTextColor="#626262"
+                placeholderTextColor={colors.textTertiary}
                 value={username}
                 onChangeText={(v) => { setUsername(v); clearError() }}
                 autoCapitalize="none"
@@ -219,7 +220,7 @@ export default function SetupProfileScreen() {
             <TextInput
               style={styles.input}
               placeholder="Giorgi"
-              placeholderTextColor="#626262"
+              placeholderTextColor={colors.textTertiary}
               value={displayName}
               onChangeText={(v) => { setDisplayName(v); clearError() }}
               returnKeyType="done"
@@ -249,29 +250,29 @@ export default function SetupProfileScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: colors.background,
   },
   inner: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 48,
+    paddingHorizontal: spacing[6],
+    paddingVertical: spacing[12],
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: spacing[8],
   },
   title: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontSize: fontSize['2xl'],
+    fontWeight: fontWeight.semiBold,
+    color: colors.white,
     letterSpacing: -0.5,
-    marginBottom: 8,
+    marginBottom: spacing[2],
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 14,
-    color: '#898989',
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
     lineHeight: 20,
     textAlign: 'center',
   },
@@ -282,9 +283,9 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: '#191919',
+    backgroundColor: colors.surfaceInput,
     borderWidth: 0.5,
-    borderColor: '#3B3B3B',
+    borderColor: colors.borderDefault,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -300,82 +301,82 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#0044FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#000000',
+    borderColor: colors.background,
   },
   avatarCaption: {
     alignSelf: 'center',
     marginTop: 10,
     marginBottom: 36,
-    fontSize: 12,
-    color: '#626262',
+    fontSize: fontSize.xs,
+    color: colors.textTertiary,
   },
   form: {
     gap: 18,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#C4C4C4',
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
+    color: colors.textLight,
     marginBottom: 6,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   optional: {
-    fontWeight: '400',
-    color: '#626262',
+    fontWeight: fontWeight.regular,
+    color: colors.textTertiary,
     textTransform: 'none',
     letterSpacing: 0,
   },
   usernameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#191919',
+    backgroundColor: colors.surfaceInput,
     borderWidth: 0.5,
-    borderColor: '#3B3B3B',
+    borderColor: colors.borderDefault,
     borderRadius: 10,
     paddingHorizontal: 14,
   },
   atSign: {
     fontSize: 15,
-    color: '#626262',
+    color: colors.textTertiary,
     marginRight: 2,
   },
   usernameInput: {
     flex: 1,
     paddingVertical: 13,
     fontSize: 15,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   input: {
-    backgroundColor: '#191919',
+    backgroundColor: colors.surfaceInput,
     borderWidth: 0.5,
-    borderColor: '#3B3B3B',
+    borderColor: colors.borderDefault,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 13,
     fontSize: 15,
-    color: '#FFFFFF',
+    color: colors.white,
   },
   hint: {
-    fontSize: 12,
-    color: '#626262',
+    fontSize: fontSize.xs,
+    color: colors.textTertiary,
     marginTop: 6,
   },
   warning: {
     fontSize: 13,
-    color: '#FFBB00',
+    color: '#FFBB00', // amber warning — intentional one-off
     paddingHorizontal: 2,
   },
   error: {
     fontSize: 13,
-    color: '#EA4942',
+    color: colors.error,
     paddingHorizontal: 2,
   },
   cta: {
-    marginTop: 4,
+    marginTop: spacing[1],
   },
 })

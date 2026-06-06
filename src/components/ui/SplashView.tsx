@@ -1,3 +1,4 @@
+import { colors, fontWeight } from '@/theme'
 import { StyleSheet, Text, View } from 'react-native'
 
 export function SplashView() {
@@ -11,14 +12,14 @@ export function SplashView() {
 const styles = StyleSheet.create({
   splash: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   splashText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: 32,
-    fontWeight: '600',
+    fontWeight: fontWeight.semiBold,
     letterSpacing: 2,
   },
 })

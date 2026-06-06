@@ -6,6 +6,7 @@ import { InfoRow } from '@/components/ui/InfoRow'
 import { formatDate } from '@/utils/date'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
+import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import { Image } from 'expo-image'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
@@ -22,7 +23,7 @@ import {
 
 const COLS = 3
 const GAP = 2
-const H_PAD = 24
+const H_PAD = spacing[6]
 const { width: SW, height: SH } = Dimensions.get('window')
 const THUMB = (SW - H_PAD * 2 - GAP * (COLS - 1)) / COLS
 
@@ -95,7 +96,7 @@ export default function DropDetailScreen() {
       {/* Action buttons */}
       {(drop.state === 'active' || drop.state === 'ready') && (
         <TouchableOpacity
-          style={[s.actionBtn, { backgroundColor: '#0044FF' }]}
+          style={[s.actionBtn, { backgroundColor: colors.primary }]}
           onPress={() => router.push({ pathname: '/drop/upload', params: { id: drop.id } } as any)}
           activeOpacity={0.8}
         >
@@ -104,7 +105,7 @@ export default function DropDetailScreen() {
       )}
       {drop.state === 'open' && (
         <TouchableOpacity
-          style={[s.actionBtn, { backgroundColor: '#F59E0B' }]}
+          style={[s.actionBtn, { backgroundColor: colors.warning }]}
           onPress={() => router.push({ pathname: '/drop/gallery', params: { id: drop.id } } as any)}
           activeOpacity={0.8}
         >
@@ -188,40 +189,40 @@ export default function DropDetailScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
-  content: { paddingHorizontal: H_PAD, paddingTop: 72, paddingBottom: 48 },
+  root: { flex: 1, backgroundColor: colors.background },
+  content: { paddingHorizontal: H_PAD, paddingTop: 72, paddingBottom: spacing[12] },
   heroThumb: {
     marginHorizontal: -H_PAD,
     marginTop: -72,
     width: SW,
     aspectRatio: 16 / 9,
-    marginBottom: 24,
+    marginBottom: spacing[6],
   },
-  back: { marginBottom: 24 },
-  backLabel: { fontSize: 15, color: '#898989' },
-  title: { fontSize: 28, fontWeight: '700', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 12 },
+  back: { marginBottom: spacing[6] },
+  backLabel: { fontSize: 15, color: colors.textMuted },
+  title: { fontSize: fontSize['2xl'], fontWeight: fontWeight.strong, color: colors.white, letterSpacing: -0.5, marginBottom: spacing[3] },
   badgeWrap: { marginBottom: 28 },
   rows: { gap: 0 },
-  actionBtn: { marginTop: 24, borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-  actionBtnLabel: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
-  photoSection: { marginTop: 32 },
-  photoSectionTitle: { fontSize: 13, fontWeight: '600', color: '#626262', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 12 },
+  actionBtn: { marginTop: spacing[6], borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
+  actionBtnLabel: { fontSize: 15, fontWeight: fontWeight.semiBold, color: colors.white },
+  photoSection: { marginTop: spacing[8] },
+  photoSectionTitle: { fontSize: 13, fontWeight: fontWeight.semiBold, color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: spacing[3] },
   grid: { gap: GAP },
   gridRow: { flexDirection: 'row', gap: GAP },
-  thumb: { width: THUMB, height: THUMB, borderRadius: 4, backgroundColor: '#191919' },
+  thumb: { width: THUMB, height: THUMB, borderRadius: 4, backgroundColor: colors.surfaceInput },
   thumbGap: { width: THUMB },
   emptyPhotos: { marginTop: 28, alignItems: 'center' },
-  emptyPhotosText: { fontSize: 13, color: '#626262' },
+  emptyPhotosText: { fontSize: 13, color: colors.textTertiary },
   // Lightbox
-  modalRoot: { flex: 1, backgroundColor: '#000' },
+  modalRoot: { flex: 1, backgroundColor: colors.background },
   closeBtn: {
-    position: 'absolute', top: 56, right: 20, zIndex: 10,
+    position: 'absolute', top: 56, right: spacing[5], zIndex: 10,
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.12)', // lightbox close — intentional one-off
     alignItems: 'center', justifyContent: 'center',
   },
-  closeBtnLabel: { fontSize: 16, color: '#FFFFFF' },
+  closeBtnLabel: { fontSize: fontSize.md, color: colors.white },
   modalPage: { width: SW, height: SH, alignItems: 'center', justifyContent: 'center' },
   modalImg: { width: SW, height: SH * 0.75 },
-  modalUploader: { position: 'absolute', bottom: 80, fontSize: 13, color: 'rgba(255,255,255,0.7)' },
+  modalUploader: { position: 'absolute', bottom: spacing[20], fontSize: 13, color: 'rgba(255,255,255,0.7)' },
 })

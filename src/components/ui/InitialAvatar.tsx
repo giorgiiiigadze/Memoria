@@ -1,7 +1,8 @@
 import { Image } from 'expo-image'
 import { StyleSheet, Text, View } from 'react-native'
 
-import { avatarColors } from '@/theme/colors'
+import { avatarColors, colors } from '@/theme/colors'
+import { fontWeight } from '@/theme'
 
 function pickColor(name: string): string {
   let hash = 0
@@ -19,7 +20,7 @@ interface Props {
 
 export function InitialAvatar({ name, avatarUrl, size }: Props) {
   const radius = size / 2
-  const fontSize = Math.round(size * 0.42)
+  const fs = Math.round(size * 0.42)
 
   if (avatarUrl) {
     return (
@@ -36,7 +37,7 @@ export function InitialAvatar({ name, avatarUrl, size }: Props) {
 
   return (
     <View style={[s.circle, { width: size, height: size, borderRadius: radius, backgroundColor: bgColor }]}>
-      <Text style={[s.initial, { fontSize }]}>{initial}</Text>
+      <Text style={[s.initial, { fontSize: fs }]}>{initial}</Text>
     </View>
   )
 }
@@ -48,7 +49,7 @@ const s = StyleSheet.create({
     overflow: 'hidden',
   },
   initial: {
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: fontWeight.semiBold,
+    color: colors.white,
   },
 })

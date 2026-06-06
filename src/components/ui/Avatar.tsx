@@ -1,3 +1,4 @@
+import { colors, fontWeight } from '@/theme'
 import { Image } from 'expo-image'
 import { StyleSheet, Text, View, type ViewStyle } from 'react-native'
 
@@ -17,7 +18,7 @@ export function Avatar({ uri, name, size = 32, style }: { uri?: string | null; n
 
 const s = StyleSheet.create({
   base: {
-    backgroundColor: '#2C2C2C',
+    backgroundColor: '#2C2C2C', // avatar fallback bg — intentional one-off
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -27,7 +28,7 @@ const s = StyleSheet.create({
     height: '100%',
   },
   initial: {
-    fontWeight: '600',
-    color: '#C4C4C4',
+    fontWeight: fontWeight.semiBold,
+    color: colors.textLight,
   },
 })

@@ -1,3 +1,4 @@
+import { colors, fontSize, fontWeight, radii } from '@/theme'
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 type Props = {
@@ -17,7 +18,7 @@ export function OnboardingButton({ label, onPress, loading = false }: Props) {
         disabled={loading}
       >
         {loading
-          ? <ActivityIndicator color="#0A0A0A" size="small" />
+          ? <ActivityIndicator color={colors.ink} size="small" />
           : <Text style={styles.label}>{label}</Text>}
       </TouchableOpacity>
     </View>
@@ -36,21 +37,21 @@ const styles = StyleSheet.create({
     right: 0,
     top: 5,
     bottom: -5,
-    backgroundColor: '#0A0A0A',
-    borderRadius: 999,
+    backgroundColor: colors.ink,
+    borderRadius: radii.full,
   },
   face: {
-    backgroundColor: '#9EC6B8',
+    backgroundColor: '#9EC6B8', // onboarding brand color — intentional one-off
     borderWidth: 2,
-    borderColor: '#0A0A0A',
-    borderRadius: 999,
+    borderColor: colors.ink,
+    borderRadius: radii.full,
     paddingVertical: 18,
     alignItems: 'center',
   },
   label: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0A0A0A',
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.strong,
+    color: colors.ink,
     letterSpacing: 0.1,
   },
 })

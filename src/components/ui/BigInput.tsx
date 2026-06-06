@@ -1,3 +1,4 @@
+import { colors, fontWeight, spacing } from '@/theme'
 import { StyleSheet, TextInput, type TextInputProps } from 'react-native'
 
 export function BigInput(props: TextInputProps) {
@@ -13,10 +14,10 @@ export function BigInput(props: TextInputProps) {
 const styles = StyleSheet.create({
   input: {
     fontSize: 38,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontWeight: fontWeight.strong,
+    color: colors.white,
     textAlign: 'center',
     width: '100%',
-    paddingVertical: 4,
+    paddingVertical: spacing[1],
   },
 })

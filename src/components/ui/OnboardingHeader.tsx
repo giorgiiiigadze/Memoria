@@ -1,5 +1,5 @@
 import { completeOnboarding } from '@/lib/onboarding'
-import { colors } from '@/theme/colors'
+import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -34,26 +34,26 @@ const styles = StyleSheet.create({
   },
   inner: {
     height: 48,
-    marginTop: 4,
+    marginTop: spacing[1],
     justifyContent: 'center',
     alignItems: 'center',
   },
   brand: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.bold,
     color: colors.surface,
     letterSpacing: -0.3,
   },
   skipBtn: {
     position: 'absolute',
-    right: 24,
+    right: spacing[6],
     top: 0,
     bottom: 0,
     justifyContent: 'center',
   },
   skipText: {
-    color: '#898989',
+    color: colors.textMuted,
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: fontWeight.medium,
   },
 })

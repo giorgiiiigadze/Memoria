@@ -1,6 +1,6 @@
 import { Dots } from '@/components/ui/Dots'
 import { OnboardingButton } from '@/components/ui/OnboardingButton'
-import { colors } from '@/theme/colors'
+import { colors, fontWeight, spacing } from '@/theme'
 import type { ReactNode } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -34,7 +34,6 @@ export function OnboardingSlide({
         )}
       </View>
 
-      {/* Big, bold headline sits low — the BeReal signature */}
       <View style={styles.textWrap}>
         <Text style={styles.headline}>{headline}</Text>
         {body ? <Text style={styles.body}>{body}</Text> : null}
@@ -57,7 +56,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing[8],
   },
   illustrationEmoji: {
     fontSize: 96,
@@ -69,7 +68,7 @@ const styles = StyleSheet.create({
   },
   headline: {
     fontSize: 34,
-    fontWeight: '800',
+    fontWeight: fontWeight.bold,
     color: colors.surface,
     textAlign: 'center',
     letterSpacing: -0.6,
@@ -77,15 +76,15 @@ const styles = StyleSheet.create({
   },
   body: {
     fontSize: 15,
-    color: '#898989',
+    color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 22,
     marginTop: 14,
   },
   footer: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
-    gap: 24,
+    paddingHorizontal: spacing[6],
+    paddingBottom: spacing[8],
+    gap: spacing[6],
     alignItems: 'center',
   },
 })

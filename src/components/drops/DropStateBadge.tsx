@@ -1,5 +1,6 @@
 import { STATE_META } from '@/constants/drops'
 import type { DropState } from '@/types/database.types'
+import { fontWeight } from '@/theme'
 import { StyleSheet, Text, View } from 'react-native'
 
 export function DropStateBadge({ state }: { state: DropState }) {
@@ -21,7 +22,7 @@ const s = StyleSheet.create({
   },
   label: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: fontWeight.semiBold,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },

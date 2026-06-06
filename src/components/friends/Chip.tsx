@@ -1,3 +1,4 @@
+import { colors, fontWeight, spacing } from '@/theme'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 export function Chip({
@@ -33,12 +34,12 @@ export function Chip({
 }
 
 const s = StyleSheet.create({
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  chipBlue: { backgroundColor: '#0044FF' },
-  chipGreen: { borderWidth: 0.5, borderColor: '#4CAF7D' },
-  chipMuted: { borderWidth: 0.5, borderColor: '#3B3B3B' },
-  chipLabel: { fontSize: 13, fontWeight: '500' },
-  chipLabelWhite: { color: '#FFFFFF' },
-  chipLabelGreen: { color: '#4CAF7D' },
-  chipLabelMuted: { color: '#626262' },
+  chip: { paddingHorizontal: spacing[3], paddingVertical: 6, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+  chipBlue: { backgroundColor: colors.primary },
+  chipGreen: { borderWidth: 0.5, borderColor: colors.success },
+  chipMuted: { borderWidth: 0.5, borderColor: colors.borderDefault },
+  chipLabel: { fontSize: 13, fontWeight: fontWeight.medium },
+  chipLabelWhite: { color: colors.white },
+  chipLabelGreen: { color: colors.success },
+  chipLabelMuted: { color: colors.textTertiary },
 })

@@ -2,7 +2,7 @@ import type { DropWithParticipants } from '@/api/drops.api'
 import { DropCard } from '@/components/drops/DropCard'
 import { useDrops } from '@/hooks/useDrops'
 import { selectUser, useAuthStore } from '@/store/auth.store'
-import { colors } from '@/theme'
+import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import {
@@ -47,17 +47,12 @@ export default function HomeScreen() {
     scrollY.value = e.contentOffset.y
   })
 
-  // The whole header (background + content) dissolves as you scroll...
   const headerFadeStyle = useAnimatedStyle(() => ({
     opacity: interpolate(scrollY.value, [0, FADE_TABS], [1, 0], Extrapolation.CLAMP),
   }))
-  // ...and the top bar fades a touch faster, so it leads the dissolve.
   const topBarStyle = useAnimatedStyle(() => ({
     opacity: interpolate(scrollY.value, [0, FADE_TOPBAR], [1, 0], Extrapolation.CLAMP),
   }))
-  // Once fully faded, let touches fall through to the list underneath.
-  // `box-none` keeps the tab buttons tappable while passing scroll gestures
-  // in the empty regions straight through to the feed.
   const headerPointerProps = useAnimatedProps(() => ({
     pointerEvents: scrollY.value >= FADE_TABS ? ('none' as const) : ('box-none' as const),
   }))
@@ -78,18 +73,16 @@ export default function HomeScreen() {
   const onStripLayout = (e: LayoutChangeEvent) => {
     const width = e.nativeEvent.layout.width
     setStripWidth(width)
-    indicatorX.value = indicatorTargetFor(activeIndex, width) // no animation on first measure
+    indicatorX.value = indicatorTargetFor(activeIndex, width)
   }
 
   const onTabPress = (index: number) => {
-    // Tapping the active tab scrolls back to top (which fades the header in).
     listRef.current?.scrollToOffset({ offset: 0, animated: true })
     if (index === activeIndex) return
     setActiveIndex(index)
     indicatorX.value = withTiming(indicatorTargetFor(index, stripWidth), { duration: 220 })
   }
 
-  // ── Data ──────────────────────────────────────────────────────────────--
   const { myDrops, invitedDrops } = useMemo(
     () => ({
       myDrops: drops.filter(d => d.creator_id === user?.id),
@@ -151,12 +144,12 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#FFFFFF"
+            tintColor={colors.white}
             progressViewOffset={headerHeight}
           />
         }
       />
-      
+
       <Animated.View
         style={[s.header, { paddingTop: insets.top, height: headerHeight }, headerFadeStyle]}
         animatedProps={headerPointerProps}
@@ -197,7 +190,7 @@ const s = StyleSheet.create({
     marginTop: 30,
   },
   cardWrapper: {
-    marginBottom: 8,
+    marginBottom: spacing[2],
   },
 
   header: {
@@ -214,9 +207,9 @@ const s = StyleSheet.create({
   },
   wordmark: {
     fontSize: 19,
-    fontWeight: '700',
+    fontWeight: fontWeight.strong,
     letterSpacing: -0.3,
-    color: '#FFFFFF',
+    color: colors.white,
   },
 
   tabs: {
@@ -233,12 +226,12 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   tabLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#626262',
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semiBold,
+    color: colors.textTertiary,
   },
   tabLabelActive: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
   indicator: {
     position: 'absolute',
@@ -247,37 +240,37 @@ const s = StyleSheet.create({
     width: INDICATOR_WIDTH,
     height: 2,
     borderRadius: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
   },
 
   // States
   empty: {
     alignItems: 'center',
-    paddingTop: 40,
+    paddingTop: spacing[10],
   },
   emptyTitle: {
     fontSize: 17,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontWeight: fontWeight.medium,
+    color: colors.white,
     marginBottom: 6,
   },
   emptySub: {
-    fontSize: 14,
-    color: '#626262',
+    fontSize: fontSize.sm,
+    color: colors.textTertiary,
   },
   errorBox: {
     alignItems: 'center',
-    paddingTop: 40,
-    gap: 12,
+    paddingTop: spacing[10],
+    gap: spacing[3],
   },
   errorText: {
-    fontSize: 14,
-    color: '#626262',
+    fontSize: fontSize.sm,
+    color: colors.textTertiary,
     textAlign: 'center',
   },
   retryText: {
-    fontSize: 14,
-    color: '#0044FF',
-    fontWeight: '500',
+    fontSize: fontSize.sm,
+    color: colors.primary,
+    fontWeight: fontWeight.medium,
   },
 })

@@ -1,5 +1,6 @@
 import { useDropsStore } from '@/store/drops.store'
 import { formatDate } from '@/utils/date'
+import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
@@ -106,7 +107,7 @@ export default function CreateScreen() {
         <TextInput
           style={s.input}
           placeholder="What's the occasion?"
-          placeholderTextColor="#626262"
+          placeholderTextColor={colors.textTertiary}
           value={draft.title}
           onChangeText={setDraftTitle}
           maxLength={80}
@@ -232,81 +233,81 @@ export default function CreateScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
-  content: { paddingHorizontal: 24, paddingTop: 80, paddingBottom: 40 },
-  title: { fontSize: 26, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 6 },
-  subtitle: { fontSize: 14, color: '#626262', marginBottom: 36 },
+  root: { flex: 1, backgroundColor: colors.background },
+  content: { paddingHorizontal: spacing[6], paddingTop: spacing[20], paddingBottom: spacing[10] },
+  title: { fontSize: 26, fontWeight: fontWeight.semiBold, color: colors.white, letterSpacing: -0.5, marginBottom: 6 },
+  subtitle: { fontSize: fontSize.sm, color: colors.textTertiary, marginBottom: 36 },
   section: { marginBottom: 28 },
-  label: { fontSize: 12, fontWeight: '500', color: '#626262', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
+  label: { fontSize: fontSize.xs, fontWeight: fontWeight.medium, color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
   input: {
-    backgroundColor: '#191919',
+    backgroundColor: colors.surfaceInput,
     borderWidth: 0.5,
-    borderColor: '#3B3B3B',
-    borderRadius: 8,
+    borderColor: colors.borderDefault,
+    borderRadius: radii.sm,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: spacing[3],
     fontSize: 15,
-    color: '#FFFFFF',
+    color: colors.white,
   },
-  presets: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  presets: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
   preset: {
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: spacing[2],
     borderRadius: 20,
     borderWidth: 0.5,
-    borderColor: '#3B3B3B',
+    borderColor: colors.borderDefault,
   },
-  presetActive: { backgroundColor: '#0044FF', borderColor: '#0044FF' },
-  presetLabel: { fontSize: 14, color: '#898989' },
-  presetLabelActive: { color: '#FFFFFF', fontWeight: '500' },
-  datePreview: { fontSize: 13, color: '#4CAF7D', marginTop: 12 },
-  labelOptional: { fontWeight: '400', color: '#3B3B3B', textTransform: 'none', letterSpacing: 0 },
+  presetActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  presetLabel: { fontSize: fontSize.sm, color: colors.textMuted },
+  presetLabelActive: { color: colors.white, fontWeight: fontWeight.medium },
+  datePreview: { fontSize: 13, color: colors.success, marginTop: spacing[3] },
+  labelOptional: { fontWeight: fontWeight.regular, color: colors.borderDefault, textTransform: 'none', letterSpacing: 0 },
   thumbPicker: {
     width: '100%',
     aspectRatio: 16 / 9,
     borderRadius: 10,
     overflow: 'hidden',
-    backgroundColor: '#191919',
+    backgroundColor: colors.surfaceInput,
     borderWidth: 0.5,
-    borderColor: '#3B3B3B',
+    borderColor: colors.borderDefault,
   },
   thumbPreview: { width: '100%', height: '100%' },
   thumbRemove: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: spacing[2],
+    right: spacing[2],
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: colors.overlay,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  thumbRemoveLabel: { fontSize: 13, color: '#FFFFFF', fontWeight: '600' },
-  thumbPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
+  thumbRemoveLabel: { fontSize: 13, color: colors.white, fontWeight: fontWeight.semiBold },
+  thumbPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing[2] },
   thumbIcon: { fontSize: 28 },
-  thumbPlaceholderLabel: { fontSize: 13, color: '#626262' },
+  thumbPlaceholderLabel: { fontSize: 13, color: colors.textTertiary },
   btn: {
-    backgroundColor: '#0044FF',
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radii.sm,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: spacing[3],
   },
   btnDisabled: { opacity: 0.4 },
-  btnLabel: { fontSize: 15, fontWeight: '500', color: '#FFFFFF' },
+  btnLabel: { fontSize: 15, fontWeight: fontWeight.medium, color: colors.white },
   // Calendar
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center' },
-  calendar: { backgroundColor: '#1C1C1C', borderRadius: 16, padding: 20, width: 320 },
-  calHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  calNav: { padding: 8 },
-  calNavText: { fontSize: 24, color: '#FFFFFF', lineHeight: 26 },
-  calMonth: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
+  calendar: { backgroundColor: '#1C1C1C', borderRadius: radii.lg, padding: spacing[5], width: 320 },
+  calHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[4] },
+  calNav: { padding: spacing[2] },
+  calNavText: { fontSize: 24, color: colors.white, lineHeight: 26 },
+  calMonth: { fontSize: fontSize.md, fontWeight: fontWeight.semiBold, color: colors.white },
   calGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  calDayName: { width: `${100 / 7}%`, textAlign: 'center', fontSize: 11, color: '#626262', fontWeight: '500', paddingBottom: 8 },
-  calCell: { width: `${100 / 7}%`, aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 100 },
-  calCellSelected: { backgroundColor: '#0044FF' },
-  calDayNum: { fontSize: 14, color: '#FFFFFF' },
-  calDayPast: { color: '#3B3B3B' },
-  calDaySelected: { color: '#FFFFFF', fontWeight: '600' },
+  calDayName: { width: `${100 / 7}%`, textAlign: 'center', fontSize: 11, color: colors.textTertiary, fontWeight: fontWeight.medium, paddingBottom: spacing[2] },
+  calCell: { width: `${100 / 7}%`, aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: radii.full },
+  calCellSelected: { backgroundColor: colors.primary },
+  calDayNum: { fontSize: fontSize.sm, color: colors.white },
+  calDayPast: { color: colors.borderDefault },
+  calDaySelected: { color: colors.white, fontWeight: fontWeight.semiBold },
 })
