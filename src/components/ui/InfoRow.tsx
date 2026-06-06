@@ -1,3 +1,4 @@
+import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import { StyleSheet, Text, View } from 'react-native'
 
 export function InfoRow({ label, value }: { label: string; value: string }) {
@@ -14,11 +15,11 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing[4],
     paddingVertical: 14,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#252525',
+    borderBottomColor: colors.borderSubtle,
   },
-  label: { fontSize: 14, color: '#626262' },
-  value: { fontSize: 14, color: '#FFFFFF', fontWeight: '500', flexShrink: 1, textAlign: 'right', marginLeft: 16 },
+  label: { fontSize: fontSize.sm, color: colors.textTertiary },
+  value: { fontSize: fontSize.sm, color: colors.white, fontWeight: fontWeight.medium, flexShrink: 1, textAlign: 'right', marginLeft: spacing[4] },
 })

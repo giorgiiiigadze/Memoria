@@ -1,3 +1,4 @@
+import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
 import {
   ActivityIndicator,
   StyleSheet,
@@ -42,10 +43,10 @@ export function Button({
   ]
 
   const spinnerColor = isInactive
-    ? '#3B3B3B'
+    ? colors.borderDefault
     : variant === 'primary'
-      ? '#0A0A0A'
-      : '#FFFFFF'
+      ? colors.ink
+      : colors.white
 
   return (
     <TouchableOpacity
@@ -63,36 +64,36 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: 16,
+    borderRadius: radii.lg,
     paddingVertical: 18,
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing[6],
     alignItems: 'center',
     justifyContent: 'center',
   },
   primary: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   secondary: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#626262',
+    borderColor: colors.textTertiary,
   },
   disabled: {
-    backgroundColor: '#565658',
+    backgroundColor: '#565658', // disabled button bg — intentionally distinct from surface tokens
     borderWidth: 0,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.strong,
     letterSpacing: 0.1,
   },
   labelPrimary: {
-    color: '#0A0A0A',
+    color: colors.ink,
   },
   labelSecondary: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
   labelDisabled: {
-    color: '0000',
+    color: colors.textTertiary,
   },
 })

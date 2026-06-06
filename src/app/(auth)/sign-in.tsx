@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button'
+import { colors, fontWeight, radii, spacing } from '@/theme'
 import { AntDesign } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
@@ -29,14 +30,14 @@ export default function SignInScreen() {
 
         {/* Top scrim — keeps the clock/battery legible over bright photos */}
         <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.85)', '#000000']}
+          colors={['transparent', colors.overlayDark, colors.background]}
           locations={[0, 1, 1]}
           style={styles.bottomScrim}
           pointerEvents="none"
         />
 
         <LinearGradient
-          colors={['transparent', '#000000']}
+          colors={['transparent', colors.background]}
           style={styles.bottomScrim}
           pointerEvents="none"
         />
@@ -49,7 +50,7 @@ export default function SignInScreen() {
             onPress={handleAppleSignIn}
             activeOpacity={0.85}
           >
-            <AntDesign name="apple" size={16} color="#0A0A0A" />
+            <AntDesign name="apple" size={16} color={colors.ink} />
             <Text style={styles.btnLightLabel}>Apple</Text>
           </TouchableOpacity>
 
@@ -58,7 +59,7 @@ export default function SignInScreen() {
             onPress={handleGoogleSignIn}
             activeOpacity={0.85}
           >
-            <AntDesign name="google" size={16} color="#0A0A0A" />
+            <AntDesign name="google" size={16} color={colors.ink} />
             <Text style={styles.btnLightLabel}>Google</Text>
           </TouchableOpacity>
         </View>
@@ -83,7 +84,7 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: colors.background,
   },
   brand: {
     flex: 1,
@@ -106,11 +107,11 @@ const styles = StyleSheet.create({
     height: 220,
   },
   actions: {
-    gap: 16,
-    backgroundColor: '#000000',
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 40,
+    gap: spacing[4],
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing[4],
+    paddingTop: spacing[6],
+    paddingBottom: spacing[10],
     marginTop: -28,
   },
   row: {
@@ -121,27 +122,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: spacing[2],
     paddingVertical: 18,
   },
   btnHalf: {
     flex: 1,
   },
   btnLight: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
   },
   btnLightLabel: {
     fontSize: 15,
-    fontWeight: '500',
-    color: '#0A0A0A',
+    fontWeight: fontWeight.medium,
+    color: colors.ink,
   },
   terms: {
     textAlign: 'center',
     fontSize: 13,
     lineHeight: 18,
-    color: '#555555',
-    marginTop: 12,
+    color: '#555555', // terms text — intentional muted one-off
+    marginTop: spacing[3],
   },
   termsLink: {
     textDecorationLine: 'underline',

@@ -1,4 +1,5 @@
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
+import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import type { Profile } from '@/types/database.types'
 import type { ReactNode } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
@@ -21,9 +22,9 @@ export function UserRow({ profile, right }: { profile: Profile; right?: ReactNod
 
 const s = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
-  avatarWrap: { marginRight: 12 },
+  avatarWrap: { marginRight: spacing[3] },
   rowInfo: { flex: 1 },
-  rowName: { fontSize: 15, fontWeight: '500', color: '#FFFFFF' },
-  rowHandle: { fontSize: 12, color: '#626262', marginTop: 1 },
-  rowRight: { marginLeft: 12 },
+  rowName: { fontSize: 15, fontWeight: fontWeight.medium, color: colors.white },
+  rowHandle: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: 1 },
+  rowRight: { marginLeft: spacing[3] },
 })

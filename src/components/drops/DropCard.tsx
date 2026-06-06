@@ -2,6 +2,7 @@ import type { DropWithParticipants } from '@/api/drops.api'
 import { DropStateBadge } from '@/components/drops/DropStateBadge'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { formatDate } from '@/utils/date'
+import { colors, fontSize, spacing } from '@/theme'
 import { AntDesign } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
@@ -54,17 +55,9 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
           <Image source={{ uri: drop.thumbnail_url }} style={s.photo} contentFit="cover" />
         ) : (
           <View style={s.photoPlaceholder}>
-            <AntDesign name="picture" size={32} color="#3B3B3B" />
+            <AntDesign name="picture" size={32} color={colors.borderDefault} />
           </View>
         )}
-
-        {/* <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.88)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={s.scrim}
-          pointerEvents="none"
-        /> */}
 
         <View style={s.footer}>
           <DropStateBadge state={drop.state} />
@@ -84,7 +77,7 @@ const SIDE = 10
 
 const s = StyleSheet.create({
   post: {
-    marginBottom: 32,
+    marginBottom: spacing[8],
   },
 
   header: {
@@ -100,22 +93,22 @@ const s = StyleSheet.create({
   name: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.white,
   },
   subtitle: {
     fontSize: 13,
-    color: '#898989',
+    color: colors.textMuted,
     marginTop: 1,
   },
   date: {
-    fontSize: 12,
-    color: '#626262',
+    fontSize: fontSize.xs,
+    color: colors.textTertiary,
     marginTop: 1,
   },
 
   photoWrap: {
     aspectRatio: 3 / 4,
-    backgroundColor: '#121212',
+    backgroundColor: colors.surfaceDeep,
     overflow: 'hidden',
     borderRadius: 14,
   },
@@ -128,13 +121,6 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scrim: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '50%',
-  },
 
   footer: {
     position: 'absolute',
@@ -143,13 +129,13 @@ const s = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 12,
+    gap: spacing[3],
+    paddingHorizontal: spacing[3],
     paddingBottom: 14,
     zIndex: 1,
   },
   meta: {
-    fontSize: 12,
+    fontSize: fontSize.xs,
     color: 'rgba(255,255,255,0.65)',
   },
 })

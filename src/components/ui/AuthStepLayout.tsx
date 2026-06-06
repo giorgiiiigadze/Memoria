@@ -1,3 +1,4 @@
+import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import { GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
 import { router } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
@@ -35,11 +36,11 @@ export function AuthStepLayout({ heading, footer, children, topStyle }: Props) {
       >
         {glassAvailable ? (
           <GlassView style={styles.backGlass}>
-            <SymbolView name="chevron.left" size={18} tintColor="#FFFFFF" />
+            <SymbolView name="chevron.left" size={18} tintColor={colors.white} />
           </GlassView>
         ) : (
           <View style={styles.backFallback}>
-            <SymbolView name="chevron.left" size={18} tintColor="#FFFFFF" />
+            <SymbolView name="chevron.left" size={18} tintColor={colors.white} />
           </View>
         )}
       </TouchableOpacity>
@@ -62,7 +63,7 @@ const styles = StyleSheet.create({
   },
   backWrap: {
     marginTop: 56,
-    marginLeft: 24,
+    marginLeft: spacing[6],
   },
   backGlass: {
     width: 40,
@@ -77,36 +78,29 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#191919',
+    backgroundColor: colors.surfaceInput,
     borderWidth: 0.5,
-    borderColor: '#3B3B3B',
+    borderColor: colors.borderDefault,
   },
   body: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: spacing[5],
+    paddingBottom: spacing[5],
     justifyContent: 'space-between',
   },
   top: {
-    marginTop: 24,
+    marginTop: spacing[6],
     alignItems: 'center',
-  },
-  wordmark: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-    marginBottom: 32,
   },
   heading: {
     fontSize: 17,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontWeight: fontWeight.strong,
+    color: colors.white,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: spacing[4],
   },
   footer: {
     gap: 10,
-    marginBottom: 20,
+    marginBottom: spacing[5],
   },
 })

@@ -1,6 +1,9 @@
 export const fontWeight = {
-  regular: '400',  // body, secondary text, metadata
-  bold: '800',     // headings, names, key labels, CTAs
+  regular:  '400',
+  medium:   '500',
+  semiBold: '600',
+  strong:   '700',
+  bold:     '800',
 } as const
 
 export const fontSize = {
