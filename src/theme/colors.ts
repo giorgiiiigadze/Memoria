@@ -4,21 +4,18 @@ export const colors = {
   ember: '#D6A45B',
   white: '#FFFFFF',
 
-  // semantic — surfaces
   background: '#000000',
   surface: '#161618',
   surfaceRaised: '#242427',
   surfaceInput: '#191919',
   surfaceDeep: '#121212',
 
-  // semantic — text
   textPrimary: '#F2EEE6',
   textSecondary: '#B8B2A6',
   textTertiary: '#6E6E73',
   textMuted: '#898989',
   textLight: '#C4C4C4',
 
-  // semantic — borders
   borderDefault: '#3B3B3B',
   borderSubtle: '#252525',
 

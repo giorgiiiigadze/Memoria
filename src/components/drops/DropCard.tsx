@@ -1,8 +1,8 @@
 import type { DropWithParticipants } from '@/api/drops.api'
 import { DropStateBadge } from '@/components/drops/DropStateBadge'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
-import { formatDate } from '@/utils/date'
 import { colors, fontSize, spacing } from '@/theme'
+import { formatDate } from '@/utils/date'
 import { AntDesign } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
@@ -11,6 +11,8 @@ import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'r
 function formatOpenDate(iso: string | null): string {
   return formatDate(iso) ?? 'No open date'
 }
+
+const AVATAR_SIZE = 36
 
 export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipants; showCreator?: boolean }) {
   const { width } = useWindowDimensions()
@@ -37,7 +39,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
     >
       <View style={s.header}>
         {showAvatar && (
-          <InitialAvatar name={creatorName ?? '?'} avatarUrl={creatorAvatar} size={32} />
+          <InitialAvatar name={creatorName ?? '?'} avatarUrl={creatorAvatar} size={AVATAR_SIZE} />
         )}
         <View style={s.headerText}>
           <Text style={s.name} numberOfLines={1}>{primary}</Text>
@@ -96,7 +98,7 @@ const s = StyleSheet.create({
     color: colors.white,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: colors.textMuted,
     marginTop: 1,
   },

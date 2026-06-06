@@ -1,16 +1,15 @@
-import { colors, fontSize, fontWeight, spacing } from '@/theme'
-import { GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
+import { GlassBackButton } from '@/components/ui/GlassBackButton'
+import { colors, fontWeight, spacing } from '@/theme'
+import { isGlassEffectAPIAvailable } from 'expo-glass-effect'
 import { router } from 'expo-router'
-import { SymbolView } from 'expo-symbols'
 import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
   type StyleProp,
-  type ViewStyle,
+  type ViewStyle
 } from 'react-native'
 
 type Props = {
@@ -28,22 +27,9 @@ export function AuthStepLayout({ heading, footer, children, topStyle }: Props) {
       style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <TouchableOpacity
-        style={styles.backWrap}
-        onPress={() => router.back()}
-        hitSlop={12}
-        activeOpacity={0.8}
-      >
-        {glassAvailable ? (
-          <GlassView style={styles.backGlass}>
-            <SymbolView name="chevron.left" size={18} tintColor={colors.white} />
-          </GlassView>
-        ) : (
-          <View style={styles.backFallback}>
-            <SymbolView name="chevron.left" size={18} tintColor={colors.white} />
-          </View>
-        )}
-      </TouchableOpacity>
+      <View style={styles.backWrap}>
+        <GlassBackButton onPress={() => router.back()} />
+      </View>
 
       <View style={styles.body}>
         <View style={[styles.top, topStyle]}>

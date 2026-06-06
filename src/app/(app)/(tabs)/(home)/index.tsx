@@ -4,36 +4,18 @@ import { useDrops } from '@/hooks/useDrops'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import { useFocusEffect } from 'expo-router'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback } from 'react'
 import {
   FlatList,
-  Pressable,
-  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  type LayoutChangeEvent,
 } from 'react-native'
-import Animated, {
-  Extrapolation,
-  interpolate,
-  useAnimatedProps,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-const TABS = ['My Drops', 'Invited'] as const
-
-const TOPBAR_HEIGHT = 44
-const TABS_HEIGHT = 48
-const INDICATOR_WIDTH = 26
-
-const FADE_TOPBAR = 50
-const FADE_TABS = 84
+// Header pill height (54) + header paddingBottom (12) — keep in sync with HomeHeader
+const HEADER_HEIGHT = 66
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets()
@@ -41,63 +23,6 @@ export default function HomeScreen() {
   const { drops, isLoaded, error, refresh, retry } = useDrops()
 
   useFocusEffect(useCallback(() => { if (isLoaded) refresh() }, [isLoaded]))
-
-  const scrollY = useSharedValue(0)
-  const scrollHandler = useAnimatedScrollHandler(e => {
-    scrollY.value = e.contentOffset.y
-  })
-
-  const headerFadeStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollY.value, [0, FADE_TABS], [1, 0], Extrapolation.CLAMP),
-  }))
-  const topBarStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollY.value, [0, FADE_TOPBAR], [1, 0], Extrapolation.CLAMP),
-  }))
-  const headerPointerProps = useAnimatedProps(() => ({
-    pointerEvents: scrollY.value >= FADE_TABS ? ('none' as const) : ('box-none' as const),
-  }))
-
-  const listRef = useRef<FlatList<DropWithParticipants>>(null)
-  const [activeIndex, setActiveIndex] = useState(0)
-  const [stripWidth, setStripWidth] = useState(0)
-  const indicatorX = useSharedValue(0)
-  const indicatorStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: indicatorX.value }],
-  }))
-
-  const indicatorTargetFor = (index: number, width: number) => {
-    const tabWidth = width / 2
-    return index * tabWidth + (tabWidth - INDICATOR_WIDTH) / 2
-  }
-
-  const onStripLayout = (e: LayoutChangeEvent) => {
-    const width = e.nativeEvent.layout.width
-    setStripWidth(width)
-    indicatorX.value = indicatorTargetFor(activeIndex, width)
-  }
-
-  const onTabPress = (index: number) => {
-    listRef.current?.scrollToOffset({ offset: 0, animated: true })
-    if (index === activeIndex) return
-    setActiveIndex(index)
-    indicatorX.value = withTiming(indicatorTargetFor(index, stripWidth), { duration: 220 })
-  }
-
-  const { myDrops, invitedDrops } = useMemo(
-    () => ({
-      myDrops: drops.filter(d => d.creator_id === user?.id),
-      invitedDrops: drops.filter(d => d.creator_id !== user?.id),
-    }),
-    [drops, user?.id]
-  )
-  const activeDrops = activeIndex === 0 ? myDrops : invitedDrops
-  const showCreator = activeIndex === 1
-
-  const [refreshing, setRefreshing] = useState(false)
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true)
-    try { await refresh() } finally { setRefreshing(false) }
-  }, [refresh])
 
   const ListEmpty = !isLoaded ? null : error ? (
     <View style={s.errorBox}>
@@ -108,75 +33,31 @@ export default function HomeScreen() {
     </View>
   ) : (
     <View style={s.empty}>
-      <Text style={s.emptyTitle}>
-        {activeIndex === 0 ? 'No drops yet' : 'No invites yet'}
-      </Text>
-      <Text style={s.emptySub}>
-        {activeIndex === 0
-          ? 'Tap Create to start your first one.'
-          : 'Drops your friends invite you to land here.'}
-      </Text>
+      <Text style={s.emptyTitle}>No drops yet</Text>
+      <Text style={s.emptySub}>Tap Create to start your first one.</Text>
     </View>
   )
 
-  const headerHeight = insets.top + TOPBAR_HEIGHT + TABS_HEIGHT
-
   return (
     <View style={s.root}>
-      <Animated.FlatList<DropWithParticipants>
-        ref={listRef}
-        data={activeDrops}
+      <FlatList<DropWithParticipants>
+        data={drops}
         keyExtractor={d => d.id}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={ListEmpty}
         contentContainerStyle={[
           s.content,
-          { paddingTop: headerHeight + 8, paddingBottom: insets.bottom + 40 },
+          {
+            paddingTop: insets.top + HEADER_HEIGHT + spacing[2],
+            paddingBottom: insets.bottom + 40,
+          },
         ]}
         renderItem={({ item }) => (
           <View style={s.cardWrapper}>
-            <DropCard drop={item} showCreator={showCreator} />
+            <DropCard drop={item} showCreator={false} />
           </View>
         )}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.white}
-            progressViewOffset={headerHeight}
-          />
-        }
       />
-
-      <Animated.View
-        style={[s.header, { paddingTop: insets.top, height: headerHeight }, headerFadeStyle]}
-        animatedProps={headerPointerProps}
-      >
-        <Animated.View style={[s.topBar, topBarStyle]} pointerEvents="none">
-          <Text style={s.wordmark}>Memoria</Text>
-        </Animated.View>
-
-        <View style={s.tabs}>
-          <View style={s.tabStrip} onLayout={onStripLayout}>
-            {TABS.map((label, i) => {
-              const active = i === activeIndex
-              return (
-                <Pressable
-                  key={label}
-                  style={s.tab}
-                  onPress={() => onTabPress(i)}
-                  hitSlop={8}
-                >
-                  <Text style={[s.tabLabel, active && s.tabLabelActive]}>{label}</Text>
-                </Pressable>
-              )
-            })}
-            <Animated.View style={[s.indicator, indicatorStyle]} />
-          </View>
-        </View>
-      </Animated.View>
     </View>
   )
 }
@@ -186,64 +67,11 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  content: {
-    marginTop: 30,
-  },
+  content: {},
   cardWrapper: {
     marginBottom: spacing[2],
   },
 
-  header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-  },
-  topBar: {
-    height: TOPBAR_HEIGHT,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  wordmark: {
-    fontSize: 19,
-    fontWeight: fontWeight.strong,
-    letterSpacing: -0.3,
-    color: colors.white,
-  },
-
-  tabs: {
-    height: TABS_HEIGHT,
-  },
-  tabStrip: {
-    flex: 1,
-    flexDirection: 'row',
-    position: 'relative',
-  },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabLabel: {
-    fontSize: fontSize.sm,
-    fontWeight: fontWeight.semiBold,
-    color: colors.textTertiary,
-  },
-  tabLabelActive: {
-    color: colors.white,
-  },
-  indicator: {
-    position: 'absolute',
-    bottom: 8,
-    left: 0,
-    width: INDICATOR_WIDTH,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: colors.white,
-  },
-
-  // States
   empty: {
     alignItems: 'center',
     paddingTop: spacing[10],
