@@ -65,7 +65,7 @@ export function Button({
 const styles = StyleSheet.create({
   base: {
     borderRadius: radii.lg,
-    paddingVertical: 18,
+    paddingVertical: 16,
     paddingHorizontal: spacing[6],
     alignItems: 'center',
     justifyContent: 'center',
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     borderColor: colors.textTertiary,
   },
   disabled: {
-    backgroundColor: '#565658', // disabled button bg — intentionally distinct from surface tokens
+    backgroundColor: '#565658',
     borderWidth: 0,
   },
   label: {

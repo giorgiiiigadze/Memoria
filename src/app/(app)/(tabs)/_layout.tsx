@@ -1,9 +1,8 @@
-import { colors } from '@/theme'
 import { NativeTabs } from 'expo-router/unstable-native-tabs'
 
 export default function TabsLayout() {
   return (
-    <NativeTabs screenOptions={{ contentStyle: { backgroundColor: colors.background } }}>
+    <NativeTabs>
       <NativeTabs.Trigger name="(home)">
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="house.fill" md="home" />

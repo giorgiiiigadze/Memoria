@@ -133,10 +133,10 @@ const s = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: 'transparent',
   },
-  sideSlot: { width: 80, justifyContent: 'center' },
+  sideSlot: { width: "auto", justifyContent: 'center' },
   title: { fontSize: 17, fontWeight: '600', color: '#FFFFFF', flex: 1, textAlign: 'center' },
   markAll: { fontSize: 13, color: '#5B8CFF', textAlign: 'right' },
-  list: { paddingTop: HEADER_HEIGHT + 8, paddingBottom: 8 },
+  list: { paddingTop: 8, paddingBottom: 8 },
   empty: { paddingTop: 80, alignItems: 'center' },
   emptyText: { fontSize: 14, color: 'rgba(255,255,255,0.55)' },
   item: {

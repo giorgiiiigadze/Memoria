@@ -12,7 +12,7 @@ function formatOpenDate(iso: string | null): string {
   return formatDate(iso) ?? 'No open date'
 }
 
-const AVATAR_SIZE = 36
+const AVATAR_SIZE = 34
 
 export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipants; showCreator?: boolean }) {
   const { width } = useWindowDimensions()

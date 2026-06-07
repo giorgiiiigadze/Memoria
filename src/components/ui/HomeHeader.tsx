@@ -1,3 +1,4 @@
+
 import { selectUnreadCount, useNotificationsStore } from '@/store/notifications.store'
 import { colors } from '@/theme'
 import { GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
@@ -104,10 +105,10 @@ const styles = StyleSheet.create({
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
+    gap: 24,
     borderRadius: 999,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   pillFallback: {
     backgroundColor: colors.surfaceInput,
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
     borderColor: colors.borderDefault,
   },
   iconBtn: {
-    width: "auto",
+    width: 'auto',
     alignItems: 'center',
     justifyContent: 'center',
   },

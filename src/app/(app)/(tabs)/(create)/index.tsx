@@ -1,6 +1,7 @@
+import { CreateFlowHeader } from '@/components/ui/CreateFlowHeader'
 import { useDropsStore } from '@/store/drops.store'
-import { formatDate } from '@/utils/date'
 import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
+import { formatDate } from '@/utils/date'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
@@ -34,13 +35,15 @@ function startOfDay(d: Date) {
 }
 
 function isSameDay(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+  return a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
 }
 
 function buildCalendarDays(year: number, month: number) {
   const first = new Date(year, month, 1)
   const last = new Date(year, month + 1, 0)
-  const startPad = (first.getDay() + 6) % 7 // Mon=0
+  const startPad = (first.getDay() + 6) % 7
   const days: (number | null)[] = Array(startPad).fill(null)
   for (let d = 1; d <= last.getDate(); d++) days.push(d)
   while (days.length % 7 !== 0) days.push(null)
@@ -49,6 +52,13 @@ function buildCalendarDays(year: number, month: number) {
 
 export default function CreateScreen() {
   const { draft, setDraftTitle, setDraftOpenDate, setDraftThumbnailUri } = useDropsStore()
+
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [calYear, setCalYear] = useState(() => new Date().getFullYear())
+  const [calMonth, setCalMonth] = useState(() => new Date().getMonth())
+
+  const today = startOfDay(new Date())
+  const calDays = buildCalendarDays(calYear, calMonth)
 
   async function pickThumbnail() {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -59,13 +69,6 @@ export default function CreateScreen() {
     })
     if (!result.canceled) setDraftThumbnailUri(result.assets[0].uri)
   }
-
-  const [showCalendar, setShowCalendar] = useState(false)
-  const [calYear, setCalYear] = useState(() => new Date().getFullYear())
-  const [calMonth, setCalMonth] = useState(() => new Date().getMonth())
-
-  const today = startOfDay(new Date())
-  const calDays = buildCalendarDays(calYear, calMonth)
 
   function selectPreset(days: number) {
     setDraftOpenDate(addDays(today, days))
@@ -93,99 +96,116 @@ export default function CreateScreen() {
     setShowCalendar(false)
   }
 
+  const isCustomActive = !!draft.openDate && !PRESETS.some(p => isPresetActive(p.days))
   const canNext = draft.title.trim().length > 0 && draft.openDate !== null
 
   return (
-    <ScrollView style={s.root} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+    <View style={s.root}>
+      <CreateFlowHeader variant="close" />
 
-      <Text style={s.title}>New drop</Text>
-      <Text style={s.subtitle}>Name it and set when it opens.</Text>
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.content}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={s.title}>New drop</Text>
+        <Text style={s.subtitle}>Name it and set when it opens.</Text>
 
-      {/* ── Title ───────────────────────────────── */}
-      <View style={s.section}>
-        <Text style={s.label}>Title</Text>
-        <TextInput
-          style={s.input}
-          placeholder="What's the occasion?"
-          placeholderTextColor={colors.textTertiary}
-          value={draft.title}
-          onChangeText={setDraftTitle}
-          maxLength={80}
-          returnKeyType="done"
-        />
-      </View>
+        {/* ── Title ───────────────────────────────── */}
+        <View style={s.section}>
+          <Text style={s.label}>Title</Text>
+          <TextInput
+            style={s.input}
+            placeholder="What's the occasion?"
+            placeholderTextColor={colors.textTertiary}
+            value={draft.title}
+            onChangeText={setDraftTitle}
+            maxLength={80}
+            returnKeyType="done"
+          />
+        </View>
 
-      {/* ── Cover photo ─────────────────────────── */}
-      <View style={s.section}>
-        <Text style={s.label}>Cover photo <Text style={s.labelOptional}>(optional)</Text></Text>
-        <TouchableOpacity style={s.thumbPicker} onPress={pickThumbnail} activeOpacity={0.8}>
-          {draft.thumbnailUri ? (
-            <>
-              <Image source={{ uri: draft.thumbnailUri }} style={s.thumbPreview} contentFit="cover" />
-              <TouchableOpacity
-                style={s.thumbRemove}
-                onPress={() => setDraftThumbnailUri(null)}
-                hitSlop={8}
-              >
-                <Text style={s.thumbRemoveLabel}>✕</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <View style={s.thumbPlaceholder}>
-              <Text style={s.thumbIcon}>📷</Text>
-              <Text style={s.thumbPlaceholderLabel}>Add cover photo</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* ── Open date ───────────────────────────── */}
-      <View style={s.section}>
-        <Text style={s.label}>Opens in</Text>
-        <View style={s.presets}>
-          {PRESETS.map(p => (
-            <TouchableOpacity
-              key={p.days}
-              style={[s.preset, isPresetActive(p.days) && s.presetActive]}
-              onPress={() => selectPreset(p.days)}
-              activeOpacity={0.7}
-            >
-              <Text style={[s.presetLabel, isPresetActive(p.days) && s.presetLabelActive]}>
-                {p.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-          <TouchableOpacity
-            style={[s.preset, draft.openDate && !PRESETS.some(p => isPresetActive(p.days)) && s.presetActive]}
-            onPress={() => setShowCalendar(true)}
-            activeOpacity={0.7}
-          >
-            <Text style={[
-              s.presetLabel,
-              draft.openDate && !PRESETS.some(p => isPresetActive(p.days)) && s.presetLabelActive,
-            ]}>
-              Custom
-            </Text>
+        {/* ── Cover photo ─────────────────────────── */}
+        <View style={s.section}>
+          <Text style={s.label}>
+            Cover photo{' '}
+            <Text style={s.labelOptional}>(optional)</Text>
+          </Text>
+          <TouchableOpacity style={s.thumbPicker} onPress={pickThumbnail} activeOpacity={0.8}>
+            {draft.thumbnailUri ? (
+              <>
+                <Image
+                  source={{ uri: draft.thumbnailUri }}
+                  style={s.thumbPreview}
+                  contentFit="cover"
+                />
+                <TouchableOpacity
+                  style={s.thumbRemove}
+                  onPress={() => setDraftThumbnailUri(null)}
+                  hitSlop={8}
+                >
+                  <Text style={s.thumbRemoveLabel}>✕</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <View style={s.thumbPlaceholder}>
+                <Text style={s.thumbIcon}>📷</Text>
+                <Text style={s.thumbPlaceholderLabel}>Add cover photo</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
-        {draft.openDate && (
-          <Text style={s.datePreview}>Opens {formatDate(draft.openDate) ?? ''}</Text>
-        )}
-      </View>
+        {/* ── Open date ───────────────────────────── */}
+        <View style={s.section}>
+          <Text style={s.label}>Opens in</Text>
+          <View style={s.presets}>
+            {PRESETS.map(p => (
+              <TouchableOpacity
+                key={p.days}
+                style={[s.preset, isPresetActive(p.days) && s.presetActive]}
+                onPress={() => selectPreset(p.days)}
+                activeOpacity={0.7}
+              >
+                <Text style={[s.presetLabel, isPresetActive(p.days) && s.presetLabelActive]}>
+                  {p.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={[s.preset, isCustomActive && s.presetActive]}
+              onPress={() => setShowCalendar(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={[s.presetLabel, isCustomActive && s.presetLabelActive]}>
+                Custom
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {draft.openDate && (
+            <Text style={s.datePreview}>Opens {formatDate(draft.openDate) ?? ''}</Text>
+          )}
+        </View>
 
-      {/* ── Next ────────────────────────────────── */}
-      <TouchableOpacity
-        style={[s.btn, !canNext && s.btnDisabled]}
-        onPress={() => router.push('/(app)/(create)/invite')}
-        disabled={!canNext}
-        activeOpacity={0.8}
-      >
-        <Text style={s.btnLabel}>Next</Text>
-      </TouchableOpacity>
+        {/* ── Next ────────────────────────────────── */}
+        <TouchableOpacity
+          style={[s.btn, !canNext && s.btnDisabled]}
+          onPress={() => router.push('/(app)/(create)/invite' as any)}
+          disabled={!canNext}
+          activeOpacity={0.8}
+        >
+          <Text style={s.btnLabel}>Next</Text>
+        </TouchableOpacity>
+      </ScrollView>
 
       {/* ── Calendar modal ──────────────────────── */}
-      <Modal visible={showCalendar} transparent animationType="fade" onRequestClose={() => setShowCalendar(false)}>
+      <Modal
+        visible={showCalendar}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCalendar(false)}
+      >
         <Pressable style={s.overlay} onPress={() => setShowCalendar(false)}>
           <Pressable style={s.calendar} onPress={() => {}}>
 
@@ -228,17 +248,52 @@ export default function CreateScreen() {
         </Pressable>
       </Modal>
 
-    </ScrollView>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.background },
-  content: { paddingHorizontal: spacing[6], paddingTop: spacing[20], paddingBottom: spacing[10] },
-  title: { fontSize: 26, fontWeight: fontWeight.semiBold, color: colors.white, letterSpacing: -0.5, marginBottom: 6 },
-  subtitle: { fontSize: fontSize.sm, color: colors.textTertiary, marginBottom: 36 },
+  // ── Layout
+  root: { flex: 1 },
+  scroll: { flex: 1 },
+  content: {
+    paddingHorizontal:10,
+    paddingTop: spacing[4],
+    paddingBottom: spacing[10],
+  },
+
+  // ── Hero text
+  title: {
+    fontSize: 26,
+    fontWeight: fontWeight.semiBold,
+    color: colors.white,
+    letterSpacing: -0.5,
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: fontSize.sm,
+    color: colors.textTertiary,
+    marginBottom: 36,
+  },
+
+  // ── Sections
   section: { marginBottom: 28 },
-  label: { fontSize: fontSize.xs, fontWeight: fontWeight.medium, color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
+  label: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
+    color: colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 10,
+  },
+  labelOptional: {
+    fontWeight: fontWeight.regular,
+    color: colors.borderDefault,
+    textTransform: 'none',
+    letterSpacing: 0,
+  },
+
+  // ── Input
   input: {
     backgroundColor: colors.surfaceInput,
     borderWidth: 0.5,
@@ -249,6 +304,8 @@ const s = StyleSheet.create({
     fontSize: 15,
     color: colors.white,
   },
+
+  // ── Presets
   presets: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
   preset: {
     paddingHorizontal: 14,
@@ -261,7 +318,8 @@ const s = StyleSheet.create({
   presetLabel: { fontSize: fontSize.sm, color: colors.textMuted },
   presetLabelActive: { color: colors.white, fontWeight: fontWeight.medium },
   datePreview: { fontSize: 13, color: colors.success, marginTop: spacing[3] },
-  labelOptional: { fontWeight: fontWeight.regular, color: colors.borderDefault, textTransform: 'none', letterSpacing: 0 },
+
+  // ── Thumbnail
   thumbPicker: {
     width: '100%',
     aspectRatio: 16 / 9,
@@ -287,6 +345,8 @@ const s = StyleSheet.create({
   thumbPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing[2] },
   thumbIcon: { fontSize: 28 },
   thumbPlaceholderLabel: { fontSize: 13, color: colors.textTertiary },
+
+  // ── CTA
   btn: {
     backgroundColor: colors.primary,
     borderRadius: radii.sm,
@@ -296,16 +356,45 @@ const s = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.4 },
   btnLabel: { fontSize: 15, fontWeight: fontWeight.medium, color: colors.white },
-  // Calendar
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center' },
-  calendar: { backgroundColor: '#1C1C1C', borderRadius: radii.lg, padding: spacing[5], width: 320 },
-  calHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[4] },
+
+  // ── Calendar modal
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  calendar: {
+    backgroundColor: '#1C1C1C',
+    borderRadius: radii.lg,
+    padding: spacing[5],
+    width: 320,
+  },
+  calHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing[4],
+  },
   calNav: { padding: spacing[2] },
   calNavText: { fontSize: 24, color: colors.white, lineHeight: 26 },
   calMonth: { fontSize: fontSize.md, fontWeight: fontWeight.semiBold, color: colors.white },
   calGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  calDayName: { width: `${100 / 7}%`, textAlign: 'center', fontSize: 11, color: colors.textTertiary, fontWeight: fontWeight.medium, paddingBottom: spacing[2] },
-  calCell: { width: `${100 / 7}%`, aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: radii.full },
+  calDayName: {
+    width: `${100 / 7}%`,
+    textAlign: 'center',
+    fontSize: 11,
+    color: colors.textTertiary,
+    fontWeight: fontWeight.medium,
+    paddingBottom: spacing[2],
+  },
+  calCell: {
+    width: `${100 / 7}%`,
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.full,
+  },
   calCellSelected: { backgroundColor: colors.primary },
   calDayNum: { fontSize: fontSize.sm, color: colors.white },
   calDayPast: { color: colors.borderDefault },

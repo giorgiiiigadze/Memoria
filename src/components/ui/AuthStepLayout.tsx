@@ -1,6 +1,5 @@
 import { GlassBackButton } from '@/components/ui/GlassBackButton'
 import { colors, fontWeight, spacing } from '@/theme'
-import { isGlassEffectAPIAvailable } from 'expo-glass-effect'
 import { router } from 'expo-router'
 import {
   KeyboardAvoidingView,
@@ -18,8 +17,6 @@ type Props = {
   children: React.ReactNode
   topStyle?: StyleProp<ViewStyle>
 }
-
-const glassAvailable = isGlassEffectAPIAvailable()
 
 export function AuthStepLayout({ heading, footer, children, topStyle }: Props) {
   return (
@@ -79,7 +76,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heading: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: fontWeight.strong,
     color: colors.white,
     textAlign: 'center',

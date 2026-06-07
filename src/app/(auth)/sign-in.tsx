@@ -28,7 +28,6 @@ export default function SignInScreen() {
           resizeMode="cover"
         />
 
-        {/* Top scrim — keeps the clock/battery legible over bright photos */}
         <LinearGradient
           colors={['transparent', colors.overlayDark, colors.background]}
           locations={[0, 1, 1]}
@@ -123,7 +122,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing[2],
-    paddingVertical: 18,
+    paddingVertical: 16,
   },
   btnHalf: {
     flex: 1,

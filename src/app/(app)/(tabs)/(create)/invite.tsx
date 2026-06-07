@@ -1,6 +1,8 @@
+import { CreateFlowHeader } from '@/components/ui/CreateFlowHeader'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { useDropsStore } from '@/store/drops.store'
 import { useFriendsStore } from '@/store/friends.store'
+import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
 import type { Profile } from '@/types/database.types'
 import { router } from 'expo-router'
 import {
@@ -23,51 +25,54 @@ export default function InviteScreen() {
   }
 
   return (
-    <ScrollView style={s.root} contentContainerStyle={s.content}>
+    <View style={s.root}>
+      <CreateFlowHeader variant="back" />
+      <ScrollView style={s.scroll} contentContainerStyle={s.content}>
 
-      <Text style={s.title}>Invite friends</Text>
-      <Text style={s.subtitle}>Who's in on this drop?</Text>
+        <Text style={s.title}>Invite friends</Text>
+        <Text style={s.subtitle}>Who's in on this drop?</Text>
 
-      {friends.length === 0 ? (
-        <Text style={s.empty}>You haven't added any friends yet.</Text>
-      ) : (
-        friends.map(friend => {
-          const selected = draft.invitedIds.includes(friend.id)
-          return (
-            <TouchableOpacity
-              key={friend.id}
-              style={[s.row, selected && s.rowSelected]}
-              onPress={() => toggle(friend.id)}
-              activeOpacity={0.7}
-            >
-              <Avatar profile={friend} />
-              <View style={s.info}>
-                <Text style={s.name}>{friend.display_name ?? friend.username}</Text>
-                <Text style={s.handle}>@{friend.username}</Text>
-              </View>
-              <View style={[s.check, selected && s.checkSelected]}>
-                {selected && <Text style={s.checkMark}>✓</Text>}
-              </View>
-            </TouchableOpacity>
-          )
-        })
-      )}
+        {friends.length === 0 ? (
+          <Text style={s.empty}>You haven't added any friends yet.</Text>
+        ) : (
+          friends.map(friend => {
+            const selected = draft.invitedIds.includes(friend.id)
+            return (
+              <TouchableOpacity
+                key={friend.id}
+                style={[s.row, selected && s.rowSelected]}
+                onPress={() => toggle(friend.id)}
+                activeOpacity={0.7}
+              >
+                <FriendAvatar profile={friend} />
+                <View style={s.info}>
+                  <Text style={s.name}>{friend.display_name ?? friend.username}</Text>
+                  <Text style={s.handle}>@{friend.username}</Text>
+                </View>
+                <View style={[s.check, selected && s.checkSelected]}>
+                  {selected && <Text style={s.checkMark}>✓</Text>}
+                </View>
+              </TouchableOpacity>
+            )
+          })
+        )}
 
-      <TouchableOpacity
-        style={s.btn}
-        onPress={() => router.push('/(app)/(create)/confirm')}
-        activeOpacity={0.8}
-      >
-        <Text style={s.btnLabel}>
-          {draft.invitedIds.length > 0 ? `Next  (${draft.invitedIds.length} invited)` : 'Skip'}
-        </Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={s.btn}
+          onPress={() => router.push('/(app)/(create)/confirm' as any)}
+          activeOpacity={0.8}
+        >
+          <Text style={s.btnLabel}>
+            {draft.invitedIds.length > 0 ? `Next  (${draft.invitedIds.length} invited)` : 'Skip'}
+          </Text>
+        </TouchableOpacity>
 
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
-function Avatar({ profile }: { profile: Profile }) {
+function FriendAvatar({ profile }: { profile: Profile }) {
   const name = profile.display_name ?? profile.username
   return (
     <View style={s.avatarWrap}>
@@ -77,41 +82,52 @@ function Avatar({ profile }: { profile: Profile }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
-  content: { paddingHorizontal: 24, paddingTop: 80, paddingBottom: 40 },
-  title: { fontSize: 26, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 6 },
-  subtitle: { fontSize: 14, color: '#626262', marginBottom: 28 },
-  empty: { fontSize: 14, color: '#626262', textAlign: 'center', paddingVertical: 32 },
+  root: { flex: 1, backgroundColor: colors.background },
+  scroll: { flex: 1 },
+  content: {
+    paddingHorizontal: spacing[6],
+    paddingTop: spacing[4],
+    paddingBottom: spacing[10],
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: fontWeight.semiBold,
+    color: colors.white,
+    letterSpacing: -0.5,
+    marginBottom: 6,
+  },
+  subtitle: { fontSize: fontSize.sm, color: colors.textTertiary, marginBottom: 28 },
+  empty: { fontSize: fontSize.sm, color: colors.textTertiary, textAlign: 'center', paddingVertical: spacing[8] },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: spacing[3],
     paddingHorizontal: 14,
-    borderRadius: 10,
-    marginBottom: 6,
+    borderRadius: radii.sm,
+    marginBottom: spacing[1],
   },
   rowSelected: { backgroundColor: '#0A1A40' },
-  avatarWrap: { marginRight: 12 },
+  avatarWrap: { marginRight: spacing[3] },
   info: { flex: 1 },
-  name: { fontSize: 15, fontWeight: '500', color: '#FFFFFF' },
-  handle: { fontSize: 12, color: '#626262', marginTop: 1 },
+  name: { fontSize: 15, fontWeight: fontWeight.medium, color: colors.white },
+  handle: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: 1 },
   check: {
     width: 22,
     height: 22,
     borderRadius: 11,
     borderWidth: 1.5,
-    borderColor: '#3B3B3B',
+    borderColor: colors.borderDefault,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkSelected: { backgroundColor: '#0044FF', borderColor: '#0044FF' },
-  checkMark: { fontSize: 12, color: '#FFFFFF', fontWeight: '700' },
+  checkSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
+  checkMark: { fontSize: 12, color: colors.white, fontWeight: fontWeight.strong },
   btn: {
-    backgroundColor: '#0044FF',
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radii.sm,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: spacing[5],
   },
-  btnLabel: { fontSize: 15, fontWeight: '500', color: '#FFFFFF' },
+  btnLabel: { fontSize: 15, fontWeight: fontWeight.medium, color: colors.white },
 })
