@@ -13,17 +13,23 @@ interface AuthState {
   user: User | null
   profile: Profile | null
 
+  // Transient onboarding inputs (not persisted to DB until complete screen)
+  onboardingName: string
+  onboardingBirthday: string | null
+
   // Status flags
   isAuthenticated: boolean
-  isOnboarded: boolean        // false = send to setup-profile after sign-in
+  isOnboarded: boolean        // false = send to onboarding after sign-in
   isHydrated: boolean         // false = app is still reading from SecureStore on boot
-  hasSeenOnboarding: boolean  // false = show onboarding tutorial on first launch
+  hasSeenOnboarding: boolean  // kept for legacy compatibility
 
   // Actions
   setSession: (session: Session | null) => void
   setProfile: (profile: Profile | null) => void
   setHydrated: () => void
   setHasSeenOnboarding: (value: boolean) => void
+  setOnboardingName: (name: string) => void
+  setOnboardingBirthday: (birthday: string | null) => void
   signOut: () => Promise<void>
 }
 
@@ -32,6 +38,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   user: null,
   profile: null,
+  onboardingName: '',
+  onboardingBirthday: null,
   isAuthenticated: false,
   isOnboarded: false,
   isHydrated: false,
@@ -51,12 +59,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   /**
    * Called after fetching the user's profile row from Supabase.
-   * Sets isOnboarded based on whether a username exists.
+   * Sets isOnboarded based on whether display_name or username exists.
    */
   setProfile: (profile) => {
     set({
       profile,
-      isOnboarded: !!profile?.username,
+      isOnboarded: !!(profile?.username || profile?.display_name),
     })
   },
 
@@ -73,6 +81,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setHasSeenOnboarding: (value) => {
     set({ hasSeenOnboarding: value })
   },
+
+  setOnboardingName: (name) => set({ onboardingName: name }),
+
+  setOnboardingBirthday: (birthday) => set({ onboardingBirthday: birthday }),
 
   /**
    * Signs the user out fully:
@@ -100,3 +112,5 @@ export const selectIsAuthenticated = (s: AuthState) => s.isAuthenticated
 export const selectIsOnboarded = (s: AuthState) => s.isOnboarded
 export const selectIsHydrated = (s: AuthState) => s.isHydrated
 export const selectHasSeenOnboarding = (s: AuthState) => s.hasSeenOnboarding
+export const selectOnboardingName = (s: AuthState) => s.onboardingName
+export const selectOnboardingBirthday = (s: AuthState) => s.onboardingBirthday
