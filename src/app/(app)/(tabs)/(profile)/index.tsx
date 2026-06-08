@@ -252,7 +252,7 @@ export default function ProfileScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
-  content: { paddingHorizontal: spacing[6], paddingTop: 72, paddingBottom: spacing[12] },
+  content: { paddingHorizontal: 10, paddingTop: 72, paddingBottom: spacing[12] },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[8] },
   heading: { fontSize: fontSize.xl, fontWeight: fontWeight.semiBold, color: colors.white, letterSpacing: -0.5 },
   headerActions: { flexDirection: 'row', gap: spacing[2] },

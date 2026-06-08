@@ -1,23 +1,20 @@
 import type { DropWithParticipants } from '@/api/drops.api'
-import { DropStateBadge } from '@/components/drops/DropStateBadge'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
+import { ParticipantAvatars } from '@/components/drops/ParticipantAvatars'
 import { colors, fontSize, spacing } from '@/theme'
 import { formatDate } from '@/utils/date'
+import { Button, Host, Menu } from '@expo/ui/swift-ui'
+import { labelStyle } from '@expo/ui/swift-ui/modifiers'
 import { AntDesign } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
 import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native'
-
-function formatOpenDate(iso: string | null): string {
-  return formatDate(iso) ?? 'No open date'
-}
 
 const AVATAR_SIZE = 34
 
 export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipants; showCreator?: boolean }) {
   const { width } = useWindowDimensions()
 
-  const participantCount = drop.participants?.length ?? 0
   const creatorName = drop.creator?.display_name ?? drop.creator?.username ?? null
   const creatorAvatar = drop.creator?.avatar_url ?? null
 
@@ -25,34 +22,73 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
   const primary = showIdentity ? creatorName : drop.title
   const secondary = showIdentity ? drop.title : null
 
+  const dateLabel = formatDate(drop.open_date)
+
   const showAvatar = !!(creatorAvatar || creatorName)
 
-  const createdDate = formatDate(drop.created_at)
+  const handleNavigation = () => {
+    router.push({ pathname: '/drop/[id]', params: { id: drop.id } } as any)
+  }
 
   return (
-    <TouchableOpacity
-      style={s.post}
-      onPress={() =>
-        router.push({ pathname: '/drop/[id]', params: { id: drop.id } } as any)
-      }
-      activeOpacity={0.9}
-    >
+    <View style={s.post}>
       <View style={s.header}>
         {showAvatar && (
-          <InitialAvatar name={creatorName ?? '?'} avatarUrl={creatorAvatar} size={AVATAR_SIZE} />
+          <TouchableOpacity onPress={handleNavigation} activeOpacity={0.9}>
+            <InitialAvatar name={creatorName ?? '?'} avatarUrl={creatorAvatar} size={AVATAR_SIZE} />
+          </TouchableOpacity>
         )}
-        <View style={s.headerText}>
+        <TouchableOpacity
+          style={s.headerText}
+          onPress={handleNavigation}
+          activeOpacity={0.9}
+        >
           <Text style={s.name} numberOfLines={1}>{primary}</Text>
           {secondary && (
             <Text style={s.subtitle} numberOfLines={1}>{secondary}</Text>
           )}
-          {createdDate && (
-            <Text style={s.date} numberOfLines={1}>{createdDate}</Text>
+          {dateLabel && (
+            <Text style={s.date} numberOfLines={1}>{dateLabel}</Text>
           )}
-        </View>
+        </TouchableOpacity>
+
+        <Host matchContents>
+          <Menu
+            label="Drop options"
+            systemImage="ellipsis"
+            modifiers={[labelStyle('iconOnly')]}
+          >
+            <Button
+              label="Share"
+              systemImage="square.and.arrow.up"
+              onPress={() => {
+                // TODO: share drop
+              }}
+            />
+            <Button
+              label="Report"
+              systemImage="exclamationmark.bubble"
+              onPress={() => {
+                // TODO: report drop
+              }}
+            />
+            <Button
+              label="Delete"
+              role="destructive"
+              systemImage="trash"
+              onPress={() => {
+                // TODO: delete drop
+              }}
+            />
+          </Menu>
+        </Host>
       </View>
 
-      <View style={[s.photoWrap, { width }]}>
+      <TouchableOpacity
+        style={[s.photoWrap, { width }]}
+        onPress={handleNavigation}
+        activeOpacity={0.9}
+      >
         {drop.thumbnail_url ? (
           <Image source={{ uri: drop.thumbnail_url }} style={s.photo} contentFit="cover" />
         ) : (
@@ -62,16 +98,10 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
         )}
 
         <View style={s.footer}>
-          <DropStateBadge state={drop.state} />
-          <Text style={s.meta}>{formatOpenDate(drop.open_date)}</Text>
-          {participantCount > 0 && (
-            <Text style={s.meta}>
-              {participantCount} participant{participantCount !== 1 ? 's' : ''}
-            </Text>
-          )}
+          <ParticipantAvatars participants={drop.participants} />
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   )
 }
 
@@ -105,9 +135,8 @@ const s = StyleSheet.create({
   date: {
     fontSize: fontSize.xs,
     color: colors.textTertiary,
-    marginTop: 1,
+    marginTop: 2,
   },
-
   photoWrap: {
     aspectRatio: 3 / 4,
     backgroundColor: colors.surfaceDeep,
@@ -131,13 +160,9 @@ const s = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[3],
     paddingHorizontal: spacing[3],
     paddingBottom: 14,
     zIndex: 1,
   },
-  meta: {
-    fontSize: fontSize.xs,
-    color: 'rgba(255,255,255,0.65)',
-  },
+
 })

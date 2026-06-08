@@ -1,48 +1,17 @@
-import { colors } from '@/theme'
-import { GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
-import { SymbolView } from 'expo-symbols'
-import { StyleSheet, TouchableOpacity, View } from 'react-native'
-
-const glassAvailable = isGlassEffectAPIAvailable()
+import { GlassIconButton } from '@/components/ui/GlassIconButton'
 
 type Props = {
   onPress: () => void
   iconColor?: string
 }
 
-export function GlassCloseButton({ onPress, iconColor = colors.white }: Props) {
+export function GlassCloseButton({ onPress, iconColor }: Props) {
   return (
-    <TouchableOpacity onPress={onPress} hitSlop={12} activeOpacity={0.8}>
-      {glassAvailable ? (
-        <GlassView
-          style={styles.circle}
-          glassEffectStyle="regular"
-          colorScheme="dark"
-          tintColor="rgba(0,0,0,0.18)"
-          isInteractive
-        >
-          <SymbolView name="xmark" size={16} weight="semibold" tintColor={iconColor} />
-        </GlassView>
-      ) : (
-        <View style={[styles.circle, styles.fallback]}>
-          <SymbolView name="xmark" size={16} weight="semibold" tintColor={iconColor} />
-        </View>
-      )}
-    </TouchableOpacity>
+    <GlassIconButton
+      onPress={onPress}
+      iconName="xmark"
+      iconWeight="semibold"
+      iconColor={iconColor}
+    />
   )
 }
-
-const styles = StyleSheet.create({
-  circle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fallback: {
-    backgroundColor: colors.surfaceInput,
-    borderWidth: 0.5,
-    borderColor: colors.borderDefault,
-  },
-})

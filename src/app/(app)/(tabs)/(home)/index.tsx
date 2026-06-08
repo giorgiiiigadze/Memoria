@@ -14,7 +14,6 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-// Header pill height (54) + header paddingBottom (12) — keep in sync with HomeHeader
 const HEADER_HEIGHT = 66
 
 export default function HomeScreen() {

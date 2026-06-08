@@ -253,16 +253,14 @@ export default function CreateScreen() {
 }
 
 const s = StyleSheet.create({
-  // ── Layout
   root: { flex: 1 },
   scroll: { flex: 1 },
   content: {
-    paddingHorizontal:10,
+    paddingHorizontal: 10,
     paddingTop: spacing[4],
     paddingBottom: spacing[10],
   },
 
-  // ── Hero text
   title: {
     fontSize: 26,
     fontWeight: fontWeight.semiBold,
@@ -276,7 +274,6 @@ const s = StyleSheet.create({
     marginBottom: 36,
   },
 
-  // ── Sections
   section: { marginBottom: 28 },
   label: {
     fontSize: fontSize.xs,

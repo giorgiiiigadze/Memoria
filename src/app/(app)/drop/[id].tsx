@@ -1,40 +1,40 @@
 import { getDrop, type DropWithParticipants } from '@/api/drops.api'
 import { getDropPhotos, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
-import { DropStateBadge } from '@/components/drops/DropStateBadge'
-import { InfoRow } from '@/components/ui/InfoRow'
-import { formatDate } from '@/utils/date'
+import { GlassCloseButton } from '@/components/ui/GlassCloseButton'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
-import { colors, fontSize, fontWeight, spacing } from '@/theme'
+import { colors } from '@/theme'
 import { Image } from 'expo-image'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
+import { StatusBar } from 'expo-status-bar'
 import { useCallback, useEffect, useState } from 'react'
-import {
-  Dimensions,
-  FlatList,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { Dimensions, FlatList, StyleSheet, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-const COLS = 3
-const GAP = 2
-const H_PAD = spacing[6]
-const { width: SW, height: SH } = Dimensions.get('window')
-const THUMB = (SW - H_PAD * 2 - GAP * (COLS - 1)) / COLS
+const { height: SH } = Dimensions.get('window')
 
+const PEEK = 52
+const GAP = 14
+const CARD_HEIGHT = SH - 2 * (PEEK + GAP)
+const SNAP = CARD_HEIGHT + GAP
+const BORDER_RADIUS = 50
+
+function PhotoCard({ item }: { item: PhotoWithUploader }) {
+  return (
+    <View style={s.card}>
+      <Image source={{ uri: item.cdn_url }} style={s.image} contentFit="cover" />
+    </View>
+  )
+}
 
 export default function DropDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
+  const insets = useSafeAreaInsets()
   const user = useAuthStore(selectUser)
   const cached = useDropsStore(s => s.drops.find(d => d.id === id))
   const [drop, setDrop] = useState<DropWithParticipants | null>(cached ?? null)
   const [photos, setPhotos] = useState<PhotoWithUploader[]>([])
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
   useFocusEffect(
     useCallback(() => {
@@ -49,180 +49,56 @@ export default function DropDetailScreen() {
     return subscribeToDropPhotos(id, setPhotos)
   }, [id])
 
-  if (!drop) return <View style={s.root} />
-
-  const participantCount = drop.participants?.length ?? 0
-
-  // On active/ready drops, only show the current user's own photos
-  const visiblePhotos = (drop.state === 'active' || drop.state === 'ready')
-    ? photos.filter(p => p.uploader_id === user?.id)
-    : photos
-
-  const photoSectionTitle = drop.state === 'open' || drop.state === 'expired'
-    ? `Photos  ${photos.length > 0 ? photos.length : ''}`
-    : `Your Photos  ${visiblePhotos.length > 0 ? visiblePhotos.length : ''}`
-
-  // Build rows for the grid (avoid nested FlatList inside ScrollView)
-  const rows: PhotoWithUploader[][] = []
-  for (let i = 0; i < visiblePhotos.length; i += COLS) {
-    rows.push(visiblePhotos.slice(i, i + COLS))
-  }
+  const visiblePhotos =
+    drop && (drop.state === 'active' || drop.state === 'ready')
+      ? photos.filter(p => p.uploader_id === user?.id)
+      : photos
 
   return (
-    <ScrollView style={s.root} contentContainerStyle={s.content}>
-      {drop.thumbnail_url && (
-        <Image
-          source={{ uri: drop.thumbnail_url }}
-          style={s.heroThumb}
-          contentFit="cover"
+    <View style={s.root}>
+      <StatusBar hidden />
+      
+      <View style={[s.closeBtn, { top: insets.top + 8 }]}>
+        <GlassCloseButton onPress={() => router.back()} />
+      </View>
+    
+      {visiblePhotos.length === 0 ? (
+        <View style={s.empty}>
+          <Text style={s.emptyText}>No photos yet</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={visiblePhotos}
+          keyExtractor={p => p.id}
+          showsVerticalScrollIndicator={false}
+          snapToInterval={SNAP}
+          snapToAlignment="start"
+          decelerationRate="fast"
+          getItemLayout={(_, index) => ({ length: SNAP, offset: SNAP * index, index })}
+          contentContainerStyle={s.content}
+          renderItem={({ item }) => <PhotoCard item={item} />}
         />
       )}
-
-      <TouchableOpacity style={s.back} onPress={() => router.back()}>
-        <Text style={s.backLabel}>← Back</Text>
-      </TouchableOpacity>
-
-      <Text style={s.title} numberOfLines={2}>{drop.title}</Text>
-
-      <View style={s.badgeWrap}>
-        <DropStateBadge state={drop.state} />
-      </View>
-
-      <View style={s.rows}>
-        <InfoRow label="Opens" value={formatDate(drop.open_date) ?? 'No open date'} />
-        <InfoRow label="Participants" value={String(participantCount)} />
-      </View>
-
-      {/* Action buttons */}
-      {(drop.state === 'active' || drop.state === 'ready') && (
-        <TouchableOpacity
-          style={[s.actionBtn, { backgroundColor: colors.primary }]}
-          onPress={() => router.push({ pathname: '/drop/upload', params: { id: drop.id } } as any)}
-          activeOpacity={0.8}
-        >
-          <Text style={s.actionBtnLabel}>Upload Photos</Text>
-        </TouchableOpacity>
-      )}
-      {drop.state === 'open' && (
-        <TouchableOpacity
-          style={[s.actionBtn, { backgroundColor: colors.warning }]}
-          onPress={() => router.push({ pathname: '/drop/gallery', params: { id: drop.id } } as any)}
-          activeOpacity={0.8}
-        >
-          <Text style={s.actionBtnLabel}>View Gallery</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Photo section */}
-      {visiblePhotos.length > 0 && (
-        <View style={s.photoSection}>
-          <Text style={s.photoSectionTitle}>{photoSectionTitle}</Text>
-          <View style={s.grid}>
-            {rows.map((row, ri) => (
-              <View key={ri} style={s.gridRow}>
-                {row.map((photo, ci) => (
-                  <TouchableOpacity
-                    key={photo.id}
-                    onPress={() => setLightboxIndex(ri * COLS + ci)}
-                    activeOpacity={0.85}
-                  >
-                    <Image
-                      source={{ uri: photo.cdn_url }}
-                      style={s.thumb}
-                      contentFit="cover"
-                    />
-                  </TouchableOpacity>
-                ))}
-                {/* Fill empty slots in last row */}
-                {Array.from({ length: COLS - row.length }).map((_, i) => (
-                  <View key={`gap-${i}`} style={s.thumbGap} />
-                ))}
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
-
-      {/* Empty state for active/ready with no uploads yet */}
-      {visiblePhotos.length === 0 && (drop.state === 'active' || drop.state === 'ready') && (
-        <View style={s.emptyPhotos}>
-          <Text style={s.emptyPhotosText}>You haven't uploaded any photos yet.</Text>
-        </View>
-      )}
-
-      {/* Lightbox */}
-      <Modal visible={lightboxIndex !== null} animationType="fade" statusBarTranslucent>
-        <View style={s.modalRoot}>
-          <TouchableOpacity style={s.closeBtn} onPress={() => setLightboxIndex(null)}>
-            <Text style={s.closeBtnLabel}>✕</Text>
-          </TouchableOpacity>
-          {lightboxIndex !== null && (
-            <FlatList
-              data={visiblePhotos}
-              horizontal
-              pagingEnabled
-              initialScrollIndex={lightboxIndex}
-              getItemLayout={(_, index) => ({ length: SW, offset: SW * index, index })}
-              keyExtractor={item => item.id}
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <View style={s.modalPage}>
-                  <Image
-                    source={{ uri: item.cdn_url }}
-                    style={s.modalImg}
-                    contentFit="contain"
-                  />
-                  {item.uploader && (
-                    <Text style={s.modalUploader}>
-                      @{item.uploader.username}
-                      {item.uploader.display_name ? `  ·  ${item.uploader.display_name}` : ''}
-                    </Text>
-                  )}
-                </View>
-              )}
-            />
-          )}
-        </View>
-      </Modal>
-    </ScrollView>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
-  content: { paddingHorizontal: H_PAD, paddingTop: 72, paddingBottom: spacing[12] },
-  heroThumb: {
-    marginHorizontal: -H_PAD,
-    marginTop: -72,
-    width: SW,
-    aspectRatio: 16 / 9,
-    marginBottom: spacing[6],
+  content: { paddingVertical: PEEK + GAP },
+  card: {
+    height: CARD_HEIGHT,
+    marginBottom: GAP,
+    borderRadius: BORDER_RADIUS,
+    overflow: 'hidden',
+    backgroundColor: colors.surfaceInput,
   },
-  back: { marginBottom: spacing[6] },
-  backLabel: { fontSize: 15, color: colors.textMuted },
-  title: { fontSize: fontSize['2xl'], fontWeight: fontWeight.strong, color: colors.white, letterSpacing: -0.5, marginBottom: spacing[3] },
-  badgeWrap: { marginBottom: 28 },
-  rows: { gap: 0 },
-  actionBtn: { marginTop: spacing[6], borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-  actionBtnLabel: { fontSize: 15, fontWeight: fontWeight.semiBold, color: colors.white },
-  photoSection: { marginTop: spacing[8] },
-  photoSectionTitle: { fontSize: 13, fontWeight: fontWeight.semiBold, color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: spacing[3] },
-  grid: { gap: GAP },
-  gridRow: { flexDirection: 'row', gap: GAP },
-  thumb: { width: THUMB, height: THUMB, borderRadius: 4, backgroundColor: colors.surfaceInput },
-  thumbGap: { width: THUMB },
-  emptyPhotos: { marginTop: 28, alignItems: 'center' },
-  emptyPhotosText: { fontSize: 13, color: colors.textTertiary },
-  // Lightbox
-  modalRoot: { flex: 1, backgroundColor: colors.background },
+  image: { flex: 1 },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  emptyText: { color: colors.textTertiary, fontSize: 15 },
   closeBtn: {
-    position: 'absolute', top: 56, right: spacing[5], zIndex: 10,
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.12)', // lightbox close — intentional one-off
-    alignItems: 'center', justifyContent: 'center',
+    position: 'absolute',
+    left: 10,
+    zIndex: 10,
   },
-  closeBtnLabel: { fontSize: fontSize.md, color: colors.white },
-  modalPage: { width: SW, height: SH, alignItems: 'center', justifyContent: 'center' },
-  modalImg: { width: SW, height: SH * 0.75 },
-  modalUploader: { position: 'absolute', bottom: spacing[20], fontSize: 13, color: 'rgba(255,255,255,0.7)' },
 })

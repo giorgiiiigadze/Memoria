@@ -3,11 +3,13 @@ import { ALLOWED_EXTENSIONS, MAX_BYTES } from '@/constants/media'
 import type { Drop, DropParticipant, Profile } from '@/types/database.types'
 
 export type DropWithParticipants = Drop & {
-  participants: Pick<DropParticipant, 'id' | 'user_id' | 'status' | 'has_uploaded'>[]
+  participants: (Pick<DropParticipant, 'id' | 'user_id' | 'status' | 'has_uploaded'> & {
+    profile: Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url'> | null
+  })[]
   creator: Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url'>
 }
 
-const DROP_SELECT = '*, participants:drop_participants(id, user_id, status, has_uploaded), creator:profiles!creator_id(id, username, display_name, avatar_url)'
+const DROP_SELECT = '*, participants:drop_participants(id, user_id, status, has_uploaded, profile:profiles!user_id(id, username, display_name, avatar_url)), creator:profiles!creator_id(id, username, display_name, avatar_url)'
 
 export async function getMyDrops(): Promise<DropWithParticipants[]> {
   const { data, error } = await supabase

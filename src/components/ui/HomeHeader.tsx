@@ -79,11 +79,11 @@ function Buttons({
   return (
     <>
       <TouchableOpacity style={styles.iconBtn} onPress={onSendPress} hitSlop={12} activeOpacity={0.7}>
-        <SymbolView name="paperplane.fill" size={28} tintColor={iconColor} />
+        <SymbolView name="paperplane.fill" size={26} tintColor={iconColor} />
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.iconBtn} onPress={onBellPress} hitSlop={12} activeOpacity={0.7}>
-        <SymbolView name="bell.fill" size={28} tintColor={iconColor} />
+        <SymbolView name="bell.fill" size={26} tintColor={iconColor} />
         {count > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{count > 99 ? '99+' : count}</Text>

@@ -1,6 +1,6 @@
-import { useFriends } from '@/hooks/useFriends'
 import { Chip } from '@/components/friends/Chip'
 import { UserRow } from '@/components/friends/UserRow'
+import { useFriends } from '@/hooks/useFriends'
 import type { Profile } from '@/types/database.types'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native'
 
@@ -45,9 +46,7 @@ export default function FriendsScreen() {
   return (
     <ScrollView style={s.root} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
-      <Text style={s.title}>Friends</Text>
 
-      {/* ── Search ─────────────────────────────── */}
       <View style={s.searchRow}>
         <TextInput
           style={s.searchInput}
@@ -62,7 +61,6 @@ export default function FriendsScreen() {
         {searching && <ActivityIndicator style={s.searchSpinner} color="#898989" size="small" />}
       </View>
 
-      {/* ── Search results ──────────────────────── */}
       {isSearchMode && (
         <View style={s.section}>
           {!searching && searchResults.length === 0 ? (
@@ -157,8 +155,8 @@ export default function FriendsScreen() {
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
-  content: { paddingHorizontal: 24, paddingTop: 80, paddingBottom: 40 },
+  root: { flex: 1 },
+  content: { paddingBottom: 40, paddingTop: 20, paddingHorizontal: 10 },
   title: { fontSize: 26, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 20 },
   searchRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
   searchInput: {
