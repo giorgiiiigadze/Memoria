@@ -7,18 +7,15 @@ import { useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { useFriendsStore } from '@/store/friends.store'
 import { colors } from '@/theme'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Slot, router } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useRef } from 'react'
 import { StyleSheet, View } from 'react-native'
 
-const ONBOARDING_KEY = '@memoria/onboarding_complete'
-
 SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
-  const { setSession, setProfile, setHydrated, setHasSeenOnboarding, isHydrated } = useAuthStore()
+  const { setSession, setProfile, setHydrated, isHydrated } = useAuthStore()
   const realtimeCleanup = useRef<Array<() => void>>([])
 
   useEffect(() => {
@@ -42,23 +39,11 @@ export default function RootLayout() {
 
   async function bootHydrate() {
     try {
-      const [seenOnboarding, { data: { session } }] = await Promise.all([
-        AsyncStorage.getItem(ONBOARDING_KEY),
-        supabase.auth.getSession(),
-      ])
-
-      const hasSeenOnboarding = seenOnboarding === 'true'
-      setHasSeenOnboarding(hasSeenOnboarding)
-
-      if (!hasSeenOnboarding) {
-        setHydrated()
-        router.replace('/(onboarding)')
-        return
-      }
+      const { data: { session } } = await supabase.auth.getSession()
 
       if (!session) {
         setHydrated()
-        router.replace('/(auth)/sign-in')
+        router.replace('/(auth)')
         return
       }
 
@@ -79,8 +64,8 @@ export default function RootLayout() {
         subscribeToNotifications(session.user.id),
       ]
 
-      if (!profile?.username) {
-        router.replace('/(auth)/setup-profile')
+      if (!profile?.display_name) {
+        router.replace('/(auth)/onboarding/username')
       } else {
         router.replace('/(app)/(tabs)/(home)')
       }
@@ -88,7 +73,7 @@ export default function RootLayout() {
     } catch (e) {
       console.error('[_layout] Boot hydration failed:', e)
       setHydrated()
-      router.replace('/(auth)/sign-in')
+      router.replace('/(auth)')
     }
   }
 
@@ -129,7 +114,7 @@ export default function RootLayout() {
       realtimeCleanup.current = []
       setSession(null)
       setProfile(null)
-      router.replace('/(auth)/sign-in')
+      router.replace('/(auth)')
       return
     }
 
