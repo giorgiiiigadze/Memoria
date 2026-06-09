@@ -2,6 +2,7 @@ export const colors = {
   ink: '#0E0E10',
   bone: '#F2EEE6',
   ember: '#D6A45B',
+  lime: '#E9FF9B',
   white: '#FFFFFF',
 
   background: '#000000',
@@ -19,14 +20,12 @@ export const colors = {
   borderDefault: '#3B3B3B',
   borderSubtle: '#252525',
 
-  // semantic — interactive
   accent: '#D6A45B',
   primary: '#0044FF',
   success: '#4CAF7D',
   error: '#EA4942',
   warning: '#F59E0B',
 
-  // overlays
   overlay: 'rgba(0,0,0,0.6)',
   overlayDark: 'rgba(0,0,0,0.85)',
 } as const

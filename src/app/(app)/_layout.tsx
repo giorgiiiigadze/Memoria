@@ -6,13 +6,12 @@ export default function AppLayout() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   useNotifications()
 
-  if (!isAuthenticated) return <Redirect href="/(auth)/sign-in" />
+  if (!isAuthenticated) return <Redirect href="/(auth)" />
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="drop" />
-      <Stack.Screen name="create" options={{ presentation: 'modal' }} />
     </Stack>
   )
 }

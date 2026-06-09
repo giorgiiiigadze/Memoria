@@ -1,3 +1,4 @@
+import { GlassBackButton } from '@/components/ui/GlassBackButton'
 import { colors, fontWeight, spacing } from '@/theme'
 import { useEffect, useRef } from 'react'
 import { Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
@@ -31,15 +32,9 @@ export function OnboardingStepHeader({ step, total, onBack, onSkip }: Props) {
   return (
     <View style={[s.root, { paddingTop: insets.top + spacing[4] }]}>
       <View style={s.row}>
-        <TouchableOpacity
-          style={s.backBtn}
-          onPress={onBack}
-          disabled={!onBack}
-          activeOpacity={0.7}
-          hitSlop={12}
-        >
-          <Text style={[s.backArrow, !onBack && s.invisible]}>←</Text>
-        </TouchableOpacity>
+        <View style={[s.backSlot, !onBack && s.hidden]}>
+          <GlassBackButton onPress={onBack ?? (() => {})} />
+        </View>
 
         <View style={s.trackWrap}>
           <View style={s.track}>
@@ -63,42 +58,38 @@ export function OnboardingStepHeader({ step, total, onBack, onSkip }: Props) {
 
 const s = StyleSheet.create({
   root: {
-    paddingHorizontal: spacing[5],
     paddingBottom: spacing[4],
+    paddingHorizontal: spacing[4],
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[3],
+    gap: spacing[4],
   },
-  backBtn: {
-    width: 28,
+  backSlot: {
+    width: 40,
     alignItems: 'center',
   },
-  backArrow: {
-    fontSize: 20,
-    color: colors.textPrimary,
-    fontWeight: fontWeight.medium,
-  },
-  invisible: {
+  hidden: {
     opacity: 0,
+    pointerEvents: 'none',
   },
   trackWrap: {
     flex: 1,
   },
   track: {
-    height: 3,
+    height: 6,
     backgroundColor: colors.borderDefault,
-    borderRadius: 2,
+    borderRadius: 100,
     overflow: 'hidden',
   },
   fill: {
-    height: 3,
-    backgroundColor: colors.primary,
-    borderRadius: 2,
+    height: 6,
+    backgroundColor: colors.white,
+    borderRadius: 100,
   },
   stepLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: colors.textTertiary,
     fontWeight: fontWeight.medium,
     minWidth: 28,
@@ -106,7 +97,7 @@ const s = StyleSheet.create({
   },
   skip: {
     fontSize: 13,
-    color: colors.textTertiary,
+    color: colors.white,
     fontWeight: fontWeight.medium,
   },
   skipPlaceholder: {

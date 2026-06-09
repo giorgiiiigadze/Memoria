@@ -1,22 +1,11 @@
 import { supabase } from '@/api/client'
+import { SocialButton } from '@/components/ui/SocialButton'
 import { useAuthStore } from '@/store/auth.store'
-import { colors, fontWeight, radii, spacing } from '@/theme'
+import { colors, fontWeight, spacing } from '@/theme'
 import { router } from 'expo-router'
 import { useState } from 'react'
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-
-type StarPos = { top: string; left?: string; right?: string; size: number }
-
-const STARS: StarPos[] = [
-  { top: '10%', left: '6%', size: 16 },
-  { top: '6%', right: '12%', size: 11 },
-  { top: '22%', right: '6%', size: 20 },
-  { top: '16%', left: '20%', size: 9 },
-  { top: '38%', left: '4%', size: 13 },
-  { top: '32%', right: '20%', size: 8 },
-  { top: '48%', right: '10%', size: 15 },
-  { top: '55%', left: '14%', size: 10 },
-]
+import { StyleSheet, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 async function generateUsername(displayName: string, userId: string): Promise<string> {
   const base = displayName.toLowerCase()
@@ -42,6 +31,7 @@ export default function CompleteScreen() {
   const existingProfile = useAuthStore(s => s.profile)
   const onboardingName = useAuthStore(s => s.onboardingName)
   const setProfile = useAuthStore(s => s.setProfile)
+  const insets = useSafeAreaInsets()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -51,19 +41,12 @@ export default function CompleteScreen() {
     setError(null)
 
     try {
-      // Prefer the name entered in onboarding; fall back to whatever setup-profile stored.
       const displayName = onboardingName.trim() || existingProfile?.display_name || 'You'
-      // If the user already chose a username in setup-profile, keep it.
-      // Only generate one when coming through the OAuth/dev path that skips setup-profile.
       const username = existingProfile?.username ?? await generateUsername(displayName, user.id)
 
       const { data: profile, error: upsertErr } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
-          username,
-          display_name: displayName,
-        })
+        .upsert({ id: user.id, username, display_name: displayName })
         .select()
         .single()
 
@@ -94,35 +77,35 @@ export default function CompleteScreen() {
   }
 
   return (
-    <View style={s.root}>
-      {/* Scattered stars */}
-      {STARS.map(({ size, ...pos }, i) => (
-        <Text key={i} style={[s.star, { fontSize: size, ...pos }]}>✦</Text>
-      ))}
+    <View style={[s.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
 
-      <View style={s.body}>
-        {/* Check blob */}
-        <View style={s.checkCircle}>
-          <Text style={s.checkMark}>✓</Text>
-        </View>
-
-        <Text style={s.welcomeLabel}>welcome to</Text>
-        <Text style={s.appName}>memoria</Text>
-
-        {error ? <Text style={s.error}>{error}</Text> : null}
-
-        <TouchableOpacity
-          style={[s.btn, loading && s.btnLoading]}
-          onPress={handleLetsGo}
-          disabled={loading}
-          activeOpacity={0.88}
-        >
-          {loading
-            ? <ActivityIndicator color={colors.white} size="small" />
-            : <Text style={s.btnLabel}>let's go →</Text>
-          }
-        </TouchableOpacity>
+      {/* ── Illustration ───────────────────────────────────── */}
+      <View style={s.illustrationArea}>
+        {/* swap in your illustration here */}
       </View>
+
+      {/* ── Text ───────────────────────────────────────────── */}
+      <View style={s.textArea}>
+        <Text style={s.headline}>
+          {'you\'re all\n'}
+          <Text style={{ color: colors.lime }}>set up.</Text>
+        </Text>
+        <Text style={s.subtitle}>
+          time to capture moments{'\n'}that matter — together.
+        </Text>
+      </View>
+
+      {/* ── CTA pinned to bottom ───────────────────────────── */}
+      <View style={s.bottom}>
+        {error ? <Text style={s.error}>{error}</Text> : null}
+        <SocialButton
+          label="let's go"
+          onPress={handleLetsGo}
+          loading={loading}
+          style={s.fullWidth}
+        />
+      </View>
+
     </View>
   )
 }
@@ -131,66 +114,45 @@ const s = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,
+    paddingHorizontal: spacing[2.5],
   },
-  star: {
-    position: 'absolute',
-    color: colors.ember,
-    fontWeight: fontWeight.bold,
-  },
-  body: {
+  illustrationArea: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing[6],
-  },
-  checkCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: colors.success,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    marginTop: spacing[6],
     marginBottom: spacing[8],
   },
-  checkMark: {
-    fontSize: 44,
-    color: colors.white,
-    fontWeight: fontWeight.bold,
-    lineHeight: 52,
-  },
-  welcomeLabel: {
-    fontSize: 18,
-    color: colors.textMuted,
-    fontWeight: fontWeight.regular,
-    marginBottom: 4,
-  },
-  appName: {
-    fontSize: 52,
-    fontWeight: fontWeight.bold,
-    color: colors.textPrimary,
-    letterSpacing: -2,
+  textArea: {
+    alignItems: 'center',
+    gap: spacing[3],
     marginBottom: spacing[10],
+  },
+  headline: {
+    fontSize: 38,
+    fontWeight: fontWeight.regular,
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 15,
+    fontWeight: fontWeight.regular,
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  bottom: {
+    gap: spacing[2],
+    paddingBottom: spacing[2],
   },
   error: {
     fontSize: 13,
     color: colors.error,
-    marginBottom: spacing[4],
     textAlign: 'center',
   },
-  btn: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.full,
-    paddingVertical: 17,
-    paddingHorizontal: spacing[10],
-    alignItems: 'center',
-    minWidth: 180,
-  },
-  btnLoading: {
-    opacity: 0.7,
-  },
-  btnLabel: {
-    fontSize: 16,
-    fontWeight: fontWeight.semiBold,
-    color: colors.white,
+  fullWidth: {
+    alignSelf: 'stretch',
   },
 })

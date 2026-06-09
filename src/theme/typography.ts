@@ -7,16 +7,16 @@ export const fontWeight = {
 } as const
 
 export const fontSize = {
-  xs: 12,   // timestamps, metadata
-  sm: 14,   // secondary text
-  md: 16,   // body (default)
-  lg: 18,   // emphasized body, list titles
-  xl: 22,   // section headings
-  '2xl': 28, // screen titles
+  xs: 12,
+  sm: 14,
+  md: 16,
+  lg: 18,
+  xl: 22,
+  '2xl': 28,
 } as const
 
 export const lineHeight = {
-  tight: 1.15,  // headings — BeReal sets these snug
-  normal: 1.4,  // body
-  relaxed: 1.6, // longer reading passages
+  tight: 1.15,
+  normal: 1.4,
+  relaxed: 1.6,
 } as const

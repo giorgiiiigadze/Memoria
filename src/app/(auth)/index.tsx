@@ -1,46 +1,113 @@
 import { supabase } from '@/api/client'
+import { SocialButton } from '@/components/ui/SocialButton'
 import { useAuthStore } from '@/store/auth.store'
-import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
+import { colors, fontWeight, spacing } from '@/theme'
 import { AntDesign } from '@expo/vector-icons'
 import { router } from 'expo-router'
+import { SymbolView } from 'expo-symbols'
 import { useState } from 'react'
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  type SharedValue,
+} from 'react-native-reanimated'
 
 const { width: SW, height: SH } = Dimensions.get('window')
-const BLOB_SIZE = SW * 1.25
+
+type Segment = { text: string; color: string }
+
+const SLIDES: { headline: Segment[] }[] = [
+  {
+    headline: [
+      { text: 'capture', color: colors.lime },
+      { text: ' and\nrelive ', color: colors.textPrimary },
+      { text: 'together', color: colors.lime },
+    ],
+  },
+  {
+    headline: [
+      { text: 'share ', color: colors.textPrimary },
+      { text: 'moments', color: colors.lime },
+      { text: '\nthat matter', color: colors.textPrimary },
+    ],
+  },
+  {
+    headline: [
+      { text: 'unlock', color: colors.lime },
+      { text: ' drops\ntogether', color: colors.textPrimary },
+    ],
+  },
+]
+
+function Slide({ index, scrollX, children }: {
+  index: number
+  scrollX: SharedValue<number>
+  children?: React.ReactNode
+}) {
+  const animStyle = useAnimatedStyle(() => {
+    const inputRange = [(index - 1) * SW, index * SW, (index + 1) * SW]
+    const scale = interpolate(scrollX.value, inputRange, [0.82, 1, 0.82], Extrapolation.CLAMP)
+    const opacity = interpolate(scrollX.value, inputRange, [0.3, 1, 0.3], Extrapolation.CLAMP)
+    return { transform: [{ scale }], opacity }
+  })
+  return (
+    <View style={s.slide}>
+      <Animated.View style={[s.slideInner, animStyle]}>
+        {children}
+      </Animated.View>
+    </View>
+  )
+}
+
+function HeadlineLayer({ index, scrollX }: {
+  index: number
+  scrollX: SharedValue<number>
+}) {
+  const animStyle = useAnimatedStyle(() => {
+    const inputRange = [(index - 1) * SW, index * SW, (index + 1) * SW]
+    const opacity = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP)
+    const translateY = interpolate(scrollX.value, inputRange, [12, 0, 12], Extrapolation.CLAMP)
+    return { opacity, transform: [{ translateY }] }
+  })
+
+  return (
+    <Animated.Text style={[s.headline, s.headlineAbs, animStyle]}>
+      {SLIDES[index].headline.map((seg, i) => (
+        <Text key={i} style={{ color: seg.color }}>
+          {seg.text}
+        </Text>
+      ))}
+    </Animated.Text>
+  )
+}
+
+
+function Dot({ index, scrollX }: {
+  index: number
+  scrollX: SharedValue<number>
+}) {
+  const animStyle = useAnimatedStyle(() => {
+    const inputRange = [(index - 1) * SW, index * SW, (index + 1) * SW]
+    const width = interpolate(scrollX.value, inputRange, [6, 22, 6], Extrapolation.CLAMP)
+    const opacity = interpolate(scrollX.value, inputRange, [0.35, 1, 0.35], Extrapolation.CLAMP)
+    return { width, opacity }
+  })
+  return <Animated.View style={[s.dot, animStyle]} />
+}
 
 export default function LandingScreen() {
   const [agreed, setAgreed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const scrollX = useSharedValue(0)
 
-  // ─── REAL Apple Sign-In (re-enable when testing on device) ───────────────
-  // async function handleAppleSignIn() {
-  //   if (!agreed) { setError('Please agree to the terms to continue.'); return }
-  //   try {
-  //     setLoading(true); setError(null)
-  //     const credential = await AppleAuthentication.signInAsync({
-  //       requestedScopes: [
-  //         AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-  //         AppleAuthentication.AppleAuthenticationScope.EMAIL,
-  //       ],
-  //     })
-  //     const { data, error: authError } = await supabase.auth.signInWithIdToken({
-  //       provider: 'apple',
-  //       token: credential.identityToken!,
-  //     })
-  //     if (authError || !data.session) { setError('Sign-in failed. Please try again.'); return }
-  //     const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.session.user.id).maybeSingle()
-  //     useAuthStore.getState().setSession(data.session)
-  //     useAuthStore.getState().setProfile(profile ?? null)
-  //     router.replace(profile?.display_name ? '/(app)/(tabs)/(home)' : '/(auth)/success')
-  //   } catch (e: any) {
-  //     if (e?.code !== 'ERR_REQUEST_CANCELED') setError('Sign-in failed. Please try again.')
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
-  // ─────────────────────────────────────────────────────────────────────────
+  const scrollHandler = useAnimatedScrollHandler((e) => {
+    scrollX.value = e.contentOffset.x
+  })
 
   async function handleDevSignIn() {
     if (!agreed) { setError('Please agree to the terms to continue.'); return }
@@ -70,36 +137,63 @@ export default function LandingScreen() {
   return (
     <View style={s.root}>
 
+      <Animated.ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        decelerationRate="fast"
+        style={s.pager}
+      >
+        {SLIDES.map((_, i) => (
+          <Slide key={i} index={i} scrollX={scrollX}>
+            {/* swap with your illustration per slide */}
+          </Slide>
+        ))}
+      </Animated.ScrollView>
+
       <View style={s.content}>
-        <View style={s.dots}>
-          <View style={[s.dot, s.dotActive]} />
-          <View style={s.dot} />
-          <View style={s.dot} />
+
+        {/* crossfading headlines stacked on top of each other */}
+        <View style={s.headlineStack}>
+          {SLIDES.map((_, i) => (
+            <HeadlineLayer key={i} index={i} scrollX={scrollX} />
+          ))}
         </View>
 
-        <Text style={s.headline}>
-          <Text style={s.headlineEmber}>capture</Text>
-          <Text style={s.headlineBase}> and{'\n'}relive </Text>
-          <Text style={s.headlinePrimary}>together</Text>
-        </Text>
+        <View style={s.dots}>
+          {SLIDES.map((_, i) => (
+            <Dot key={i} index={i} scrollX={scrollX} />
+          ))}
+        </View>
 
-        <TouchableOpacity
-          style={s.tosRow}
-          onPress={() => { setAgreed(v => !v); setError(null) }}
-          activeOpacity={0.7}
-        >
-          <View style={[s.checkbox, agreed && s.checkboxOn]}>
-            {agreed && <Text style={s.checkmark}>✓</Text>}
-          </View>
+        <View style={s.tosRow}>
+          <TouchableOpacity
+            onPress={() => { setAgreed(v => !v); setError(null) }}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <View style={[s.checkbox, agreed && s.checkboxOn]}>
+              {agreed && (
+                <SymbolView
+                  name="checkmark"
+                  size={14}
+                  tintColor={colors.ink}
+                  resizeMode="scaleAspectFit"
+                />
+              )}
+            </View>
+          </TouchableOpacity>
           <Text style={s.tosText}>
-            I agree to the <Text style={s.tosLink}>Terms of Service</Text>
-            {' '}and <Text style={s.tosLink}>Privacy Policy</Text>
+            I agree to the Terms of Service
+            {' '}and Privacy Policy to continue
           </Text>
-        </TouchableOpacity>
+        </View>
 
         {error ? <Text style={s.error}>{error}</Text> : null}
 
-        {/* ─── REAL button — uncomment when on device ─────────────────────
+        {/* ── REAL Apple Sign-In — uncomment when on device ───────────────
         <TouchableOpacity
           style={[s.appleBtn, (!agreed || loading) && s.btnDimmed]}
           onPress={handleAppleSignIn}
@@ -111,21 +205,17 @@ export default function LandingScreen() {
             {loading ? 'Signing in…' : 'Continue with Apple'}
           </Text>
         </TouchableOpacity>
-        ──────────────────────────────────────────────────────────────────── */}
+        ─────────────────────────────────────────────────────────────────── */}
 
-        {/* DEV sign-in — only in development builds */}
         {__DEV__ && (
-          <TouchableOpacity
-            style={[s.appleBtn, (!agreed || loading) && s.btnDimmed]}
+          <SocialButton
+            label={loading ? 'Signing in…' : 'Dev Sign In'}
             onPress={handleDevSignIn}
-            disabled={!agreed || loading}
-            activeOpacity={0.88}
-          >
-            <AntDesign name="lock" size={18} color={colors.ink} />
-            <Text style={s.appleBtnLabel}>
-              {loading ? 'Signing in…' : 'Dev Sign In'}
-            </Text>
-          </TouchableOpacity>
+            disabled={!agreed}
+            loading={loading}
+            icon={<AntDesign name="lock" size={18} color={colors.ink} />}
+            style={s.fullWidth}
+          />
         )}
       </View>
     </View>
@@ -137,103 +227,92 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+
+  pager: {
+    flexGrow: 0,
+    height: SH * 0.6,
+  },
+  slide: {
+    width: SW,
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: "#fff"
+  },
+  slideInner: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   content: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    flex: 1,
     paddingHorizontal: spacing[2.5],
     paddingBottom: spacing[12],
     paddingTop: spacing[4],
+    gap: spacing[10],
+    alignItems: 'center',
   },
-  dots: {
-    flexDirection: 'row',
-    gap: 6,
-    marginBottom: spacing[5],
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.borderDefault,
-  },
-  dotActive: {
-    width: 22,
-    borderRadius: 3,
-    backgroundColor: colors.textPrimary,
+
+  headlineStack: {
+    height: 92,
+    alignSelf: 'stretch',
+    justifyContent: 'center',
   },
   headline: {
     fontSize: 38,
-    lineHeight: 46,
-    letterSpacing: -1,
-    marginBottom: spacing[6],
+    textAlign: 'center',
+    fontWeight: fontWeight.regular,
   },
-  headlineBase: {
-    color: colors.textPrimary,
-    fontWeight: fontWeight.semiBold,
+  headlineAbs: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
   },
-  headlineEmber: {
-    color: colors.ember,
-    fontWeight: fontWeight.semiBold,
+
+  dots: {
+    flexDirection: 'row',
+    gap: 6,
+    height: 6,
+    alignItems: 'center',
   },
-  headlinePrimary: {
-    color: colors.primary,
-    fontWeight: fontWeight.semiBold,
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 10,
+    backgroundColor: colors.textPrimary,
   },
   tosRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing[3],
-    marginBottom: spacing[4],
+    alignSelf: 'stretch',
   },
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 5,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     borderWidth: 1.5,
     borderColor: colors.borderDefault,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxOn: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  checkmark: {
-    fontSize: 11,
-    color: colors.white,
-    fontWeight: fontWeight.bold,
+    backgroundColor: colors.white,
+    borderColor: colors.white,
   },
   tosText: {
-    flex: 1,
-    fontSize: fontSize.xs,
-    color: colors.textTertiary,
+    color: colors.white,
     lineHeight: 18,
-  },
-  tosLink: {
-    color: colors.textSecondary,
-    textDecorationLine: 'underline',
+    maxWidth: 300,
   },
   error: {
-    fontSize: fontSize.xs,
+    fontSize: 12,
     color: colors.error,
-    marginBottom: spacing[3],
   },
-  appleBtn: {
-    backgroundColor: colors.white,
-    borderRadius: radii.full,
-    paddingVertical: 17,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[2],
-  },
-  btnDimmed: {
-    opacity: 0.4,
-  },
-  appleBtnLabel: {
-    fontSize: 15,
-    fontWeight: fontWeight.semiBold,
-    color: colors.ink,
+  fullWidth: {
+    alignSelf: 'stretch',
   },
 })

@@ -4,6 +4,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  View,
   type StyleProp,
   type ViewStyle,
 } from 'react-native'
@@ -14,6 +15,7 @@ type Props = {
   variant?: 'primary' | 'outline'
   disabled?: boolean
   loading?: boolean
+  icon?: React.ReactNode
   style?: StyleProp<ViewStyle>
 }
 
@@ -23,6 +25,7 @@ export function SocialButton({
   variant = 'primary',
   disabled = false,
   loading = false,
+  icon,
   style,
 }: Props) {
   const isInactive = disabled || loading
@@ -42,9 +45,12 @@ export function SocialButton({
       {loading ? (
         <ActivityIndicator color={variant === 'primary' ? colors.ink : colors.textSecondary} size="small" />
       ) : (
-        <Text style={[s.label, variant === 'primary' ? s.labelPrimary : s.labelOutline, isInactive && s.labelInactive]}>
-          {label}
-        </Text>
+        <View style={s.inner}>
+          {icon}
+          <Text style={[s.label, variant === 'primary' ? s.labelPrimary : s.labelOutline, isInactive && s.labelInactive]}>
+            {label}
+          </Text>
+        </View>
       )}
     </TouchableOpacity>
   )
@@ -56,6 +62,11 @@ const s = StyleSheet.create({
     paddingVertical: 17,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  inner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   primary: {
     backgroundColor: colors.white,
@@ -69,7 +80,7 @@ const s = StyleSheet.create({
   },
   label: {
     fontSize: 15,
-    fontWeight: fontWeight.semiBold,
+    fontWeight: fontWeight.strong,
   },
   labelPrimary: {
     color: colors.ink,

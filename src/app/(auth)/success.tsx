@@ -33,7 +33,7 @@ const s = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: spacing[6],
+    paddingHorizontal: spacing[2.5],
     paddingTop: spacing[4],
   },
   preText: {

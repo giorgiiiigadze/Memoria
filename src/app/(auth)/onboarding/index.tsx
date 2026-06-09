@@ -33,6 +33,19 @@ const MAX_YEAR = NOW.getFullYear() - 13
 const YEARS = Array.from({ length: MAX_YEAR - 1919 }, (_, i) => String(MAX_YEAR - i))
 
 type Step = 1 | 2 | 3
+type Segment = { text: string; color: string }
+
+function Headline({ segments }: { segments: Segment[] }) {
+  return (
+    <Text style={s.headline}>
+      {segments.map((seg, i) => (
+        <Text key={i} style={{ color: seg.color }}>
+          {seg.text}
+        </Text>
+      ))}
+    </Text>
+  )
+}
 
 export default function OnboardingFlow() {
   const setOnboardingName = useAuthStore(s => s.setOnboardingName)
@@ -43,11 +56,9 @@ export default function OnboardingFlow() {
   const [step, setStep] = useState<Step>(1)
   const fadeAnim = useRef(new Animated.Value(1)).current
 
-  // Step 1
   const [name, setName] = useState('')
   const inputRef = useRef<TextInput>(null)
 
-  // Step 2
   const defaultMonth = NOW.getMonth()
   const defaultDay = NOW.getDate() - 1
   const [monthIdx, setMonthIdx] = useState(defaultMonth)
@@ -102,7 +113,7 @@ export default function OnboardingFlow() {
 
   function handleBirthdayNext() {
     const mm = String(monthIdx + 1).padStart(2, '0')
-    const dd = String(dayIdx + 1).padStart(2, '0')
+    const dd = DAYS[dayIdx].padStart(2, '0')
     const yyyy = YEARS[yearIdx]
     setOnboardingBirthday(`${yyyy}-${mm}-${dd}`)
     goToStep(3)
@@ -115,20 +126,34 @@ export default function OnboardingFlow() {
 
   async function handleEnableNotifications() {
     await Notifications.requestPermissionsAsync()
-    router.push('/(auth)/onboarding/complete')
+    router.replace('/(auth)/onboarding/complete')
   }
 
   function handleSkipNotifications() {
-    router.push('/(auth)/onboarding/complete')
+    router.replace('/(auth)/onboarding/complete')
   }
 
-  const firstName = onboardingName.split(' ')[0]
+  const firstName = onboardingName.split(' ')[0] || 'you'
+
+  const step1Headline: Segment[] = [
+    { text: 'what should\n', color: colors.textPrimary },
+    { text: 'memoria\n', color: colors.lime },
+    { text: 'call you?', color: colors.textPrimary },
+  ]
+
+  const step2Headline: Segment[] = [
+    { text: 'hey ', color: colors.textPrimary },
+    { text: firstName, color: colors.lime },
+    { text: ',\nwhen was\nwhere you born?', color: colors.textPrimary },
+  ]
+
+  const step3Headline: Segment[] = [
+    { text: 'never miss\nthe moment\n', color: colors.textPrimary },
+    { text: 'drops unlock.', color: colors.lime },
+  ]
 
   return (
-    <KeyboardAvoidingView
-      style={s.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View style={s.root}>
       <OnboardingStepHeader
         step={step}
         total={3}
@@ -136,161 +161,150 @@ export default function OnboardingFlow() {
         onSkip={step === 2 ? handleBirthdaySkip : undefined}
       />
 
-      <Animated.View style={[s.stepWrap, { opacity: fadeAnim }]}>
+      <KeyboardAvoidingView
+        style={s.kav}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <Animated.View style={[s.stepWrap, { opacity: fadeAnim }]}>
 
-        {/* ── Step 1: Name ──────────────────────────────────── */}
-        {step === 1 && (
-          <View style={s.stepContainer}>
-            <View style={s.body1}>
-              <Text style={s.question}>
-                what should{'\n'}
-                <Text style={s.questionAccent}>memoria</Text>
-                {'\n'}call you?
-              </Text>
-              
-              <TouchableOpacity
-                style={s.inputWrap}
-                onPress={() => inputRef.current?.focus()}
-                activeOpacity={1}
-              >
-                <TextInput
-                  ref={inputRef}
-                  style={s.input}
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="your name"
-                  placeholderTextColor={colors.borderDefault}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                  returnKeyType="done"
-                  onSubmitEditing={handleNameNext}
-                  autoFocus
-                  maxLength={50}
-                />
-                <View style={s.underline} />
-              </TouchableOpacity>
-            </View>
-            <SocialButton
-              label="Next"
-              onPress={handleNameNext}
-              disabled={!name.trim()}
-              style={[s.nextBtn, { marginBottom: insets.bottom + spacing[1] }]}
-            />
-          </View>
-        )}
-
-        {/* ── Step 2: Birthday ──────────────────────────────── */}
-        {step === 2 && (
-          <View style={s.stepContainer}>
-            <View style={s.body2}>
-              <Text style={s.question2}>
-                hey <Text style={s.nameAccent}>{firstName || 'you'}</Text>,{'\n'}
-                when was{'\n'}this story born?
-              </Text>
-
-              <View style={s.drumWrap}>
-                <View style={s.selectionBar} pointerEvents="none" />
-                <View style={s.drumsRow}>
-                  <ScrollView
-                    ref={monthRef}
-                    style={s.drum}
-                    contentContainerStyle={s.drumContent}
-                    showsVerticalScrollIndicator={false}
-                    snapToInterval={ITEM_H}
-                    decelerationRate="fast"
-                    onScrollEndDrag={e => onScrollEnd(e, MONTHS, setMonthIdx)}
-                    onMomentumScrollEnd={e => onScrollEnd(e, MONTHS, setMonthIdx)}
-                  >
-                    {MONTHS.map((m, i) => (
-                      <View key={m} style={s.drumItem}>
-                        <Text style={[s.drumLabel, i === monthIdx && s.drumLabelSelected]}>{m}</Text>
-                      </View>
-                    ))}
-                  </ScrollView>
-                  <ScrollView
-                    ref={dayRef}
-                    style={s.drum}
-                    contentContainerStyle={s.drumContent}
-                    showsVerticalScrollIndicator={false}
-                    snapToInterval={ITEM_H}
-                    decelerationRate="fast"
-                    onScrollEndDrag={e => onScrollEnd(e, DAYS, setDayIdx)}
-                    onMomentumScrollEnd={e => onScrollEnd(e, DAYS, setDayIdx)}
-                  >
-                    {DAYS.map((d, i) => (
-                      <View key={d} style={s.drumItem}>
-                        <Text style={[s.drumLabel, i === dayIdx && s.drumLabelSelected]}>{d}</Text>
-                      </View>
-                    ))}
-                  </ScrollView>
-                  <ScrollView
-                    ref={yearRef}
-                    style={s.drum}
-                    contentContainerStyle={s.drumContent}
-                    showsVerticalScrollIndicator={false}
-                    snapToInterval={ITEM_H}
-                    decelerationRate="fast"
-                    onScrollEndDrag={e => onScrollEnd(e, YEARS, setYearIdx)}
-                    onMomentumScrollEnd={e => onScrollEnd(e, YEARS, setYearIdx)}
-                  >
-                    {YEARS.map((y, i) => (
-                      <View key={y} style={s.drumItem}>
-                        <Text style={[s.drumLabel, i === yearIdx && s.drumLabelSelected]}>{y}</Text>
-                      </View>
-                    ))}
-                  </ScrollView>
-                </View>
-                <LinearGradient
-                  colors={[colors.background, 'transparent']}
-                  style={s.fadeTop}
-                  pointerEvents="none"
-                />
-                <LinearGradient
-                  colors={['transparent', colors.background]}
-                  style={s.fadeBottom}
-                  pointerEvents="none"
-                />
+          {step === 1 && (
+            <View style={s.stepContainer}>
+              <View style={s.body1}>
+                <Headline segments={step1Headline} />
+                <TouchableOpacity
+                  style={s.inputWrap}
+                  onPress={() => inputRef.current?.focus()}
+                  activeOpacity={1}
+                >
+                  <TextInput
+                    ref={inputRef}
+                    style={s.input}
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="your name"
+                    placeholderTextColor={colors.borderDefault}
+                    autoCapitalize="words"
+                    autoCorrect={false}
+                    returnKeyType="done"
+                    selectionColor={colors.white}
+                    onSubmitEditing={handleNameNext}
+                    autoFocus
+                    maxLength={50}
+                  />
+                </TouchableOpacity>
               </View>
+              <SocialButton
+                label="Next"
+                onPress={handleNameNext}
+                disabled={!name.trim()}
+                style={[s.nextBtn, { marginBottom: insets.bottom + spacing[1] }]}
+              />
             </View>
-            <SocialButton
-              label="Next"
-              onPress={handleBirthdayNext}
-              style={[s.nextBtn, { marginBottom: insets.bottom + spacing[1] }]}
-            />
-          </View>
-        )}
+          )}
 
-        {/* ── Step 3: Notifications ──────────────────────────── */}
-        {step === 3 && (
-          <View style={s.stepContainer}>
-            <View style={s.body3}>
-              <View style={s.visual}>
-                <View style={s.ring3}>
-                  <View style={s.ring2}>
-                    <View style={s.ring1}>
-                      <Text style={s.bell}>🔔</Text>
+          {step === 2 && (
+            <View style={s.stepContainer}>
+              <View style={s.body2}>
+                <Headline segments={step2Headline} />
+                <View style={s.drumWrap}>
+                  <View style={[s.selectionBar, { pointerEvents: 'none' }]} />
+                  <View style={s.drumsRow}>
+                    <ScrollView
+                      ref={monthRef}
+                      style={s.drum}
+                      contentContainerStyle={s.drumContent}
+                      showsVerticalScrollIndicator={false}
+                      snapToInterval={ITEM_H}
+                      decelerationRate="fast"
+                      onScrollEndDrag={e => onScrollEnd(e, MONTHS, setMonthIdx)}
+                      onMomentumScrollEnd={e => onScrollEnd(e, MONTHS, setMonthIdx)}
+                    >
+                      {MONTHS.map((m, i) => (
+                        <View key={m} style={s.drumItem}>
+                          <Text style={[s.drumLabel, i === monthIdx && s.drumLabelSelected]}>{m}</Text>
+                        </View>
+                      ))}
+                    </ScrollView>
+                    <ScrollView
+                      ref={dayRef}
+                      style={s.drum}
+                      contentContainerStyle={s.drumContent}
+                      showsVerticalScrollIndicator={false}
+                      snapToInterval={ITEM_H}
+                      decelerationRate="fast"
+                      onScrollEndDrag={e => onScrollEnd(e, DAYS, setDayIdx)}
+                      onMomentumScrollEnd={e => onScrollEnd(e, DAYS, setDayIdx)}
+                    >
+                      {DAYS.map((d, i) => (
+                        <View key={d} style={s.drumItem}>
+                          <Text style={[s.drumLabel, i === dayIdx && s.drumLabelSelected]}>{d}</Text>
+                        </View>
+                      ))}
+                    </ScrollView>
+                    <ScrollView
+                      ref={yearRef}
+                      style={s.drum}
+                      contentContainerStyle={s.drumContent}
+                      showsVerticalScrollIndicator={false}
+                      snapToInterval={ITEM_H}
+                      decelerationRate="fast"
+                      onScrollEndDrag={e => onScrollEnd(e, YEARS, setYearIdx)}
+                      onMomentumScrollEnd={e => onScrollEnd(e, YEARS, setYearIdx)}
+                    >
+                      {YEARS.map((y, i) => (
+                        <View key={y} style={s.drumItem}>
+                          <Text style={[s.drumLabel, i === yearIdx && s.drumLabelSelected]}>{y}</Text>
+                        </View>
+                      ))}
+                    </ScrollView>
+                  </View>
+                  <LinearGradient
+                    colors={[colors.background, 'transparent']}
+                    style={s.fadeTop}
+                    pointerEvents="none"
+                  />
+                  <LinearGradient
+                    colors={['transparent', colors.background]}
+                    style={s.fadeBottom}
+                    pointerEvents="none"
+                  />
+                </View>
+              </View>
+              <SocialButton
+                label="Next"
+                onPress={handleBirthdayNext}
+                style={[s.nextBtn, { marginBottom: insets.bottom + spacing[1] }]}
+              />
+            </View>
+          )}
+
+          {step === 3 && (
+            <View style={s.stepContainer}>
+              <View style={s.body3}>
+                <View style={s.visual}>
+                  <View style={s.ring3}>
+                    <View style={s.ring2}>
+                      <View style={s.ring1}>
+                        <Text style={s.bell}>🔔</Text>
+                      </View>
                     </View>
                   </View>
                 </View>
+                <Headline segments={step3Headline} />
+                <Text style={s.sub}>
+                  Get notified when a drop is ready to open or when friends add to yours.
+                </Text>
               </View>
-              <Text style={s.headline}>
-                never miss{'\n'}
-                the moment{'\n'}
-                <Text style={s.headlineAccent}>drops unlock.</Text>
-              </Text>
-              <Text style={s.sub}>
-                Get notified when a drop is ready to open or when friends add to yours.
-              </Text>
+              <View style={[s.actions, { paddingBottom: insets.bottom + spacing[1] }]}>
+                <SocialButton variant="outline" label="maybe later" onPress={handleSkipNotifications} />
+                <SocialButton label="turn on notifications" onPress={handleEnableNotifications} />
+              </View>
             </View>
-            <View style={[s.actions, { paddingBottom: insets.bottom + spacing[1] }]}>
-              <SocialButton variant="outline" label="maybe later" onPress={handleSkipNotifications} />
-              <SocialButton label="turn on notifications" onPress={handleEnableNotifications} />
-            </View>
-          </View>
-        )}
+          )}
 
-      </Animated.View>
-    </KeyboardAvoidingView>
+        </Animated.View>
+      </KeyboardAvoidingView>
+    </View>
   )
 }
 
@@ -298,6 +312,9 @@ const s = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  kav: {
+    flex: 1,
   },
   stepWrap: {
     flex: 1,
@@ -307,24 +324,22 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
   },
 
-  // ── Step 1 ──────────────────────────────────────────────
+  headline: {
+    fontSize: 38,
+    lineHeight: 46,
+    fontWeight: fontWeight.regular,
+    letterSpacing: -0.5,
+    marginBottom: spacing[8],
+    textAlign: 'center',
+  },
+
   body1: {
     paddingHorizontal: spacing[6],
     paddingTop: spacing[8],
   },
-  question: {
-    fontSize: 36,
-    lineHeight: 44,
-    fontWeight: fontWeight.semiBold,
-    color: colors.textPrimary,
-    letterSpacing: -1,
-    marginBottom: spacing[10],
-  },
-  questionAccent: {
-    color: colors.ember,
-  },
   inputWrap: {
     marginBottom: spacing[8],
+    alignItems: 'center',
   },
   input: {
     fontSize: 28,
@@ -333,30 +348,16 @@ const s = StyleSheet.create({
     paddingVertical: spacing[2],
     paddingHorizontal: 0,
     backgroundColor: 'transparent',
-  },
-  underline: {
-    height: 1.5,
-    backgroundColor: colors.borderDefault,
+    textAlign: 'center',
+    width: '100%',
   },
   nextBtn: {
     marginHorizontal: spacing[2],
   },
 
-  // ── Step 2 ──────────────────────────────────────────────
   body2: {
     paddingHorizontal: spacing[6],
     paddingTop: spacing[6],
-  },
-  question2: {
-    fontSize: 34,
-    lineHeight: 42,
-    fontWeight: fontWeight.semiBold,
-    color: colors.textPrimary,
-    letterSpacing: -1,
-    marginBottom: spacing[8],
-  },
-  nameAccent: {
-    color: colors.ember,
   },
   drumWrap: {
     height: DRUM_H,
@@ -416,7 +417,6 @@ const s = StyleSheet.create({
     zIndex: 2,
   },
 
-  // ── Step 3 ──────────────────────────────────────────────
   body3: {
     paddingHorizontal: spacing[6],
     paddingTop: spacing[6],
@@ -454,24 +454,12 @@ const s = StyleSheet.create({
   bell: {
     fontSize: 30,
   },
-  headline: {
-    fontSize: 36,
-    lineHeight: 44,
-    fontWeight: fontWeight.semiBold,
-    color: colors.textPrimary,
-    letterSpacing: -1,
-    marginBottom: spacing[4],
-  },
-  headlineAccent: {
-    color: colors.primary,
-  },
   sub: {
     fontSize: 14,
     color: colors.textMuted,
     lineHeight: 22,
   },
   actions: {
-    paddingHorizontal: spacing[6],
     gap: spacing[3],
   },
 })
