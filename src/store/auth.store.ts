@@ -21,13 +21,11 @@ interface AuthState {
   isAuthenticated: boolean
   isOnboarded: boolean        // false = send to onboarding after sign-in
   isHydrated: boolean         // false = app is still reading from SecureStore on boot
-  hasSeenOnboarding: boolean  // kept for legacy compatibility
 
   // Actions
   setSession: (session: Session | null) => void
   setProfile: (profile: Profile | null) => void
   setHydrated: () => void
-  setHasSeenOnboarding: (value: boolean) => void
   setOnboardingName: (name: string) => void
   setOnboardingBirthday: (birthday: string | null) => void
   signOut: () => Promise<void>
@@ -43,7 +41,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   isOnboarded: false,
   isHydrated: false,
-  hasSeenOnboarding: false,
 
   /**
    * Called after sign-in, token refresh, or boot hydration.
@@ -64,7 +61,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setProfile: (profile) => {
     set({
       profile,
-      isOnboarded: !!(profile?.username || profile?.display_name),
+      isOnboarded: !!profile?.display_name,
     })
   },
 
@@ -76,10 +73,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
    */
   setHydrated: () => {
     set({ isHydrated: true })
-  },
-
-  setHasSeenOnboarding: (value) => {
-    set({ hasSeenOnboarding: value })
   },
 
   setOnboardingName: (name) => set({ onboardingName: name }),
@@ -111,6 +104,5 @@ export const selectProfile = (s: AuthState) => s.profile
 export const selectIsAuthenticated = (s: AuthState) => s.isAuthenticated
 export const selectIsOnboarded = (s: AuthState) => s.isOnboarded
 export const selectIsHydrated = (s: AuthState) => s.isHydrated
-export const selectHasSeenOnboarding = (s: AuthState) => s.hasSeenOnboarding
 export const selectOnboardingName = (s: AuthState) => s.onboardingName
 export const selectOnboardingBirthday = (s: AuthState) => s.onboardingBirthday

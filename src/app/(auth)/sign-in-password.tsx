@@ -46,7 +46,7 @@ export default function SignInPasswordScreen() {
     if (isNewUser || !profile?.username) {
       router.replace('/(auth)/setup-profile')
     } else {
-      router.replace('/(app)/(home)')
+      router.replace('/(app)/(tabs)/(home)')
     }
   }
 

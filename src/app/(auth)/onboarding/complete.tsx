@@ -39,6 +39,7 @@ async function generateUsername(displayName: string, userId: string): Promise<st
 
 export default function CompleteScreen() {
   const user = useAuthStore(s => s.user)
+  const existingProfile = useAuthStore(s => s.profile)
   const onboardingName = useAuthStore(s => s.onboardingName)
   const setProfile = useAuthStore(s => s.setProfile)
   const [loading, setLoading] = useState(false)
@@ -50,8 +51,11 @@ export default function CompleteScreen() {
     setError(null)
 
     try {
-      const displayName = onboardingName.trim() || 'You'
-      const username = await generateUsername(displayName, user.id)
+      // Prefer the name entered in onboarding; fall back to whatever setup-profile stored.
+      const displayName = onboardingName.trim() || existingProfile?.display_name || 'You'
+      // If the user already chose a username in setup-profile, keep it.
+      // Only generate one when coming through the OAuth/dev path that skips setup-profile.
+      const username = existingProfile?.username ?? await generateUsername(displayName, user.id)
 
       const { data: profile, error: upsertErr } = await supabase
         .from('profiles')
