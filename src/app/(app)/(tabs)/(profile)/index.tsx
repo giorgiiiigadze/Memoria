@@ -4,7 +4,6 @@ import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
 import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
 import type { DropState } from '@/types/database.types'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
@@ -38,14 +37,7 @@ export default function ProfileScreen() {
   const user = useAuthStore(selectUser)
   const profile = useAuthStore(selectProfile)
   const setProfile = useAuthStore(s => s.setProfile)
-  const setHasSeenOnboarding = useAuthStore(s => s.setHasSeenOnboarding)
   const signOut = useAuthStore(s => s.signOut)
-
-  async function replayOnboarding() {
-    await AsyncStorage.removeItem('@memoria/onboarding_complete')
-    setHasSeenOnboarding(false)
-    router.replace('/(onboarding)')
-  }
 
   const [drops, setDrops] = useState<DropWithParticipants[]>([])
   const [editing, setEditing] = useState(false)
@@ -147,9 +139,6 @@ export default function ProfileScreen() {
         <View style={s.headerRow}>
           <Text style={s.heading}>Profile</Text>
           <View style={s.headerActions}>
-            <TouchableOpacity style={s.signOutBtn} onPress={replayOnboarding} activeOpacity={0.7}>
-              <Text style={s.signOutLabel}>Intro</Text>
-            </TouchableOpacity>
             <TouchableOpacity style={s.signOutBtn} onPress={signOut} activeOpacity={0.7}>
               <Text style={s.signOutLabel}>Sign out</Text>
             </TouchableOpacity>
