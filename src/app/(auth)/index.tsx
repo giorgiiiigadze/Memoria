@@ -113,18 +113,20 @@ export default function LandingScreen() {
         </TouchableOpacity>
         ──────────────────────────────────────────────────────────────────── */}
 
-        {/* DEV sign-in — remove before shipping */}
-        <TouchableOpacity
-          style={[s.appleBtn, (!agreed || loading) && s.btnDimmed]}
-          onPress={handleDevSignIn}
-          disabled={!agreed || loading}
-          activeOpacity={0.88}
-        >
-          <AntDesign name="lock" size={18} color={colors.ink} />
-          <Text style={s.appleBtnLabel}>
-            {loading ? 'Signing in…' : 'Dev Sign In'}
-          </Text>
-        </TouchableOpacity>
+        {/* DEV sign-in — only in development builds */}
+        {__DEV__ && (
+          <TouchableOpacity
+            style={[s.appleBtn, (!agreed || loading) && s.btnDimmed]}
+            onPress={handleDevSignIn}
+            disabled={!agreed || loading}
+            activeOpacity={0.88}
+          >
+            <AntDesign name="lock" size={18} color={colors.ink} />
+            <Text style={s.appleBtnLabel}>
+              {loading ? 'Signing in…' : 'Dev Sign In'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   )

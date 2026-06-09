@@ -25,7 +25,7 @@ export function useNotifications() {
     if (!user?.id) return
     registerForPushAsync().then((token) => {
       if (token) {
-        supabase.from('profiles').update({ push_token: token }).eq('id', user.id).then()
+        supabase.from('profiles').update({ push_token: token }).eq('id', user.id).then().catch(console.error)
       }
     })
     getNotifications(user.id).then(setNotifications).catch(console.error)
