@@ -1,5 +1,7 @@
 import { colors, fontWeight, spacing } from '@/theme'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { useEffect, useRef } from 'react'
+import { Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 interface Props {
   step: number
@@ -9,10 +11,25 @@ interface Props {
 }
 
 export function OnboardingStepHeader({ step, total, onBack, onSkip }: Props) {
-  const pct = `${Math.round((step / total) * 100)}%` as `${number}%`
+  const insets = useSafeAreaInsets()
+  const animFill = useRef(new Animated.Value(step / total)).current
+
+  useEffect(() => {
+    Animated.timing(animFill, {
+      toValue: step / total,
+      duration: 420,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: false,
+    }).start()
+  }, [step, total])
+
+  const fillWidth = animFill.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  })
 
   return (
-    <View style={s.root}>
+    <View style={[s.root, { paddingTop: insets.top + spacing[4] }]}>
       <View style={s.row}>
         <TouchableOpacity
           style={s.backBtn}
@@ -26,7 +43,7 @@ export function OnboardingStepHeader({ step, total, onBack, onSkip }: Props) {
 
         <View style={s.trackWrap}>
           <View style={s.track}>
-            <View style={[s.fill, { width: pct }]} />
+            <Animated.View style={[s.fill, { width: fillWidth }]} />
           </View>
         </View>
 
@@ -47,7 +64,6 @@ export function OnboardingStepHeader({ step, total, onBack, onSkip }: Props) {
 const s = StyleSheet.create({
   root: {
     paddingHorizontal: spacing[5],
-    paddingTop: spacing[6],
     paddingBottom: spacing[4],
   },
   row: {

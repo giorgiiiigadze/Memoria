@@ -65,7 +65,7 @@ export default function RootLayout() {
       ]
 
       if (!profile?.display_name) {
-        router.replace('/(auth)/onboarding/username')
+        router.replace('/(auth)/onboarding')
       } else {
         router.replace('/(app)/(tabs)/(home)')
       }

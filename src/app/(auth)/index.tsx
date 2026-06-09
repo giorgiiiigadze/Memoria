@@ -2,11 +2,9 @@ import { supabase } from '@/api/client'
 import { useAuthStore } from '@/store/auth.store'
 import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
 import { AntDesign } from '@expo/vector-icons'
-import * as AppleAuthentication from 'expo-apple-authentication'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import { useState } from 'react'
-import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const { width: SW, height: SH } = Dimensions.get('window')
 const BLOB_SIZE = SW * 1.25
@@ -16,50 +14,54 @@ export default function LandingScreen() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleAppleSignIn() {
-    if (!agreed) {
-      setError('Please agree to the terms to continue.')
-      return
-    }
+  // ─── REAL Apple Sign-In (re-enable when testing on device) ───────────────
+  // async function handleAppleSignIn() {
+  //   if (!agreed) { setError('Please agree to the terms to continue.'); return }
+  //   try {
+  //     setLoading(true); setError(null)
+  //     const credential = await AppleAuthentication.signInAsync({
+  //       requestedScopes: [
+  //         AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+  //         AppleAuthentication.AppleAuthenticationScope.EMAIL,
+  //       ],
+  //     })
+  //     const { data, error: authError } = await supabase.auth.signInWithIdToken({
+  //       provider: 'apple',
+  //       token: credential.identityToken!,
+  //     })
+  //     if (authError || !data.session) { setError('Sign-in failed. Please try again.'); return }
+  //     const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.session.user.id).maybeSingle()
+  //     useAuthStore.getState().setSession(data.session)
+  //     useAuthStore.getState().setProfile(profile ?? null)
+  //     router.replace(profile?.display_name ? '/(app)/(tabs)/(home)' : '/(auth)/success')
+  //   } catch (e: any) {
+  //     if (e?.code !== 'ERR_REQUEST_CANCELED') setError('Sign-in failed. Please try again.')
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
+  // ─────────────────────────────────────────────────────────────────────────
+
+  async function handleDevSignIn() {
+    if (!agreed) { setError('Please agree to the terms to continue.'); return }
     try {
       setLoading(true)
       setError(null)
-
-      const credential = await AppleAuthentication.signInAsync({
-        requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
-        ],
+      const { data, error: e } = await supabase.auth.signInWithPassword({
+        email: 'salo@gmail.com',
+        password: 'salosalo',
       })
-
-      const { data, error: authError } = await supabase.auth.signInWithIdToken({
-        provider: 'apple',
-        token: credential.identityToken!,
-      })
-
-      if (authError || !data.session) {
-        setError('Sign-in failed. Please try again.')
-        return
-      }
-
+      if (e || !data.session) { setError('Dev sign-in failed'); return }
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', data.session.user.id)
         .maybeSingle()
-
       useAuthStore.getState().setSession(data.session)
       useAuthStore.getState().setProfile(profile ?? null)
-
-      if (profile?.display_name) {
-        router.replace('/(app)/(tabs)/(home)')
-      } else {
-        router.replace('/(auth)/success')
-      }
-    } catch (e: any) {
-      if (e?.code !== 'ERR_REQUEST_CANCELED') {
-        setError('Sign-in failed. Please try again.')
-      }
+      router.replace(profile?.display_name ? '/(app)/(tabs)/(home)' : '/(auth)/success')
+    } catch {
+      setError('Dev sign-in failed')
     } finally {
       setLoading(false)
     }
@@ -67,38 +69,20 @@ export default function LandingScreen() {
 
   return (
     <View style={s.root}>
-      {/* Blob — top 58% of screen */}
-      <View style={s.blobWrap}>
-        <LinearGradient
-          colors={['#1A1035', '#0D0D1F', '#0A0A14']}
-          start={{ x: 0.3, y: 0 }}
-          end={{ x: 0.7, y: 1 }}
-          style={s.blob}
-        />
-        <LinearGradient
-          colors={['transparent', colors.background]}
-          style={s.blobFade}
-          pointerEvents="none"
-        />
-      </View>
 
-      {/* Content anchored to bottom */}
       <View style={s.content}>
-        {/* Pagination dots */}
         <View style={s.dots}>
           <View style={[s.dot, s.dotActive]} />
           <View style={s.dot} />
           <View style={s.dot} />
         </View>
 
-        {/* Headline */}
         <Text style={s.headline}>
           <Text style={s.headlineEmber}>capture</Text>
           <Text style={s.headlineBase}> and{'\n'}relive </Text>
           <Text style={s.headlinePrimary}>together</Text>
         </Text>
 
-        {/* Terms checkbox */}
         <TouchableOpacity
           style={s.tosRow}
           onPress={() => { setAgreed(v => !v); setError(null) }}
@@ -108,39 +92,39 @@ export default function LandingScreen() {
             {agreed && <Text style={s.checkmark}>✓</Text>}
           </View>
           <Text style={s.tosText}>
-            I agree to the{' '}
-            <Text style={s.tosLink}>Terms of Service</Text>
-            {' '}and{' '}
-            <Text style={s.tosLink}>Privacy Policy</Text>
+            I agree to the <Text style={s.tosLink}>Terms of Service</Text>
+            {' '}and <Text style={s.tosLink}>Privacy Policy</Text>
           </Text>
         </TouchableOpacity>
 
         {error ? <Text style={s.error}>{error}</Text> : null}
 
-        {/* Sign-in button */}
-        {Platform.OS === 'ios' ? (
-          <TouchableOpacity
-            style={[s.appleBtn, (!agreed || loading) && s.btnDimmed]}
-            onPress={handleAppleSignIn}
-            disabled={!agreed || loading}
-            activeOpacity={0.88}
-          >
-            <AntDesign name="apple" size={18} color={colors.ink} />
-            <Text style={s.appleBtnLabel}>
-              {loading ? 'Signing in…' : 'Continue with Apple'}
-            </Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={[s.appleBtn, !agreed && s.btnDimmed]}
-            onPress={() => router.push('/(auth)/sign-in-email')}
-            disabled={!agreed}
-            activeOpacity={0.88}
-          >
-            <AntDesign name="mail" size={18} color={colors.ink} />
-            <Text style={s.appleBtnLabel}>Continue with Email</Text>
-          </TouchableOpacity>
-        )}
+        {/* ─── REAL button — uncomment when on device ─────────────────────
+        <TouchableOpacity
+          style={[s.appleBtn, (!agreed || loading) && s.btnDimmed]}
+          onPress={handleAppleSignIn}
+          disabled={!agreed || loading}
+          activeOpacity={0.88}
+        >
+          <AntDesign name="apple" size={18} color={colors.ink} />
+          <Text style={s.appleBtnLabel}>
+            {loading ? 'Signing in…' : 'Continue with Apple'}
+          </Text>
+        </TouchableOpacity>
+        ──────────────────────────────────────────────────────────────────── */}
+
+        {/* DEV sign-in — remove before shipping */}
+        <TouchableOpacity
+          style={[s.appleBtn, (!agreed || loading) && s.btnDimmed]}
+          onPress={handleDevSignIn}
+          disabled={!agreed || loading}
+          activeOpacity={0.88}
+        >
+          <AntDesign name="lock" size={18} color={colors.ink} />
+          <Text style={s.appleBtnLabel}>
+            {loading ? 'Signing in…' : 'Dev Sign In'}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   )
@@ -151,35 +135,12 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  blobWrap: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: SH * 0.58,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
-  },
-  blob: {
-    width: BLOB_SIZE,
-    height: BLOB_SIZE,
-    borderRadius: BLOB_SIZE / 2,
-    marginBottom: -(BLOB_SIZE * 0.12),
-  },
-  blobFade: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 120,
-  },
   content: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: spacing[6],
+    paddingHorizontal: spacing[2.5],
     paddingBottom: spacing[12],
     paddingTop: spacing[4],
   },
