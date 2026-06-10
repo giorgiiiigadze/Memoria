@@ -1,15 +1,17 @@
     import { getDrop, type DropWithParticipants } from '@/api/drops.api'
-import { getDropPhotos, type PhotoWithUploader } from '@/api/photos.api'
+import { getDropPhotos, uploadDropPhoto, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
 import { GlassCloseButton } from '@/components/ui/GlassCloseButton'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { colors } from '@/theme'
 import { Image } from 'expo-image'
+import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
+import { Camera } from 'lucide-react-native'
 import { useCallback, useEffect, useState } from 'react'
-import { Dimensions, FlatList, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Alert, Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const { height: SH } = Dimensions.get('window')
@@ -35,6 +37,7 @@ export default function DropDetailScreen() {
   const cached = useDropsStore(s => s.drops.find(d => d.id === id))
   const [drop, setDrop] = useState<DropWithParticipants | null>(cached ?? null)
   const [photos, setPhotos] = useState<PhotoWithUploader[]>([])
+  const [capturing, setCapturing] = useState(false)
 
   useFocusEffect(
     useCallback(() => {
@@ -53,6 +56,31 @@ export default function DropDetailScreen() {
     drop && (drop.state === 'active' || drop.state === 'ready')
       ? photos.filter(p => p.uploader_id === user?.id)
       : photos
+
+  const canUpload = !!user && (drop?.state === 'active' || drop?.state === 'ready')
+
+  async function handleCapture() {
+    if (!id || !user || capturing) return
+    const perm = await ImagePicker.requestCameraPermissionsAsync()
+    if (!perm.granted) {
+      Alert.alert('Camera access needed', 'Enable camera access to add a photo to this drop.')
+      return
+    }
+    const result = await ImagePicker.launchCameraAsync({ quality: 0.8 })
+    if (result.canceled) return
+    const a = result.assets[0]
+    setCapturing(true)
+    try {
+      await uploadDropPhoto(id, user.id, a.uri, a.width ?? null, a.height ?? null)
+      const fresh = await getDropPhotos(id)
+      setPhotos(fresh)
+    } catch (e) {
+      console.error('[capture] upload failed:', e)
+      Alert.alert('Upload failed', 'Could not upload your photo. Please try again.')
+    } finally {
+      setCapturing(false)
+    }
+  }
 
   return (
     <View style={s.root}>
@@ -79,6 +107,23 @@ export default function DropDetailScreen() {
           renderItem={({ item }) => <PhotoCard item={item} />}
         />
       )}
+
+      {canUpload && (
+        <View style={[s.captureWrap, { bottom: insets.bottom + 28 }]} pointerEvents="box-none">
+          <TouchableOpacity
+            style={s.captureBtn}
+            onPress={handleCapture}
+            disabled={capturing}
+            activeOpacity={0.85}
+          >
+            {capturing ? (
+              <ActivityIndicator color={colors.ink} />
+            ) : (
+              <Camera size={28} color={colors.ink} />
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   )
 }
@@ -100,5 +145,27 @@ const s = StyleSheet.create({
     position: 'absolute',
     left: 10,
     zIndex: 10,
+  },
+  captureWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 20,
+  },
+  captureBtn: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.bone,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 4,
+    borderColor: 'rgba(242, 238, 230, 0.35)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
 })
