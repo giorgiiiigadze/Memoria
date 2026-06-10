@@ -33,6 +33,15 @@ const STATE_META: Record<DropState, { label: string; color: string }> = {
   expired: { label: 'Expired',  color: colors.textTertiary },
 }
 
+function Stat({ value, label }: { value: number | string; label: string }) {
+  return (
+    <View style={s.stat}>
+      <Text style={s.statValue}>{value}</Text>
+      <Text style={s.statLabel}>{label}</Text>
+    </View>
+  )
+}
+
 export default function ProfileScreen() {
   const user = useAuthStore(selectUser)
   const profile = useAuthStore(selectProfile)
@@ -131,24 +140,28 @@ export default function ProfileScreen() {
 
   const displayedName = profile?.display_name ?? profile?.username ?? ''
 
+  // Stats derived from real drop data (swap for friends / photos counts when those queries land)
+  const activeCount = drops.filter(d => d.state === 'active').length
+  const readyCount = drops.filter(d => d.state === 'ready').length
+  const openCount = drops.filter(d => d.state === 'open').length
+
   return (
     <KeyboardAvoidingView style={s.root} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
-        {/* Header */}
-        <View style={s.headerRow}>
-          <Text style={s.heading}>Profile</Text>
-          <View style={s.headerActions}>
-            <TouchableOpacity style={s.signOutBtn} onPress={signOut} activeOpacity={0.7}>
-              <Text style={s.signOutLabel}>Sign out</Text>
+        {/* Top bar: [Sign out] — [avatar] — [Edit] */}
+        <View style={s.topBar}>
+          <View style={s.topSide}>
+            <TouchableOpacity onPress={signOut} activeOpacity={0.7}>
+              <Text style={s.topActionMuted}>Sign out</Text>
             </TouchableOpacity>
           </View>
-        </View>
 
-        {/* Avatar + identity */}
-        <View style={s.identity}>
-          <TouchableOpacity onPress={editing ? pickAvatar : undefined} activeOpacity={editing ? 0.7 : 1}>
-            <InitialAvatar name={displayedName || '?'} avatarUrl={avatarSource?.uri} size={72} />
+          <TouchableOpacity
+            onPress={editing ? pickAvatar : undefined}
+            activeOpacity={editing ? 0.7 : 1}
+          >
+            <InitialAvatar name={displayedName || '?'} avatarUrl={avatarSource?.uri} size={88} />
             {editing && (
               <View style={s.avatarEditBadge}>
                 <Text style={s.avatarEditBadgeLabel}>Edit</Text>
@@ -156,82 +169,102 @@ export default function ProfileScreen() {
             )}
           </TouchableOpacity>
 
-          {editing ? (
-            <View style={s.editFields}>
-              <Text style={s.fieldLabel}>Display name</Text>
-              <TextInput
-                style={s.input}
-                value={displayName}
-                onChangeText={setDisplayName}
-                placeholder="Your name"
-                placeholderTextColor={colors.textTertiary}
-                maxLength={50}
-                returnKeyType="next"
-              />
-              <Text style={s.fieldLabel}>Bio</Text>
-              <TextInput
-                style={[s.input, s.inputMulti]}
-                value={bio}
-                onChangeText={setBio}
-                placeholder="A little about you"
-                placeholderTextColor={colors.textTertiary}
-                maxLength={160}
-                multiline
-                returnKeyType="done"
-              />
-              {saveError ? <Text style={s.errorText}>{saveError}</Text> : null}
-              <View style={s.editActions}>
-                <TouchableOpacity style={s.btnCancel} onPress={cancelEdit} disabled={saving}>
-                  <Text style={s.btnCancelLabel}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[s.btnSave, saving && s.btnDisabled]} onPress={handleSave} disabled={saving}>
-                  {saving
-                    ? <ActivityIndicator color={colors.white} size="small" />
-                    : <Text style={s.btnSaveLabel}>Save</Text>}
-                </TouchableOpacity>
-              </View>
-            </View>
-          ) : (
-            <View style={s.identityInfo}>
-              {displayedName ? <Text style={s.displayName}>{displayedName}</Text> : null}
-              <Text style={s.username}>@{profile?.username}</Text>
-              {profile?.bio ? <Text style={s.bio}>{profile.bio}</Text> : null}
-              <TouchableOpacity style={s.editBtn} onPress={startEdit} activeOpacity={0.7}>
-                <Text style={s.editBtnLabel}>Edit Profile</Text>
+          <View style={[s.topSide, s.topSideRight]}>
+            {!editing && (
+              <TouchableOpacity onPress={startEdit} activeOpacity={0.7}>
+                <Text style={s.topAction}>Edit</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Centered identity */}
+        {editing ? (
+          <View style={s.editFields}>
+            <Text style={s.fieldLabel}>Display name</Text>
+            <TextInput
+              style={s.input}
+              value={displayName}
+              onChangeText={setDisplayName}
+              placeholder="Your name"
+              placeholderTextColor={colors.textTertiary}
+              maxLength={50}
+              returnKeyType="next"
+            />
+            <Text style={s.fieldLabel}>Bio</Text>
+            <TextInput
+              style={[s.input, s.inputMulti]}
+              value={bio}
+              onChangeText={setBio}
+              placeholder="A little about you"
+              placeholderTextColor={colors.textTertiary}
+              maxLength={160}
+              multiline
+              returnKeyType="done"
+            />
+            {saveError ? <Text style={s.errorText}>{saveError}</Text> : null}
+            <View style={s.editActions}>
+              <TouchableOpacity style={s.btnCancel} onPress={cancelEdit} disabled={saving}>
+                <Text style={s.btnCancelLabel}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[s.btnSave, saving && s.btnDisabled]} onPress={handleSave} disabled={saving}>
+                {saving
+                  ? <ActivityIndicator color={colors.white} size="small" />
+                  : <Text style={s.btnSaveLabel}>Save</Text>}
               </TouchableOpacity>
             </View>
-          )}
-        </View>
-
-        {/* Drops section */}
-        <View style={s.sectionHeader}>
-          <Text style={s.sectionTitle}>Your Drops</Text>
-          <Text style={s.sectionCount}>{drops.length}</Text>
-        </View>
-
-        {drops.length === 0 ? (
-          <View style={s.emptyDrops}>
-            <Text style={s.emptyText}>No drops yet. Tap Create to start one.</Text>
           </View>
         ) : (
-          drops.map(drop => (
-            <TouchableOpacity
-              key={drop.id}
-              style={s.dropCard}
-              onPress={() => router.push({ pathname: `/drop/${drop.id}`, params: { from: '/(app)/(profile)' } } as any)}
-              activeOpacity={0.75}
-            >
-              <View style={s.dropCardTop}>
-                <Text style={s.dropTitle} numberOfLines={1}>{drop.title}</Text>
-                <View style={[s.badge, { borderColor: STATE_META[drop.state].color }]}>
-                  <Text style={[s.badgeLabel, { color: STATE_META[drop.state].color }]}>
-                    {STATE_META[drop.state].label}
-                  </Text>
-                </View>
+          <View style={s.identity}>
+            <Text style={s.name}>{displayedName}</Text>
+            <Text style={s.metaLine}>
+              @{profile?.username}
+              {profile?.bio ? `  •  ${profile.bio}` : ''}
+            </Text>
+
+            {/* Stats row */}
+            <View style={s.statsRow}>
+              <Stat value={drops.length} label="Drops" />
+              <Stat value={activeCount} label="Active" />
+              <Stat value={readyCount} label="Ready" />
+              <Stat value={openCount} label="Open" />
+            </View>
+          </View>
+        )}
+
+        {/* Drops content */}
+        {!editing && (
+          <>
+            <View style={s.sectionHeader}>
+              <Text style={s.sectionTitle}>Your Drops</Text>
+              <Text style={s.sectionCount}>{drops.length}</Text>
+            </View>
+
+            {drops.length === 0 ? (
+              <View style={s.emptyDrops}>
+                <Text style={s.emptyText}>No drops yet. Tap Create to start one.</Text>
               </View>
-              <Text style={s.dropMeta}>{fmtDate(drop.open_date)}</Text>
-            </TouchableOpacity>
-          ))
+            ) : (
+              drops.map(drop => (
+                <TouchableOpacity
+                  key={drop.id}
+                  style={s.dropCard}
+                  onPress={() => router.push({ pathname: `/drop/${drop.id}`, params: { from: '/(app)/(profile)' } } as any)}
+                  activeOpacity={0.75}
+                >
+                  <View style={s.dropCardTop}>
+                    <Text style={s.dropTitle} numberOfLines={1}>{drop.title}</Text>
+                    <View style={[s.badge, { borderColor: STATE_META[drop.state].color }]}>
+                      <Text style={[s.badgeLabel, { color: STATE_META[drop.state].color }]}>
+                        {STATE_META[drop.state].label}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={s.dropMeta}>{fmtDate(drop.open_date)}</Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </>
         )}
 
       </ScrollView>
@@ -241,26 +274,34 @@ export default function ProfileScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
-  content: { paddingHorizontal: 10, paddingTop: 72, paddingBottom: spacing[12] },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[8] },
-  heading: { fontSize: fontSize.xl, fontWeight: fontWeight.semiBold, color: colors.white, letterSpacing: -0.5 },
-  headerActions: { flexDirection: 'row', gap: spacing[2] },
-  signOutBtn: { paddingHorizontal: spacing[3], paddingVertical: 6, borderRadius: 6, borderWidth: 0.5, borderColor: colors.borderDefault },
-  signOutLabel: { fontSize: 13, color: colors.textTertiary },
-  identity: { flexDirection: 'row', gap: spacing[4], marginBottom: 36, alignItems: 'flex-start' },
+  content: { paddingHorizontal: 20, paddingTop: 64, paddingBottom: spacing[12] },
+
+  // Top bar
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[5] },
+  topSide: { flex: 1, justifyContent: 'center' },
+  topSideRight: { alignItems: 'flex-end' },
+  topAction: { fontSize: 15, color: colors.white, fontWeight: fontWeight.semiBold },
+  topActionMuted: { fontSize: 14, color: colors.textTertiary, alignSelf: 'flex-start' },
   avatarEditBadge: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: 'rgba(0,0,0,0.55)', borderBottomLeftRadius: 36, borderBottomRightRadius: 36,
+    backgroundColor: 'rgba(0,0,0,0.55)', borderBottomLeftRadius: 44, borderBottomRightRadius: 44,
     alignItems: 'center', paddingBottom: spacing[1],
   },
   avatarEditBadgeLabel: { fontSize: 10, color: colors.white, fontWeight: fontWeight.medium },
-  identityInfo: { flex: 1, paddingTop: spacing[1], gap: spacing[1] },
-  displayName: { fontSize: 17, fontWeight: fontWeight.semiBold, color: colors.white },
-  username: { fontSize: 13, color: colors.textMuted },
-  bio: { fontSize: 13, color: colors.textLight, lineHeight: 18, marginTop: spacing[1] },
-  editBtn: { marginTop: 10, alignSelf: 'flex-start', paddingHorizontal: spacing[3], paddingVertical: 6, borderRadius: 6, borderWidth: 0.5, borderColor: colors.borderDefault },
-  editBtnLabel: { fontSize: 13, color: colors.textLight },
-  editFields: { flex: 1, gap: spacing[2] },
+
+  // Centered identity
+  identity: { alignItems: 'center' },
+  name: { fontSize: 28, fontWeight: fontWeight.semiBold, color: colors.white, letterSpacing: -0.5, textAlign: 'center', marginBottom: spacing[2] },
+  metaLine: { fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 20, paddingHorizontal: spacing[2] },
+
+  // Stats
+  statsRow: { flexDirection: 'row', alignSelf: 'stretch', marginTop: spacing[6], marginBottom: spacing[8] },
+  stat: { flex: 1, alignItems: 'center' },
+  statValue: { fontSize: 20, fontWeight: fontWeight.semiBold, color: colors.white },
+  statLabel: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
+
+  // Edit form
+  editFields: { gap: spacing[2], marginTop: spacing[4] },
   fieldLabel: { fontSize: 11, fontWeight: fontWeight.medium, color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.4 },
   input: { backgroundColor: colors.surfaceInput, borderWidth: 0.5, borderColor: colors.borderDefault, borderRadius: radii.sm, paddingHorizontal: spacing[3], paddingVertical: 10, fontSize: fontSize.sm, color: colors.white },
   inputMulti: { height: 72, textAlignVertical: 'top' },
@@ -271,6 +312,8 @@ const s = StyleSheet.create({
   btnSave: { flex: 1, paddingVertical: 10, borderRadius: radii.sm, backgroundColor: colors.primary, alignItems: 'center' },
   btnDisabled: { opacity: 0.5 },
   btnSaveLabel: { fontSize: 13, color: colors.white, fontWeight: fontWeight.semiBold },
+
+  // Drops
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[3] },
   sectionTitle: { fontSize: 15, fontWeight: fontWeight.semiBold, color: colors.white },
   sectionCount: { fontSize: 13, color: colors.textTertiary },

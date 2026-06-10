@@ -1,4 +1,4 @@
-import { getDrop, type DropWithParticipants } from '@/api/drops.api'
+    import { getDrop, type DropWithParticipants } from '@/api/drops.api'
 import { getDropPhotos, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
 import { GlassCloseButton } from '@/components/ui/GlassCloseButton'

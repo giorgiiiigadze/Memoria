@@ -1,10 +1,10 @@
 import type { DropWithParticipants } from '@/api/drops.api'
-import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { ParticipantAvatars } from '@/components/drops/ParticipantAvatars'
+import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { colors, fontSize, spacing } from '@/theme'
 import { formatDate } from '@/utils/date'
 import { Button, Host, Menu } from '@expo/ui/swift-ui'
-import { labelStyle } from '@expo/ui/swift-ui/modifiers'
+import { labelStyle, tint } from '@expo/ui/swift-ui/modifiers'
 import { AntDesign } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
@@ -56,7 +56,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
           <Menu
             label="Drop options"
             systemImage="ellipsis"
-            modifiers={[labelStyle('iconOnly')]}
+            modifiers={[labelStyle('iconOnly'), tint(colors.white)]}
           >
             <Button
               label="Share"
@@ -164,5 +164,4 @@ const s = StyleSheet.create({
     paddingBottom: 14,
     zIndex: 1,
   },
-
 })

@@ -79,23 +79,19 @@ export default function CompleteScreen() {
   return (
     <View style={[s.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
 
-      {/* ── Illustration ───────────────────────────────────── */}
       <View style={s.illustrationArea}>
         {/* swap in your illustration here */}
       </View>
 
-      {/* ── Text ───────────────────────────────────────────── */}
       <View style={s.textArea}>
         <Text style={s.headline}>
-          {'you\'re all\n'}
-          <Text style={{ color: colors.lime }}>set up.</Text>
+          {'welcome to memoria'}
         </Text>
         <Text style={s.subtitle}>
-          time to capture moments{'\n'}that matter — together.
+          time to capture moments that matter — together.
         </Text>
       </View>
 
-      {/* ── CTA pinned to bottom ───────────────────────────── */}
       <View style={s.bottom}>
         {error ? <Text style={s.error}>{error}</Text> : null}
         <SocialButton
@@ -120,26 +116,27 @@ const s = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.white,
     marginTop: spacing[6],
     marginBottom: spacing[8],
   },
   textArea: {
     alignItems: 'center',
-    gap: spacing[3],
+    gap: spacing[0],
     marginBottom: spacing[10],
   },
   headline: {
-    fontSize: 38,
-    fontWeight: fontWeight.regular,
+    fontSize: 34,
+    fontWeight: fontWeight.semiBold,
     color: colors.textPrimary,
     letterSpacing: -0.5,
+    lineHeight: 38,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 15,
     fontWeight: fontWeight.regular,
-    color: colors.textMuted,
+    color: colors.white,
     textAlign: 'center',
     lineHeight: 22,
   },

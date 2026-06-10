@@ -23,9 +23,8 @@ export default function HomeLayout() {
       <Stack.Screen
         name="notifications"
         options={{
-          presentation: 'formSheet',
-          sheetGrabberVisible: true,
-          sheetCornerRadius: 24,
+          presentation: 'transparentModal',
+          animation: 'slide_from_bottom',
           contentStyle: { backgroundColor: 'transparent' },
         }}
       />

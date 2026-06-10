@@ -19,10 +19,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const glassAvailable = isGlassEffectAPIAvailable()
-
-// Helper utilities and constants moved to `src/utils/notifications.ts`
 
 function handleTap(n: NotificationWithMeta) {
   markNotificationRead(n.id).catch(console.error)
@@ -48,6 +47,7 @@ export default function NotificationsScreen() {
   const user = useAuthStore(selectUser)
   const { notifications, setNotifications, markOneRead, markAllRead } = useNotificationsStore()
   const unreadCount = useNotificationsStore(selectUnreadCount)
+  const insets = useSafeAreaInsets()
 
   useFocusEffect(
     useCallback(() => {
@@ -66,15 +66,19 @@ export default function NotificationsScreen() {
     <View style={s.root}>
       {glassAvailable ? (
         <GlassView
-          style={StyleSheet.absoluteFill}
+          style={[StyleSheet.absoluteFill, s.glass]}
           glassEffectStyle="regular"
           colorScheme="dark"
-          tintColor="rgba(20,20,20,0.55)"
+          tintColor="rgba(20,20,20,0.25)"
           collapsable={false}
         />
       ) : (
         <View style={[StyleSheet.absoluteFill, s.fallbackPanel]} collapsable={false} />
       )}
+
+      <View style={[s.grabberWrap, { paddingTop: insets.top > 0 ? 12 : 16 }]}>
+        <View style={s.grabber} />
+      </View>
 
       <View style={s.content} collapsable={false}>
         <View style={s.header} collapsable={false}>
@@ -117,23 +121,47 @@ export default function NotificationsScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: 'transparent' },
-  content: { flex: 1 , backgroundColor: '#1C1C1C' },
+  root: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    // Push sheet down so the underlying screen peeks above it
+    marginTop: 60,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    overflow: 'hidden',
+  },
+  glass: {
+    borderTopLeftRadius: 34,
+    borderTopRightRadius: 34,
+  },
+  fallbackPanel: {
+    backgroundColor: 'rgba(18,18,18,0.88)',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  grabberWrap: {
+    alignItems: 'center',
+    paddingBottom: 8,
+  },
+  grabber: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+  },
+  content: { flex: 1 },
   flex: { flex: 1 },
-  fallbackPanel: { backgroundColor: 'rgba(28,28,30,0.92)' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
-    paddingTop: 16,
+    paddingTop: 4,
     height: HEADER_HEIGHT,
     zIndex: 10,
     elevation: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'transparent',
   },
-  sideSlot: { width: "auto", justifyContent: 'center' },
+  sideSlot: { width: 'auto', justifyContent: 'center' },
   title: { fontSize: 17, fontWeight: '600', color: '#FFFFFF', flex: 1, textAlign: 'center' },
   markAll: { fontSize: 13, color: '#5B8CFF', textAlign: 'right' },
   list: { paddingTop: 8, paddingBottom: 8 },

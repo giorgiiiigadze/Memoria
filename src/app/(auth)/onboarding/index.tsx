@@ -136,15 +136,11 @@ export default function OnboardingFlow() {
   const firstName = onboardingName.split(' ')[0] || 'you'
 
   const step1Headline: Segment[] = [
-    { text: 'what should\n', color: colors.textPrimary },
-    { text: 'memoria\n', color: colors.lime },
-    { text: 'call you?', color: colors.textPrimary },
+    { text: 'What should Memoria call you?', color: colors.textPrimary },
   ]
 
   const step2Headline: Segment[] = [
-    { text: 'hey ', color: colors.textPrimary },
-    { text: firstName, color: colors.lime },
-    { text: ',\nwhen was\nwhere you born?', color: colors.textPrimary },
+    { text: `Hey ${firstName} when was where you born?'`, color: colors.textPrimary },
   ]
 
   const step3Headline: Segment[] = [
@@ -325,12 +321,12 @@ const s = StyleSheet.create({
   },
 
   headline: {
-    fontSize: 38,
+    fontSize: 32,
     lineHeight: 46,
     fontWeight: fontWeight.regular,
     letterSpacing: -0.5,
     marginBottom: spacing[8],
-    textAlign: 'center',
+    textAlign: "left",
   },
 
   body1: {
@@ -342,7 +338,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   input: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: fontWeight.medium,
     color: colors.textPrimary,
     paddingVertical: spacing[2],
