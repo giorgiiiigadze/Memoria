@@ -1,4 +1,4 @@
-import { OnboardingStepHeader } from '@/components/ui/OnboardingStepHeader'
+import { OnboardingStepHeader } from '@/components/onboarding/OnboardingStepHeader'
 import { SocialButton } from '@/components/ui/SocialButton'
 import { useAuthStore } from '@/store/auth.store'
 import { colors, fontWeight, spacing } from '@/theme'

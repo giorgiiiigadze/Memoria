@@ -1,6 +1,8 @@
-import type { DropWithParticipants } from '@/api/drops.api'
+import { deleteDrop, type DropWithParticipants } from '@/api/drops.api'
 import { ParticipantAvatars } from '@/components/drops/ParticipantAvatars'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
+import { selectUser, useAuthStore } from '@/store/auth.store'
+import { useDropsStore } from '@/store/drops.store'
 import { colors, fontSize, spacing } from '@/theme'
 import { formatDate } from '@/utils/date'
 import { Button, Host, Menu } from '@expo/ui/swift-ui'
@@ -8,12 +10,13 @@ import { labelStyle, tint } from '@expo/ui/swift-ui/modifiers'
 import { AntDesign } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
-import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native'
+import { Alert, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native'
 
 const AVATAR_SIZE = 34
 
 export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipants; showCreator?: boolean }) {
   const { width } = useWindowDimensions()
+  const user = useAuthStore(selectUser)
 
   const creatorName = drop.creator?.display_name ?? drop.creator?.username ?? null
   const creatorAvatar = drop.creator?.avatar_url ?? null
@@ -23,11 +26,35 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
   const secondary = showIdentity ? drop.title : null
 
   const dateLabel = formatDate(drop.open_date)
-
   const showAvatar = !!(creatorAvatar || creatorName)
+  const isCreator = user?.id === drop.creator?.id
 
   const handleNavigation = () => {
     router.push({ pathname: '/drop/[id]', params: { id: drop.id } } as any)
+  }
+
+  function handleDelete() {
+    Alert.alert(
+      'Delete Drop',
+      `"${drop.title}" will be permanently deleted for everyone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const { drops, setDrops } = useDropsStore.getState()
+            setDrops(drops.filter(d => d.id !== drop.id))
+            try {
+              await deleteDrop(drop.id)
+            } catch {
+              setDrops(drops)
+              Alert.alert('Delete Failed', 'Could not delete the drop. Please try again.')
+            }
+          },
+        },
+      ],
+    )
   }
 
   return (
@@ -52,7 +79,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
           )}
         </TouchableOpacity>
 
-        <Host matchContents>
+        <Host style={s.menuHost}>
           <Menu
             label="Drop options"
             systemImage="ellipsis"
@@ -61,6 +88,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
             <Button
               label="Share"
               systemImage="square.and.arrow.up"
+              modifiers={[tint(colors.ink)]}
               onPress={() => {
                 // TODO: share drop
               }}
@@ -68,18 +96,19 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
             <Button
               label="Report"
               systemImage="exclamationmark.bubble"
+              modifiers={[tint(colors.ink)]}
               onPress={() => {
                 // TODO: report drop
               }}
             />
-            <Button
-              label="Delete"
-              role="destructive"
-              systemImage="trash"
-              onPress={() => {
-                // TODO: delete drop
-              }}
-            />
+            {isCreator && (
+              <Button
+                label="Delete"
+                role="destructive"
+                systemImage="trash"
+                onPress={handleDelete}
+              />
+            )}
           </Menu>
         </Host>
       </View>
@@ -121,6 +150,12 @@ const s = StyleSheet.create({
   },
   headerText: {
     flex: 1,
+  },
+  menuHost: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   name: {
     fontSize: 15,

@@ -1,6 +1,8 @@
 import { Chip } from '@/components/friends/Chip'
+import { FriendSearchBar } from '@/components/friends/FriendSearchBar'
 import { UserRow } from '@/components/friends/UserRow'
 import { useFriends } from '@/hooks/useFriends'
+import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import type { Profile } from '@/types/database.types'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -8,7 +10,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native'
@@ -26,7 +27,7 @@ export default function FriendsScreen() {
 
     debounce.current = setTimeout(async () => {
       setSearching(true)
-      try { setSearchResults((await search(query)) ?? []) }
+      try { setSearchResults(((await search(query)) ?? []) as Profile[]) }
       catch { setSearchResults([]) }
       finally { setSearching(false) }
     }, 400)
@@ -47,18 +48,13 @@ export default function FriendsScreen() {
     <ScrollView style={s.root} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
 
-      <View style={s.searchRow}>
-        <TextInput
-          style={s.searchInput}
-          placeholder="Search by username..."
-          placeholderTextColor="#626262"
+      <View style={s.searchWrap}>
+        <FriendSearchBar
           value={query}
           onChangeText={setQuery}
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="search"
+          placeholder="Search by username..."
         />
-        {searching && <ActivityIndicator style={s.searchSpinner} color="#898989" size="small" />}
+        {searching && <ActivityIndicator style={s.searchSpinner} color={colors.textTertiary} size="small" />}
       </View>
 
       {isSearchMode && (
@@ -155,34 +151,22 @@ export default function FriendsScreen() {
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  root: { flex: 1 },
-  content: { paddingBottom: 40, paddingTop: 20, paddingHorizontal: 10 },
-  title: { fontSize: 26, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.5, marginBottom: 20 },
-  searchRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
-  searchInput: {
-    flex: 1,
-    backgroundColor: '#191919',
-    borderWidth: 0.5,
-    borderColor: '#3B3B3B',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    fontSize: 15,
-    color: '#FFFFFF',
-  },
-  searchSpinner: { marginLeft: 10 },
-  section: { marginBottom: 28 },
+  root: { flex: 1, backgroundColor: colors.background },
+  content: { paddingBottom: spacing[10], paddingTop: spacing[5], paddingHorizontal: spacing[2.5] },
+  searchWrap: { marginBottom: spacing[6] },
+  searchSpinner: { marginTop: spacing[2], alignSelf: 'center' },
+  section: { marginBottom: spacing[8] },
   sectionLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#626262',
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
+    color: colors.textTertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    marginBottom: 12,
+    marginBottom: spacing[3],
   },
-  empty: { fontSize: 14, color: '#626262', textAlign: 'center', paddingVertical: 24, lineHeight: 22 },
+  empty: { fontSize: fontSize.sm, color: colors.textTertiary, textAlign: 'center', paddingVertical: spacing[6], lineHeight: 22 },
   requestActions: { flexDirection: 'row' },
-  errorBox: { alignItems: 'center', paddingVertical: 40, gap: 12 },
-  errorMsg: { fontSize: 14, color: '#626262', textAlign: 'center' },
-  retryText: { fontSize: 14, color: '#0044FF', fontWeight: '500' },
+  errorBox: { alignItems: 'center', paddingVertical: spacing[10], gap: spacing[3] },
+  errorMsg: { fontSize: fontSize.sm, color: colors.textTertiary, textAlign: 'center' },
+  retryText: { fontSize: fontSize.sm, color: colors.primary, fontWeight: fontWeight.medium },
 })

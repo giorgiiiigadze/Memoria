@@ -1,4 +1,4 @@
-import { OnboardingSlide } from '@/components/ui/OnboardingSlide'
+import { OnboardingSlide } from '@/components/onboarding/OnboardingSlide'
 import { router } from 'expo-router'
 
 export default function OnboardingScreen() {

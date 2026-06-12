@@ -1,5 +1,5 @@
-import { OnboardingHeader } from '@/components/ui/OnboardingHeader'
-import { OnboardingSlide } from '@/components/ui/OnboardingSlide'
+import { OnboardingHeader } from '@/components/onboarding/OnboardingHeader'
+import { OnboardingSlide } from '@/components/onboarding/OnboardingSlide'
 import { completeOnboarding } from '@/lib/onboarding'
 import * as ImagePicker from 'expo-image-picker'
 import { Stack } from 'expo-router'

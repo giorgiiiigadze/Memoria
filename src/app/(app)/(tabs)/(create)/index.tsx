@@ -1,11 +1,11 @@
-import { CreateFlowHeader } from '@/components/ui/CreateFlowHeader'
+import { TabBarContext } from '@/context/TabBarContext'
 import { useDropsStore } from '@/store/drops.store'
 import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
 import { formatDate } from '@/utils/date'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
-import { router } from 'expo-router'
-import { useState } from 'react'
+import { router, useFocusEffect } from 'expo-router'
+import { use, useState } from 'react'
 import {
   Modal,
   Pressable,
@@ -51,7 +51,13 @@ function buildCalendarDays(year: number, month: number) {
 }
 
 export default function CreateScreen() {
+  const { setIsTabBarHidden } = use(TabBarContext)
   const { draft, setDraftTitle, setDraftOpenDate, setDraftThumbnailUri } = useDropsStore()
+
+  useFocusEffect(() => {
+    setIsTabBarHidden(true)
+    return () => setIsTabBarHidden(false)
+  })
 
   const [showCalendar, setShowCalendar] = useState(false)
   const [calYear, setCalYear] = useState(() => new Date().getFullYear())
@@ -101,8 +107,6 @@ export default function CreateScreen() {
 
   return (
     <View style={s.root}>
-      <CreateFlowHeader variant="close" />
-
       <ScrollView
         style={s.scroll}
         contentContainerStyle={s.content}
@@ -188,7 +192,9 @@ export default function CreateScreen() {
           )}
         </View>
 
-        {/* ── Next ────────────────────────────────── */}
+      </ScrollView>
+
+      <View style={s.footer}>
         <TouchableOpacity
           style={[s.btn, !canNext && s.btnDisabled]}
           onPress={() => router.push('/(app)/(create)/invite' as any)}
@@ -197,9 +203,8 @@ export default function CreateScreen() {
         >
           <Text style={s.btnLabel}>Next</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
 
-      {/* ── Calendar modal ──────────────────────── */}
       <Modal
         visible={showCalendar}
         transparent
@@ -253,12 +258,12 @@ export default function CreateScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1 },
+  root: { flex: 1, backgroundColor: colors.background },
   scroll: { flex: 1 },
   content: {
-    paddingHorizontal: 10,
+    paddingHorizontal: spacing[2.5],
     paddingTop: spacing[4],
-    paddingBottom: spacing[10],
+    paddingBottom: spacing[6],
   },
 
   title: {
@@ -290,7 +295,6 @@ const s = StyleSheet.create({
     letterSpacing: 0,
   },
 
-  // ── Input
   input: {
     backgroundColor: colors.surfaceInput,
     borderWidth: 0.5,
@@ -343,13 +347,16 @@ const s = StyleSheet.create({
   thumbIcon: { fontSize: 28 },
   thumbPlaceholderLabel: { fontSize: 13, color: colors.textTertiary },
 
-  // ── CTA
+  footer: {
+    paddingHorizontal: spacing[6],
+    paddingTop: spacing[2],
+    paddingBottom: spacing[10],
+  },
   btn: {
     backgroundColor: colors.primary,
     borderRadius: radii.sm,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: spacing[3],
   },
   btnDisabled: { opacity: 0.4 },
   btnLabel: { fontSize: 15, fontWeight: fontWeight.medium, color: colors.white },

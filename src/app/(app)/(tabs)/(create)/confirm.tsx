@@ -1,12 +1,12 @@
-import { CreateFlowHeader } from '@/components/ui/CreateFlowHeader'
 import { InfoRow } from '@/components/ui/InfoRow'
+import { TabBarContext } from '@/context/TabBarContext'
 import { useDrops } from '@/hooks/useDrops'
 import { useFriendsStore } from '@/store/friends.store'
 import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
 import { formatDate } from '@/utils/date'
 import { Image } from 'expo-image'
-import { router } from 'expo-router'
-import { useState } from 'react'
+import { router, useFocusEffect } from 'expo-router'
+import { use, useState } from 'react'
 import {
   ActivityIndicator,
   ScrollView,
@@ -17,10 +17,16 @@ import {
 } from 'react-native'
 
 export default function ConfirmScreen() {
+  const { setIsTabBarHidden } = use(TabBarContext)
   const { draft, submitDrop } = useDrops()
   const friends = useFriendsStore(s => s.friends)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useFocusEffect(() => {
+    setIsTabBarHidden(true)
+    return () => setIsTabBarHidden(false)
+  })
 
   const invitedFriends = friends.filter(f => draft.invitedIds.includes(f.id))
 
@@ -40,7 +46,6 @@ export default function ConfirmScreen() {
 
   return (
     <View style={s.root}>
-      <CreateFlowHeader variant="back" />
       <ScrollView style={s.scroll} contentContainerStyle={s.content}>
 
         <Text style={s.title}>Looks good?</Text>

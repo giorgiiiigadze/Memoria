@@ -1,4 +1,4 @@
-import { OnboardingHeader } from '@/components/ui/OnboardingHeader'
+import { OnboardingHeader } from '@/components/onboarding/OnboardingHeader'
 import { Stack } from 'expo-router'
 
 export default function OnboardingLayout() {

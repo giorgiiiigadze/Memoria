@@ -1,9 +1,9 @@
 import { supabase } from '@/api/client'
 import { getMyDrops, type DropWithParticipants } from '@/api/drops.api'
+import { MiniDropGrid, MiniDropGridSkeleton } from '@/components/drops/MiniDropCard'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
 import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
-import type { DropState } from '@/types/database.types'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
@@ -19,19 +19,6 @@ import {
   View,
 } from 'react-native'
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-function fmtDate(iso: string | null) {
-  if (!iso) return 'No date'
-  const d = new Date(iso)
-  return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
-}
-
-const STATE_META: Record<DropState, { label: string; color: string }> = {
-  active:  { label: 'Active',   color: colors.primary },
-  ready:   { label: 'Ready',    color: colors.success },
-  open:    { label: 'Open',     color: colors.warning },
-  expired: { label: 'Expired',  color: colors.textTertiary },
-}
 
 function Stat({ value, label }: { value: number | string; label: string }) {
   return (
@@ -49,6 +36,7 @@ export default function ProfileScreen() {
   const signOut = useAuthStore(s => s.signOut)
 
   const [drops, setDrops] = useState<DropWithParticipants[]>([])
+  const [loadingDrops, setLoadingDrops] = useState(true)
   const [editing, setEditing] = useState(false)
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '')
   const [bio, setBio] = useState(profile?.bio ?? '')
@@ -58,7 +46,11 @@ export default function ProfileScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      getMyDrops().then(setDrops).catch(console.error)
+      setLoadingDrops(true)
+      getMyDrops()
+        .then(setDrops)
+        .catch(console.error)
+        .finally(() => setLoadingDrops(false))
     }, [])
   )
 
@@ -240,31 +232,22 @@ export default function ProfileScreen() {
               <Text style={s.sectionCount}>{drops.length}</Text>
             </View>
 
-            {drops.length === 0 ? (
+            {loadingDrops ? (
+              <MiniDropGridSkeleton count={6} />
+            ) : drops.length === 0 ? (
               <View style={s.emptyDrops}>
                 <Text style={s.emptyText}>No drops yet. Tap Create to start one.</Text>
               </View>
             ) : (
-              drops.map(drop => (
-                <TouchableOpacity
-                  key={drop.id}
-                  style={s.dropCard}
-                  onPress={() => router.push({ pathname: `/drop/${drop.id}`, params: { from: '/(app)/(profile)' } } as any)}
-                  activeOpacity={0.75}
-                >
-                  <View style={s.dropCardTop}>
-                    <Text style={s.dropTitle} numberOfLines={1}>{drop.title}</Text>
-                    <View style={[s.badge, { borderColor: STATE_META[drop.state].color }]}>
-                      <Text style={[s.badgeLabel, { color: STATE_META[drop.state].color }]}>
-                        {STATE_META[drop.state].label}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={s.dropMeta}>{fmtDate(drop.open_date)}</Text>
-                </TouchableOpacity>
-              ))
+              <MiniDropGrid drops={drops} />
             )}
           </>
+        )}
+
+        {__DEV__ && (
+          <TouchableOpacity style={s.devBtn} onPress={() => router.replace('/(onboarding)' as any)}>
+            <Text style={s.devBtnLabel}>Dev: back to onboarding</Text>
+          </TouchableOpacity>
         )}
 
       </ScrollView>
@@ -319,13 +302,7 @@ const s = StyleSheet.create({
   sectionCount: { fontSize: 13, color: colors.textTertiary },
   emptyDrops: { paddingVertical: spacing[6], alignItems: 'center' },
   emptyText: { fontSize: fontSize.sm, color: colors.textTertiary },
-  dropCard: {
-    backgroundColor: colors.surfaceInput, borderWidth: 0.5, borderColor: colors.borderDefault,
-    borderRadius: 10, padding: 14, marginBottom: spacing[2],
-  },
-  dropCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
-  dropTitle: { fontSize: 15, fontWeight: fontWeight.semiBold, color: colors.white, flex: 1, marginRight: spacing[3] },
-  badge: { borderWidth: 0.5, borderRadius: 5, paddingHorizontal: 7, paddingVertical: 3 },
-  badgeLabel: { fontSize: 10, fontWeight: fontWeight.semiBold, textTransform: 'uppercase', letterSpacing: 0.5 },
-  dropMeta: { fontSize: fontSize.xs, color: colors.textTertiary },
+
+  devBtn: { marginTop: spacing[10], alignItems: 'center' },
+  devBtnLabel: { fontSize: 12, color: colors.textTertiary },
 })

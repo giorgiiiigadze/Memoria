@@ -1,9 +1,6 @@
-// src/lib/auth/providers.ts
-// NOTE: Social auth (Apple, Google) stubbed until client IDs are ready.
-// Only phone OTP is active.
-
 import { supabase } from '@/api/client'
 import { Session } from '@supabase/supabase-js'
+import * as AppleAuthentication from 'expo-apple-authentication'
 
 export interface AuthResult {
   session: Session
@@ -16,8 +13,6 @@ export class AuthError extends Error {
     this.name = 'AuthError'
   }
 }
-
-// ─── Phone OTP ───────────────────────────────────────────────────────────────
 
 export async function sendPhoneOtp(phone: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({ phone })
@@ -38,21 +33,28 @@ export async function verifyPhoneOtp(
   return { session: data.session, isNewUser: isNewUser(data.session) }
 }
 
-// ─── Stubs ───────────────────────────────────────────────────────────────────
-
 export async function signInWithApple(): Promise<AuthResult> {
-  throw new AuthError('Apple sign-in not configured yet.', 'NOT_CONFIGURED')
-}
+  const credential = await AppleAuthentication.signInAsync({
+    requestedScopes: [
+      AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+      AppleAuthentication.AppleAuthenticationScope.EMAIL,
+    ],
+  })
 
-export function useGoogleAuthRequest() {
-  return [null, null, async () => {}] as const
-}
+  if (!credential.identityToken) {
+    throw new AuthError('Apple Sign-In failed: no identity token returned.')
+  }
 
-export async function handleGoogleResponse(): Promise<AuthResult | null> {
-  throw new AuthError('Google sign-in not configured yet.', 'NOT_CONFIGURED')
-}
+  const { data, error } = await supabase.auth.signInWithIdToken({
+    provider: 'apple',
+    token: credential.identityToken,
+  })
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+  if (error) throw new AuthError(error.message, error.code)
+  if (!data.session) throw new AuthError('Apple Sign-In succeeded but no session was returned.')
+
+  return { session: data.session, isNewUser: isNewUser(data.session) }
+}
 
 function isNewUser(session: Session): boolean {
   const { created_at, last_sign_in_at } = session.user

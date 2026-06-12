@@ -1,9 +1,10 @@
 import type { DropWithParticipants } from '@/api/drops.api'
 import { DropCard } from '@/components/drops/DropCard'
+import { DropCardSkeletonList } from '@/components/drops/DropCardSkeleton'
 import { useDrops } from '@/hooks/useDrops'
-import { selectUser, useAuthStore } from '@/store/auth.store'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import { useFocusEffect } from 'expo-router'
+import { SymbolView } from 'expo-symbols'
 import { useCallback } from 'react'
 import {
   FlatList,
@@ -16,14 +17,33 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const HEADER_HEIGHT = 66
 
+function ListFooter({ count }: { count: number }) {
+  if (count === 0) return null
+  return (
+    <View style={s.footer}>
+      <Text style={s.footerPrimaryText}>
+        <SymbolView
+          name="sparkles"
+          size={20}
+          resizeMode="scaleAspectFit"
+          tintColor={colors.white}
+        />
+        Thats about it
+      </Text> 
+       <Text style={s.footerSecondaryText}>
+        {count === 1 ? "That's your only drop" : `${count} drops, you're all caught up`}
+      </Text>
+    </View>
+  )
+}
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets()
-  const user = useAuthStore(selectUser)
   const { drops, isLoaded, error, refresh, retry } = useDrops()
 
   useFocusEffect(useCallback(() => { if (isLoaded) refresh() }, [isLoaded]))
 
-  const ListEmpty = !isLoaded ? null : error ? (
+  const ListEmpty = !isLoaded ? <DropCardSkeletonList /> : error ? (
     <View style={s.errorBox}>
       <Text style={s.errorText}>{error}</Text>
       <TouchableOpacity onPress={retry} activeOpacity={0.7}>
@@ -56,6 +76,7 @@ export default function HomeScreen() {
             <DropCard drop={item} showCreator={false} />
           </View>
         )}
+        ListFooterComponent={<ListFooter count={drops.length} />}
       />
     </View>
   )
@@ -68,7 +89,7 @@ const s = StyleSheet.create({
   },
   content: {},
   cardWrapper: {
-    marginBottom: spacing[2],
+    marginBottom: spacing[0],
   },
 
   empty: {
@@ -99,5 +120,22 @@ const s = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.primary,
     fontWeight: fontWeight.medium,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingTop: spacing[6],
+    gap: spacing[2],
+  },
+  footerPrimaryText: {
+    fontSize: fontSize.md,
+    color: colors.white,
+    fontWeight: fontWeight.semiBold,
+    display: 'flex',
+    alignItems: 'center',
+  },
+  footerSecondaryText: {
+    fontSize: fontSize.sm,
+    color: colors.textTertiary,
+    fontWeight: fontWeight.regular,
   },
 })
