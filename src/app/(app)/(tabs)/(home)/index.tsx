@@ -3,9 +3,9 @@ import { DropCard } from '@/components/drops/DropCard'
 import { DropCardSkeletonList } from '@/components/drops/DropCardSkeleton'
 import { useDrops } from '@/hooks/useDrops'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
-import { useFocusEffect } from 'expo-router'
+import { useFocusEffect, useScrollToTop } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import {
   FlatList,
   StyleSheet,
@@ -21,17 +21,17 @@ function ListFooter({ count }: { count: number }) {
   if (count === 0) return null
   return (
     <View style={s.footer}>
-      <Text style={s.footerPrimaryText}>
+      <View style={s.footerPrimaryRow}>
+        <Text style={s.footerPrimaryText}>All caught up</Text>
         <SymbolView
           name="sparkles"
           size={20}
           resizeMode="scaleAspectFit"
           tintColor={colors.white}
         />
-        Thats about it
-      </Text> 
-       <Text style={s.footerSecondaryText}>
-        {count === 1 ? "That's your only drop" : `${count} drops, you're all caught up`}
+      </View>
+      <Text style={s.footerSecondaryText}>
+        Until the next capsule cracks open
       </Text>
     </View>
   )
@@ -40,6 +40,8 @@ function ListFooter({ count }: { count: number }) {
 export default function HomeScreen() {
   const insets = useSafeAreaInsets()
   const { drops, isLoaded, error, refresh, retry } = useDrops()
+  const listRef = useRef<FlatList<DropWithParticipants>>(null)
+  useScrollToTop(listRef)
 
   useFocusEffect(useCallback(() => { if (isLoaded) refresh() }, [isLoaded]))
 
@@ -60,6 +62,7 @@ export default function HomeScreen() {
   return (
     <View style={s.root}>
       <FlatList<DropWithParticipants>
+        ref={listRef}
         data={drops}
         keyExtractor={d => d.id}
         showsVerticalScrollIndicator={false}
@@ -121,6 +124,12 @@ const s = StyleSheet.create({
     color: colors.primary,
     fontWeight: fontWeight.medium,
   },
+
+  footerPrimaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },  
   footer: {
     alignItems: 'center',
     paddingTop: spacing[6],

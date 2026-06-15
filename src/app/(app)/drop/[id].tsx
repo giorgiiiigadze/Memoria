@@ -1,4 +1,4 @@
-    import { getDrop, type DropWithParticipants } from '@/api/drops.api'
+import { getDrop, type DropWithParticipants } from '@/api/drops.api'
 import { getDropPhotos, uploadDropPhoto, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
 import { GlassBackButton } from '@/components/ui/GlassBackButton'
@@ -9,18 +9,18 @@ import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import { Camera } from 'lucide-react-native'
+import { Camera, Image as ImageIcon } from 'lucide-react-native'
 import { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, Alert, Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const { height: SH } = Dimensions.get('window')
 
-const PEEK = 52
-const GAP = 14
-const CARD_HEIGHT = SH - 2 * (PEEK + GAP)
+const BOTTOM_PEEK = 70
+const GAP = 12
+const CARD_HEIGHT = SH - BOTTOM_PEEK
 const SNAP = CARD_HEIGHT + GAP
-const BORDER_RADIUS = 50
+const BORDER_RADIUS = 20
 
 function PhotoCard({ item }: { item: PhotoWithUploader }) {
   return (
@@ -59,19 +59,11 @@ export default function DropDetailScreen() {
 
   const canUpload = !!user && (drop?.state === 'active' || drop?.state === 'ready')
 
-  async function handleCapture() {
-    if (!id || !user || capturing) return
-    const perm = await ImagePicker.requestCameraPermissionsAsync()
-    if (!perm.granted) {
-      Alert.alert('Camera access needed', 'Enable camera access to add a photo to this drop.')
-      return
-    }
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.8 })
-    if (result.canceled) return
-    const a = result.assets[0]
+  async function upload(uri: string, width: number | null, height: number | null) {
+    if (!id || !user) return
     setCapturing(true)
     try {
-      await uploadDropPhoto(id, user.id, a.uri, a.width ?? null, a.height ?? null)
+      await uploadDropPhoto(id, user.id, uri, width, height)
       const fresh = await getDropPhotos(id)
       setPhotos(fresh)
     } catch (e) {
@@ -82,12 +74,35 @@ export default function DropDetailScreen() {
     }
   }
 
+  async function handleCapture() {
+    if (!id || !user || capturing) return
+    const perm = await ImagePicker.requestCameraPermissionsAsync()
+    if (!perm.granted) {
+      Alert.alert('Camera access needed', 'Enable camera access in Settings to add a photo to this drop.')
+      return
+    }
+    const result = await ImagePicker.launchCameraAsync({ quality: 0.8 })
+    if (result.canceled) return
+    const a = result.assets[0]
+    await upload(a.uri, a.width ?? null, a.height ?? null)
+  }
+
+  async function handleDevPick() {
+    if (!id || !user || capturing) return
+    const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.8 })
+    if (result.canceled) return
+    const a = result.assets[0]
+    await upload(a.uri, a.width ?? null, a.height ?? null)
+  }
+
   return (
     <View style={s.root}>
       <StatusBar hidden />
       
-      <View style={[s.closeBtn, { top: insets.top + 8 }]}>
+      <View style={[s.header, { top: insets.top }]}>
         <GlassBackButton onPress={() => router.back()} />
+        <Text style={s.headerTitle}>{drop?.title ?? 'Drop'}</Text>
+        <View style={s.headerSpacer} />
       </View>
     
       {visiblePhotos.length === 0 ? (
@@ -110,6 +125,16 @@ export default function DropDetailScreen() {
 
       {canUpload && (
         <View style={[s.captureWrap, { bottom: insets.bottom + 28 }]} pointerEvents="box-none">
+          {__DEV__ && (
+            <TouchableOpacity
+              style={s.devPickBtn}
+              onPress={handleDevPick}
+              disabled={capturing}
+              activeOpacity={0.8}
+            >
+              <ImageIcon size={18} color={colors.bone} />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             style={s.captureBtn}
             onPress={handleCapture}
@@ -130,7 +155,7 @@ export default function DropDetailScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
-  content: { paddingVertical: PEEK + GAP },
+  content: {},
   card: {
     height: CARD_HEIGHT,
     marginBottom: GAP,
@@ -141,17 +166,45 @@ const s = StyleSheet.create({
   image: { flex: 1 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText: { color: colors.textTertiary, fontSize: 15 },
-  closeBtn: {
+  header: {
     position: 'absolute',
-    left: 10,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     zIndex: 10,
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  headerSpacer: {
+    width: 40,
   },
   captureWrap: {
     position: 'absolute',
     left: 0,
     right: 0,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
     zIndex: 20,
+  },
+  devPickBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(242,238,230,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(242,238,230,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   captureBtn: {
     width: 72,

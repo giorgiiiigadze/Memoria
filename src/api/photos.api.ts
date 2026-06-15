@@ -41,13 +41,23 @@ export async function uploadDropPhoto(
 
   const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(fileName)
 
+  const { data: lastPhoto } = await supabase
+    .from('photos')
+    .select('sort_order')
+    .eq('drop_id', dropId)
+    .eq('uploader_id', uploaderId)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const sortOrder = (lastPhoto?.sort_order ?? -1) + 1
+
   const { error: insertError } = await supabase
     .from('photos')
-    .insert({ drop_id: dropId, uploader_id: uploaderId, storage_path: fileName, cdn_url: publicUrl, width, height })
+    .insert({ drop_id: dropId, uploader_id: uploaderId, storage_path: fileName, cdn_url: publicUrl, width, height, sort_order: sortOrder })
 
   if (insertError) throw insertError
 
-  // upload_count is managed by a DB trigger; only update status fields here
   await supabase
     .from('drop_participants')
     .update({ status: 'accepted' as const, has_uploaded: true, uploaded_at: new Date().toISOString() })
