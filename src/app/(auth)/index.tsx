@@ -126,7 +126,7 @@ export default function LandingScreen() {
         .maybeSingle()
       useAuthStore.getState().setSession(data.session)
       useAuthStore.getState().setProfile(profile ?? null)
-      router.replace(profile?.display_name ? '/(app)/(tabs)/(home)' : '/(auth)/success')
+      router.replace(profile?.display_name ? '/(app)/(tabs)/(home)' : '/(auth)/onboarding')
     } catch {
       setError('Dev sign-in failed')
     } finally {
@@ -237,7 +237,7 @@ const s = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: "#fff"
+    backgroundColor: colors.surface,
   },
   slideInner: {
     width: '100%',

@@ -4,12 +4,12 @@ export const spacing = {
   2.5: 10,
   2: 8,
   3: 12,
-  4: 16,   // default element padding
+  4: 16,
   5: 20,
-  6: 24,   // card padding, section gaps
+  6: 24,
   8: 32,
   10: 40,
-  12: 48,  // major section breaks
+  12: 48,
   16: 64,
-  20: 80,  // screen-level top/bottom breathing room
+  20: 80,
 } as const

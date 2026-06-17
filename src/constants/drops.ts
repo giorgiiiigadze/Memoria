@@ -1,4 +1,6 @@
-import type { DropState } from '@/types/database.types'
+import type { DropState } from '@/types/database.types';
+
+export const CARD_RADIUS = 16
 
 export const STATE_META: Record<DropState, { label: string; color: string }> = {
   active: { label: 'Active', color: '#0044FF' },

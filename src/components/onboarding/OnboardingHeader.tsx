@@ -30,7 +30,7 @@ export function OnboardingHeader({ showSkip = true }: Props) {
 
 const styles = StyleSheet.create({
   root: {
-    backgroundColor: colors.bone,
+    backgroundColor: colors.white,
   },
   inner: {
     height: 48,

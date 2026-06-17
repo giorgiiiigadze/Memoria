@@ -1,5 +1,5 @@
-import { Dots } from '@/components/ui/Dots'
 import { OnboardingButton } from '@/components/onboarding/OnboardingButton'
+import { Dots } from '@/components/ui/Dots'
 import { colors, fontWeight, spacing } from '@/theme'
 import type { ReactNode } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
@@ -50,7 +50,7 @@ export function OnboardingSlide({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.bone,
+    backgroundColor: colors.white,
   },
   illustrationWrap: {
     flex: 1,

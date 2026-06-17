@@ -47,7 +47,6 @@ export default function FriendsScreen() {
   return (
     <ScrollView style={s.root} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
-
       <View style={s.searchWrap}>
         <FriendSearchBar
           value={query}

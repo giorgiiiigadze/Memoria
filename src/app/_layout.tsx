@@ -3,14 +3,17 @@ import { getMyDrops } from '@/api/drops.api'
 import { getFriends, getIncomingRequests, getOutgoingRequests } from '@/api/friends.api'
 import { subscribeToNotifications, subscribeToUserDrops } from '@/api/realtime'
 import { SplashView } from '@/components/ui/SplashView'
+import { ONBOARDING_KEY } from '@/lib/onboarding'
 import { useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { useFriendsStore } from '@/store/friends.store'
 import { colors } from '@/theme'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Slot, router } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useRef } from 'react'
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -39,7 +42,17 @@ export default function RootLayout() {
 
   async function bootHydrate() {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
+      const [{ data: { session } }, tutorialDone] = await Promise.all([
+        supabase.auth.getSession(),
+        AsyncStorage.getItem(ONBOARDING_KEY),
+      ])
+
+      // First launch — show the app tutorial before anything else
+      if (!tutorialDone) {
+        setHydrated()
+        router.replace('/(onboarding)')
+        return
+      }
 
       if (!session) {
         setHydrated()
@@ -126,9 +139,9 @@ export default function RootLayout() {
   if (!isHydrated) return <SplashView />
 
   return (
-    <View style={styles.root}>
+    <GestureHandlerRootView style={styles.root}>
       <Slot />
-    </View>
+    </GestureHandlerRootView>
   )
 }
 

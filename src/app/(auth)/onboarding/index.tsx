@@ -140,7 +140,7 @@ export default function OnboardingFlow() {
   ]
 
   const step2Headline: Segment[] = [
-    { text: `Hey ${firstName} when was where you born?'`, color: colors.textPrimary },
+    { text: `Hey ${firstName}, when were you born?`, color: colors.textPrimary },
   ]
 
   const step3Headline: Segment[] = [

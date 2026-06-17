@@ -1,6 +1,7 @@
 import { deleteDrop, type DropWithParticipants } from '@/api/drops.api'
 import { ParticipantAvatars } from '@/components/drops/ParticipantAvatars'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
+import { CARD_RADIUS } from '@/constants/drops'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { colors, fontSize, spacing } from '@/theme'
@@ -89,26 +90,21 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
               label="Share"
               systemImage="square.and.arrow.up"
               modifiers={[tint(colors.ink)]}
-              onPress={() => {
-                // TODO: share drop
-              }}
+              onPress={() => Alert.alert('Coming soon', 'Sharing will be available in a future update.')}
             />
             <Button
               label="Report"
               systemImage="exclamationmark.bubble"
               modifiers={[tint(colors.ink)]}
-              onPress={() => {
-                // TODO: report drop
-              }}
+              onPress={() => Alert.alert('Coming soon', 'Reporting will be available in a future update.')}
             />
-            {isCreator && (
-              <Button
-                label="Delete"
-                role="destructive"
-                systemImage="trash"
-                onPress={handleDelete}
-              />
-            )}
+            <Button
+              label="Delete"
+              role="destructive"
+              systemImage="trash"
+              modifiers={[tint(colors.white)]}
+              onPress={isCreator ? handleDelete : () => {}}
+            />
           </Menu>
         </Host>
       </View>
@@ -152,8 +148,8 @@ const s = StyleSheet.create({
     flex: 1,
   },
   menuHost: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -176,7 +172,7 @@ const s = StyleSheet.create({
     aspectRatio: 3 / 4,
     backgroundColor: colors.surfaceDeep,
     overflow: 'hidden',
-    borderRadius: 14,
+    borderRadius: CARD_RADIUS,
   },
   photo: {
     width: '100%',

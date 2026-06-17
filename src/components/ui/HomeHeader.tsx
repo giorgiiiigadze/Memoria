@@ -1,6 +1,5 @@
-
 import { selectUnreadCount, useNotificationsStore } from '@/store/notifications.store'
-import { colors } from '@/theme'
+import { colors, fontWeight, spacing } from '@/theme'
 import { GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
 import { router } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
@@ -15,7 +14,7 @@ type Scheme = 'light' | 'dark'
 type Props = {
   onSendPress?: () => void
   onBellPress?: () => void
-  // contrast controls
+
   glassStyle?: GlassStyle
   scheme?: Scheme
   tintColor?: string
@@ -33,34 +32,38 @@ export default function HomeHeader({
   const insets = useSafeAreaInsets()
   const count = useNotificationsStore(selectUnreadCount)
 
+  const pill = glassAvailable ? (
+    <GlassView
+      key={scheme}
+      style={styles.pill}
+      glassEffectStyle={glassStyle}
+      colorScheme={scheme}
+      tintColor={tintColor}
+    >
+      <Buttons
+        count={count}
+        iconColor={iconColor}
+        onSendPress={onSendPress}
+        onBellPress={onBellPress}
+      />
+    </GlassView>
+  ) : (
+    <View style={[styles.pill, styles.pillFallback]}>
+      <Buttons
+        count={count}
+        iconColor={iconColor}
+        onSendPress={onSendPress}
+        onBellPress={onBellPress}
+      />
+    </View>
+  )
+
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
-      {glassAvailable ? (
-        <GlassView
-          key={scheme}
-          style={styles.pill}
-          glassEffectStyle={glassStyle}
-          colorScheme={scheme}
-          tintColor={tintColor}
-          isInteractive
-        >
-          <Buttons
-            count={count}
-            iconColor={iconColor}
-            onSendPress={onSendPress}
-            onBellPress={onBellPress}
-          />
-        </GlassView>
-      ) : (
-        <View style={[styles.pill, styles.pillFallback]}>
-          <Buttons
-            count={count}
-            iconColor={iconColor}
-            onSendPress={onSendPress}
-            onBellPress={onBellPress}
-          />
-        </View>
-      )}
+      {/* left spacer balances the right pill so the brand stays centered */}
+      <View style={styles.side} />
+      <Text style={styles.brand}>Memoria</Text>
+      <View style={styles.side}>{pill}</View>
     </View>
   )
 }
@@ -98,17 +101,26 @@ const styles = StyleSheet.create({
   root: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingBottom: 12,
+    paddingHorizontal: spacing[2.5],
+    paddingBottom: spacing[3],
+  },
+  side: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  brand: {
+    fontSize: 18,
+    fontWeight: fontWeight.bold,
+    color: colors.white,
+    letterSpacing: -0.4,
   },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 24,
+    gap: spacing[6],
     borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2.5],
   },
   pillFallback: {
     backgroundColor: colors.surfaceInput,
@@ -116,14 +128,13 @@ const styles = StyleSheet.create({
     borderColor: colors.borderDefault,
   },
   iconBtn: {
-    width: 'auto',
     alignItems: 'center',
     justifyContent: 'center',
   },
   badge: {
     position: 'absolute',
-    top: -14,
-    right: -14,
+    top: -6,
+    right: -8,
     minWidth: 18,
     height: 18,
     borderRadius: 9,

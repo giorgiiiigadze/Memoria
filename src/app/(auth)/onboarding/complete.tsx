@@ -30,6 +30,7 @@ export default function CompleteScreen() {
   const user = useAuthStore(s => s.user)
   const existingProfile = useAuthStore(s => s.profile)
   const onboardingName = useAuthStore(s => s.onboardingName)
+  const onboardingBirthday = useAuthStore(s => s.onboardingBirthday)
   const setProfile = useAuthStore(s => s.setProfile)
   const insets = useSafeAreaInsets()
   const [loading, setLoading] = useState(false)
@@ -44,9 +45,16 @@ export default function CompleteScreen() {
       const displayName = onboardingName.trim() || existingProfile?.display_name || 'You'
       const username = existingProfile?.username ?? await generateUsername(displayName, user.id)
 
+      const payload = {
+        id: user.id,
+        username,
+        display_name: displayName,
+        ...(onboardingBirthday ? { birthday: onboardingBirthday } : {}),
+      }
+
       const { data: profile, error: upsertErr } = await supabase
         .from('profiles')
-        .upsert({ id: user.id, username, display_name: displayName })
+        .upsert(payload)
         .select()
         .single()
 
@@ -55,7 +63,7 @@ export default function CompleteScreen() {
           const fallback = `${username}_${Math.floor(Math.random() * 9000 + 1000)}`
           const { data: profile2, error: err2 } = await supabase
             .from('profiles')
-            .upsert({ id: user.id, username: fallback, display_name: displayName })
+            .upsert({ ...payload, username: fallback })
             .select()
             .single()
           if (err2) throw err2

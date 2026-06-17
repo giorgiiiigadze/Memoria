@@ -19,6 +19,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import { Gesture, GestureDetector } from 'react-native-gesture-handler'
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const glassAvailable = isGlassEffectAPIAvailable()
@@ -48,6 +50,23 @@ export default function NotificationsScreen() {
   const { notifications, setNotifications, markOneRead, markAllRead } = useNotificationsStore()
   const unreadCount = useNotificationsStore(selectUnreadCount)
   const insets = useSafeAreaInsets()
+  const translateY = useSharedValue(0)
+
+  const pan = Gesture.Pan()
+    .onUpdate((e) => {
+      if (e.translationY > 0) translateY.value = e.translationY
+    })
+    .onEnd((e) => {
+      if (e.translationY > 120 || e.velocityY > 800) {
+        runOnJS(router.back)()
+      } else {
+        translateY.value = withSpring(0, { damping: 20, stiffness: 200 })
+      }
+    })
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }))
 
   useFocusEffect(
     useCallback(() => {
@@ -63,7 +82,7 @@ export default function NotificationsScreen() {
   }
 
   return (
-    <View style={s.root}>
+    <Animated.View style={[s.root, animStyle]}>
       {glassAvailable ? (
         <GlassView
           style={[StyleSheet.absoluteFill, s.glass]}
@@ -76,9 +95,11 @@ export default function NotificationsScreen() {
         <View style={[StyleSheet.absoluteFill, s.fallbackPanel]} collapsable={false} />
       )}
 
-      <View style={[s.grabberWrap, { paddingTop: insets.top > 0 ? 12 : 16 }]}>
-        <View style={s.grabber} />
-      </View>
+      <GestureDetector gesture={pan}>
+        <View style={[s.grabberWrap, { paddingTop: insets.top > 0 ? 12 : 16 }]}>
+          <View style={s.grabber} />
+        </View>
+      </GestureDetector>
 
       <View style={s.content} collapsable={false}>
         <View style={s.header} collapsable={false}>
@@ -116,7 +137,7 @@ export default function NotificationsScreen() {
           )}
         />
       </View>
-    </View>
+    </Animated.View>
   )
 }
 

@@ -17,7 +17,7 @@ export function GlassIconButton({
   onPress,
   iconName,
   iconColor = colors.white,
-  iconSize = 16,
+  iconSize = 22,
   iconWeight,
 }: Props) {
   return (
@@ -53,9 +53,9 @@ export function GlassIconButton({
 
 const styles = StyleSheet.create({
   circle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 9999,
     alignItems: 'center',
     justifyContent: 'center',
   },

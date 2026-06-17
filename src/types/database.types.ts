@@ -25,6 +25,7 @@ export interface Database {
           avatar_url: string | null
           phone: string | null
           bio: string | null
+          birthday: string | null
           push_token: string | null
           created_at: string
           updated_at: string
@@ -36,6 +37,7 @@ export interface Database {
           avatar_url?: string | null
           phone?: string | null
           bio?: string | null
+          birthday?: string | null
           push_token?: string | null
           created_at?: string
           updated_at?: string
@@ -47,6 +49,7 @@ export interface Database {
           avatar_url?: string | null
           phone?: string | null
           bio?: string | null
+          birthday?: string | null
           push_token?: string | null
           updated_at?: string
         }
