@@ -15,18 +15,6 @@ function CloseButton() {
   )
 }
 
-function BackButton() {
-  return (
-    <Pressable
-      onPress={() => router.back()}
-      hitSlop={12}
-      style={({ pressed }) => pressed && s.pressed}
-    >
-      <SymbolView name="chevron.left" size={20} tintColor={colors.white} />
-    </Pressable>
-  )
-}
-
 export default function CreateLayout() {
   return (
     <Stack
@@ -36,7 +24,6 @@ export default function CreateLayout() {
         headerShadowVisible: false,
         headerTitle: '',
         headerBackVisible: false,
-        headerLeft: () => <BackButton />,
       }}
     >
       <Stack.Screen
