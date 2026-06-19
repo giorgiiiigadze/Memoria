@@ -8,10 +8,10 @@ import { router } from 'expo-router'
 import { useState } from 'react'
 import {
   ActivityIndicator,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native'
 
@@ -66,16 +66,15 @@ export default function ConfirmScreen() {
 
         {error && <Text style={s.error}>{error}</Text>}
 
-        <TouchableOpacity
-          style={[s.btn, submitting && s.btnDisabled]}
+        <Pressable
+          style={({ pressed }) => [s.btn, pressed && s.btnPressed, submitting && s.btnDisabled]}
           onPress={handleCreate}
           disabled={submitting}
-          activeOpacity={0.8}
         >
           {submitting
             ? <ActivityIndicator color={colors.white} size="small" />
             : <Text style={s.btnLabel}>Create drop</Text>}
-        </TouchableOpacity>
+        </Pressable>
 
       </ScrollView>
     </View>
@@ -97,11 +96,13 @@ const s = StyleSheet.create({
     letterSpacing: -0.5,
     marginBottom: 6,
   },
-  subtitle: { fontSize: fontSize.sm, color: colors.textTertiary, marginBottom: 28 },
+  subtitle: {
+    fontSize: fontSize.sm,
+    color: colors.textTertiary,
+    marginBottom: 28,
+  },
   card: {
-    backgroundColor: colors.surfaceInput,
-    borderWidth: 0.5,
-    borderColor: colors.borderDefault,
+    backgroundColor: colors.surfaceGroupedElevated,
     borderRadius: radii.md,
     overflow: 'hidden',
     marginBottom: spacing[6],
@@ -110,13 +111,22 @@ const s = StyleSheet.create({
     width: '100%',
     aspectRatio: 16 / 9,
   },
-  error: { fontSize: fontSize.xs, color: colors.error, marginBottom: spacing[3] },
+  error: {
+    fontSize: fontSize.xs,
+    color: colors.error,
+    marginBottom: spacing[3],
+  },
   btn: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.sm,
+    backgroundColor: colors.blue,
+    borderRadius: radii.md,
     paddingVertical: 14,
     alignItems: 'center',
   },
+  btnPressed: { opacity: 0.8 },
   btnDisabled: { opacity: 0.5 },
-  btnLabel: { fontSize: 15, fontWeight: fontWeight.medium, color: colors.white },
+  btnLabel: {
+    fontSize: 15,
+    fontWeight: fontWeight.medium,
+    color: colors.white,
+  },
 })
