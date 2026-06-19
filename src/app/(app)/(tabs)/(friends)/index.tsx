@@ -53,12 +53,13 @@ export default function FriendsScreen() {
           onChangeText={setQuery}
           placeholder="Search by username..."
         />
-        {searching && <ActivityIndicator style={s.searchSpinner} color={colors.textTertiary} size="small" />}
       </View>
 
       {isSearchMode && (
         <View style={s.section}>
-          {!searching && searchResults.length === 0 ? (
+          {searching ? (
+            <ActivityIndicator color={colors.textTertiary} size="small" />
+          ) : searchResults.length === 0 ? (
             <Text style={s.empty}>No users found.</Text>
           ) : (
             searchResults.map(user => {
@@ -95,7 +96,6 @@ export default function FriendsScreen() {
         </View>
       )}
 
-      {/* ── Incoming requests ───────────────────── */}
       {!isSearchMode && incoming.length > 0 && (
         <View style={s.section}>
           <Text style={s.sectionLabel}>Requests</Text>
@@ -121,7 +121,6 @@ export default function FriendsScreen() {
         </View>
       )}
 
-      {/* ── Error state ─────────────────────────── */}
       {!isSearchMode && isLoaded && error && (
         <View style={s.errorBox}>
           <Text style={s.errorMsg}>{error}</Text>
@@ -131,7 +130,6 @@ export default function FriendsScreen() {
         </View>
       )}
 
-      {/* ── Friends list ────────────────────────── */}
       {!isSearchMode && !error && (
         <View style={s.section}>
           {friends.length > 0 && <Text style={s.sectionLabel}>Your friends</Text>}
@@ -147,14 +145,12 @@ export default function FriendsScreen() {
   )
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   content: { paddingBottom: spacing[10], paddingTop: spacing[5], paddingHorizontal: spacing[2.5] },
   searchWrap: { marginBottom: spacing[6] },
-  searchSpinner: { marginTop: spacing[2], alignSelf: 'center' },
-  section: { marginBottom: spacing[8] },
+section: { marginBottom: spacing[8] },
   sectionLabel: {
     fontSize: fontSize.xs,
     fontWeight: fontWeight.medium,

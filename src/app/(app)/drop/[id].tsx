@@ -2,28 +2,21 @@ import { getDrop, type DropWithParticipants } from '@/api/drops.api'
 import { getDropPhotos, uploadDropPhoto, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
 import { DropDetailHeader } from '@/components/drops/DropDetailHeader'
-import { InitialAvatar } from '@/components/ui/InitialAvatar'
-import { CARD_RADIUS } from '@/constants/drops'
+import { PhotoGrid } from '@/components/drops/PhotoGrid'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { colors } from '@/theme'
-import { formatDate } from '@/utils/date'
-import { Image } from 'expo-image'
 import * as Haptics from 'expo-haptics'
 import * as ImagePicker from 'expo-image-picker'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { Camera, Image as ImageIcon } from 'lucide-react-native'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  FlatList,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -40,17 +33,11 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-const { width: SW, height: SH } = Dimensions.get('window')
+const { width: SW } = Dimensions.get('window')
 
-const BOTTOM_PEEK   = 70
-const GAP           = 12
-const CARD_HEIGHT   = SH - BOTTOM_PEEK
-const SNAP          = CARD_HEIGHT + GAP
-const BORDER_RADIUS = CARD_RADIUS * 1.5
+const HEADER_HEIGHT = 60
 
-// ── Loading skeleton ──────────────────────────────────────────────────────────
-
-function SkeletonCard() {
+function SkeletonGrid({ topInset }: { topInset: number }) {
   const shimmerX = useSharedValue(0)
 
   useEffect(() => {
@@ -66,62 +53,40 @@ function SkeletonCard() {
     transform: [{ translateX: interpolate(shimmerX.value, [0, 1], [-SW, SW]) }],
   }))
 
-  return (
-    <View style={[s.card, s.skeleton]}>
-      <Animated.View style={[s.shimmerBar, shimmerStyle]}>
-        <LinearGradient
-          colors={['transparent', 'rgba(255,255,255,0.04)', 'transparent']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
-    </View>
-  )
-}
+  const COLS = 3
+  const GAP = 4
+  const tileSize = Math.floor((SW - GAP * (COLS - 1)) / COLS)
+  const tileHeight = Math.floor(tileSize * (4 / 3))
 
-// ── Photo card ────────────────────────────────────────────────────────────────
-
-function PhotoCard({ item }: { item: PhotoWithUploader }) {
-  const name = item.uploader?.display_name ?? item.uploader?.username ?? 'Unknown'
   return (
-    <View style={s.card}>
-      <Image
-        source={{ uri: item.cdn_url }}
-        style={s.image}
-        contentFit="cover"
-        transition={300}
-        placeholderContentFit="cover"
-        recyclingKey={item.id}
-      />
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.7)']}
-        style={s.uploaderRow}
-      >
-        <InitialAvatar name={name} avatarUrl={item.uploader?.avatar_url ?? null} size={36} />
-        <View>
-          <Text style={s.uploaderName} numberOfLines={1}>{name}</Text>
-          {formatDate(item.uploaded_at) && (
-            <Text style={s.uploaderDate}>{formatDate(item.uploaded_at)}</Text>
-          )}
+    <View style={[s.skeletonGrid, { paddingTop: topInset }]}>
+      {Array.from({ length: 9 }).map((_, i) => (
+        <View key={i} style={[s.skeletonTile, { width: tileSize, height: tileHeight }]}>
+          <Animated.View style={[s.shimmerBar, shimmerStyle]}>
+            <LinearGradient
+              colors={['transparent', 'rgba(255,255,255,0.04)', 'transparent']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={StyleSheet.absoluteFill}
+            />
+          </Animated.View>
         </View>
-      </LinearGradient>
+      ))}
     </View>
   )
 }
-
-// ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function DropDetailScreen() {
-  const { id }   = useLocalSearchParams<{ id: string }>()
-  const insets   = useSafeAreaInsets()
-  const user     = useAuthStore(selectUser)
-  const cached   = useDropsStore(s => s.drops.find(d => d.id === id))
-  const [drop, setDrop]           = useState<DropWithParticipants | null>(cached ?? null)
-  const [photos, setPhotos]       = useState<PhotoWithUploader[]>([])
+  const { id }  = useLocalSearchParams<{ id: string }>()
+  const insets  = useSafeAreaInsets()
+  const user    = useAuthStore(selectUser)
+  const cached  = useDropsStore(s => s.drops.find(d => d.id === id))
+
+  const [drop, setDrop]                 = useState<DropWithParticipants | null>(cached ?? null)
+  const [photos, setPhotos]             = useState<PhotoWithUploader[]>([])
   const [photosLoaded, setPhotosLoaded] = useState(false)
-  const [capturing, setCapturing] = useState(false)
-  const [refreshing, setRefreshing] = useState(false)
+  const [capturing, setCapturing]       = useState(false)
+  const [refreshing, setRefreshing]     = useState(false)
 
   useFocusEffect(
     useCallback(() => {
@@ -136,22 +101,6 @@ export default function DropDetailScreen() {
     return subscribeToDropPhotos(id, setPhotos)
   }, [id])
 
-  // ── Haptics on snap ───────────────────────────────────────────────────────
-  const lastSnapIndex = useRef<number | null>(null)
-
-  function handleMomentumScrollEnd(e: NativeSyntheticEvent<NativeScrollEvent>) {
-    const idx = Math.round(e.nativeEvent.contentOffset.y / SNAP)
-    if (lastSnapIndex.current === null) {
-      lastSnapIndex.current = idx
-      return
-    }
-    if (idx !== lastSnapIndex.current) {
-      lastSnapIndex.current = idx
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    }
-  }
-
-  // ── Derived state ─────────────────────────────────────────────────────────
   const visiblePhotos =
     drop && (drop.state === 'active' || drop.state === 'ready')
       ? photos.filter(p => p.uploader_id === user?.id)
@@ -159,7 +108,6 @@ export default function DropDetailScreen() {
 
   const canUpload = !!user && (drop?.state === 'active' || drop?.state === 'ready')
 
-  // ── Pull-to-refresh ───────────────────────────────────────────────────────
   async function handleRefresh() {
     if (!id) return
     try {
@@ -174,7 +122,6 @@ export default function DropDetailScreen() {
     }
   }
 
-  // ── Upload ────────────────────────────────────────────────────────────────
   async function upload(uri: string, width: number | null, height: number | null) {
     if (!id || !user) return
     setCapturing(true)
@@ -192,7 +139,7 @@ export default function DropDetailScreen() {
 
   async function handleCapture() {
     if (!id || !user || capturing) return
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {})
     const perm = await ImagePicker.requestCameraPermissionsAsync()
     if (!perm.granted) {
       Alert.alert('Camera access needed', 'Enable camera access in Settings to add a photo to this drop.')
@@ -212,48 +159,34 @@ export default function DropDetailScreen() {
     await upload(a.uri, a.width ?? null, a.height ?? null)
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  const topInset = insets.top + HEADER_HEIGHT
+
   return (
     <View style={s.root}>
       <StatusBar hidden />
 
-      {/* Top scrim: keeps back button + title readable over bright photos */}
-      <LinearGradient
-        colors={['rgba(0,0,0,0.6)', 'transparent']}
-        style={s.topScrim}
-        pointerEvents="none"
-      />
-
-      <DropDetailHeader title={drop?.title ?? 'Drop'} />
-
       {!photosLoaded ? (
-        <SkeletonCard />
+        <SkeletonGrid topInset={topInset} />
       ) : visiblePhotos.length === 0 ? (
         <View style={s.empty}>
           <Text style={s.emptyText}>No photos yet</Text>
         </View>
       ) : (
-        <FlatList
-          data={visiblePhotos}
-          keyExtractor={p => p.id}
-          showsVerticalScrollIndicator={false}
-          snapToInterval={SNAP}
-          snapToAlignment="start"
-          decelerationRate="fast"
-          getItemLayout={(_, index) => ({ length: SNAP, offset: SNAP * index, index })}
-          contentContainerStyle={s.content}
-          renderItem={({ item }) => <PhotoCard item={item} />}
-          onMomentumScrollEnd={handleMomentumScrollEnd}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={colors.bone}
-              colors={[colors.bone]}
-            />
-          }
+        <PhotoGrid
+          photos={visiblePhotos}
+          onSelect={() => {}}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          topInset={topInset}
         />
       )}
+
+      <LinearGradient
+        colors={['rgba(0,0,0,0.55)', 'transparent']}
+        style={s.topScrim}
+        pointerEvents="none"
+      />
+      <DropDetailHeader title={drop?.title ?? 'Drop'} />
 
       {canUpload && (
         <View style={[s.captureWrap, { bottom: insets.bottom + 28 }]} pointerEvents="box-none">
@@ -287,51 +220,25 @@ export default function DropDetailScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
-  content: {},
 
   topScrim: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: 140,
+    height: 120,
     zIndex: 5,
   },
 
-  card: {
-    height: CARD_HEIGHT,
-    marginBottom: GAP,
-    borderRadius: BORDER_RADIUS,
-    overflow: 'hidden',
-    backgroundColor: colors.surfaceInput,
-  },
-  image: { flex: 1 },
-  uploaderRow: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+  skeletonGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-    paddingTop: 60,
+    flexWrap: 'wrap',
+    gap: 4,
   },
-  uploaderName: {
-    color: colors.white,
-    fontSize: 15,
-    fontWeight: '600',
-    flexShrink: 1,
-  },
-  uploaderDate: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 12,
-    marginTop: 2,
-  },
-
-  skeleton: {
+  skeletonTile: {
     backgroundColor: colors.surface,
+    borderRadius: 10,
+    overflow: 'hidden',
   },
   shimmerBar: {
     position: 'absolute',

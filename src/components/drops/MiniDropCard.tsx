@@ -1,4 +1,6 @@
 import type { DropWithParticipants } from '@/api/drops.api'
+import type { PhotoWithUploader } from '@/api/photos.api'
+import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { colors, fontWeight } from '@/theme'
 import type { DropState } from '@/types/database.types'
 import { Image } from 'expo-image'
@@ -60,6 +62,35 @@ function MiniDropCard({ drop }: { drop: DropWithParticipants }) {
       </View>
 
       <Text style={s.date}>{fmtShort(drop.open_date)}</Text>
+    </TouchableOpacity>
+  )
+}
+
+type MiniPhotoCardProps = {
+  photo: PhotoWithUploader
+  size: number
+  onPress: () => void
+}
+
+export function MiniPhotoCard({ photo, size, onPress }: MiniPhotoCardProps) {
+  const cardHeight = Math.floor(size * (4 / 3))
+  const name = photo.uploader?.display_name ?? photo.uploader?.username ?? ''
+
+  return (
+    <TouchableOpacity style={{ width: size }} onPress={onPress} activeOpacity={0.82}>
+      <View style={[s.thumb, { width: size, height: cardHeight }]}>
+        <Image
+          source={{ uri: photo.cdn_url }}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          recyclingKey={photo.id}
+          transition={150}
+        />
+      </View>
+      <View style={s.photoMeta}>
+        <InitialAvatar name={name || '?'} avatarUrl={photo.uploader?.avatar_url ?? null} size={16} />
+        {name ? <Text style={s.photoName} numberOfLines={1}>{name}</Text> : null}
+      </View>
     </TouchableOpacity>
   )
 }
@@ -155,6 +186,18 @@ const s = StyleSheet.create({
   },
   skeletonThumb: {
     backgroundColor: colors.surfaceRaised,
+  },
+  photoMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 5,
+    marginLeft: 2,
+  },
+  photoName: {
+    fontSize: 10,
+    color: colors.textSecondary,
+    flex: 1,
   },
   skeletonDate: {
     height: 10,

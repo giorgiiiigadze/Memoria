@@ -1,4 +1,3 @@
-import HomeHeader from '@/components/ui/HomeHeader';
 import { colors } from '@/theme';
 import { Stack } from 'expo-router';
 
@@ -10,15 +9,7 @@ export default function HomeLayout() {
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen
-        name="index"
-        options={{
-          headerShown: true,
-          header: () => <HomeHeader />,
-          headerTransparent: true,
-          animation: 'none',
-        }}
-      />
+      <Stack.Screen name="index" />
 
       <Stack.Screen
         name="notifications"

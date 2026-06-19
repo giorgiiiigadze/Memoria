@@ -18,13 +18,15 @@ export function FriendSearchBar({
 }: FriendSearchBarProps) {
   const content = (
     <>
-      <SymbolView name="magnifyingglass" size={16} tintColor={colors.textTertiary} />
+      <SymbolView name="magnifyingglass" size={20} tintColor={colors.textTertiary} />
       <TextInput
         style={s.input}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={colors.textTertiary}
+        selectionColor={colors.white}
+        cursorColor={colors.white}
         autoCapitalize="none"
         autoCorrect={false}
         returnKeyType="search"
@@ -72,7 +74,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    height: 42,
+    height: 44,
     borderRadius: 999,
     paddingLeft: 14,
     paddingRight: 12,

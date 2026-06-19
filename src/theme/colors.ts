@@ -1,5 +1,5 @@
 export const colors = {
-  ink: '#0E0E10',
+  ink: '#000',
   bone: '#F2EEE6',
   ember: '#D6A45B',
   lime: '#E9FF9B',

@@ -17,7 +17,7 @@ export function GlassIconButton({
   onPress,
   iconName,
   iconColor = colors.white,
-  iconSize = 22,
+  iconSize = 20,
   iconWeight,
 }: Props) {
   return (

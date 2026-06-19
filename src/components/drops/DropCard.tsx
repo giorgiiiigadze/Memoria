@@ -102,7 +102,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
               label="Delete"
               role="destructive"
               systemImage="trash"
-              modifiers={[tint(colors.white)]}
+              modifiers={[tint(colors.ink)]}
               onPress={isCreator ? handleDelete : () => {}}
             />
           </Menu>
@@ -154,7 +154,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   name: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: colors.white,
   },
