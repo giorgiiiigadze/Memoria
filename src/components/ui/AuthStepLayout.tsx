@@ -1,11 +1,12 @@
-import { GlassBackButton } from '@/components/ui/GlassBackButton'
 import { colors, fontWeight, spacing } from '@/theme'
 import { router } from 'expo-router'
+import { SymbolView } from 'expo-symbols'
 import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
   type StyleProp,
   type ViewStyle
@@ -25,7 +26,9 @@ export function AuthStepLayout({ heading, footer, children, topStyle }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.backWrap}>
-        <GlassBackButton onPress={() => router.back()} />
+        <TouchableOpacity onPress={() => router.back()} hitSlop={12} activeOpacity={0.7}>
+          <SymbolView name="chevron.left" size={22} tintColor={colors.white} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.body}>
@@ -47,23 +50,6 @@ const styles = StyleSheet.create({
   backWrap: {
     marginTop: 56,
     marginLeft: spacing[6],
-  },
-  backGlass: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backFallback: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceInput,
-    borderWidth: 0.5,
-    borderColor: colors.borderDefault,
   },
   body: {
     flex: 1,

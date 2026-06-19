@@ -1,13 +1,12 @@
 import {
   getNotifications,
-  markAllNotificationsRead,
   markNotificationRead,
   type NotificationWithMeta,
 } from '@/api/notifications.api'
-import { GlassCloseButton } from '@/components/ui/GlassCloseButton'
+import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import NotificationItem from '@/components/ui/NotificationItem'
 import { selectUser, useAuthStore } from '@/store/auth.store'
-import { selectUnreadCount, useNotificationsStore } from '@/store/notifications.store'
+import { useNotificationsStore } from '@/store/notifications.store'
 import { HEADER_HEIGHT } from '@/utils/notifications'
 import { GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
 import { router, useFocusEffect } from 'expo-router'
@@ -16,12 +15,10 @@ import {
   FlatList,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const glassAvailable = isGlassEffectAPIAvailable()
 
@@ -47,10 +44,8 @@ function handleTap(n: NotificationWithMeta) {
 
 export default function NotificationsScreen() {
   const user = useAuthStore(selectUser)
-  const { notifications, setNotifications, markOneRead, markAllRead } = useNotificationsStore()
-  const unreadCount = useNotificationsStore(selectUnreadCount)
-  const insets = useSafeAreaInsets()
-  const translateY = useSharedValue(0)
+  const { notifications, setNotifications, markOneRead } = useNotificationsStore()
+const translateY = useSharedValue(0)
 
   const pan = Gesture.Pan()
     .onUpdate((e) => {
@@ -75,13 +70,7 @@ export default function NotificationsScreen() {
     }, [user?.id])
   )
 
-  async function handleMarkAll() {
-    if (!user?.id) return
-    markAllRead()
-    await markAllNotificationsRead(user.id)
-  }
-
-  return (
+return (
     <Animated.View style={[s.root, animStyle]}>
       {glassAvailable ? (
         <GlassView
@@ -95,26 +84,12 @@ export default function NotificationsScreen() {
         <View style={[StyleSheet.absoluteFill, s.fallbackPanel]} collapsable={false} />
       )}
 
-      <GestureDetector gesture={pan}>
-        <View style={[s.grabberWrap, { paddingTop: insets.top > 0 ? 12 : 16 }]}>
-          <View style={s.grabber} />
-        </View>
-      </GestureDetector>
-
       <View style={s.content} collapsable={false}>
-        <View style={s.header} collapsable={false}>
-          <View style={s.sideSlot}>
-            <GlassCloseButton onPress={() => router.back()} />
+        <GestureDetector gesture={pan}>
+          <View style={s.header} collapsable={false}>
+            <GlassIconButton onPress={() => router.back()} iconName="xmark" iconWeight="semibold" />
           </View>
-          <Text style={s.title}>Notifications</Text>
-          {unreadCount > 0 ? (
-            <TouchableOpacity style={s.sideSlot} onPress={handleMarkAll} activeOpacity={0.7}>
-              <Text style={s.markAll}>Mark all read</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={s.sideSlot} />
-          )}
-        </View>
+        </GestureDetector>
 
         <FlatList
           data={notifications}
@@ -145,7 +120,7 @@ const s = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: 'transparent',
-    // Push sheet down so the underlying screen peeks above it
+
     marginTop: 60,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -160,31 +135,16 @@ const s = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
-  grabberWrap: {
-    alignItems: 'center',
-    paddingBottom: 8,
-  },
-  grabber: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-  },
-  content: { flex: 1 },
+content: { flex: 1 },
   flex: { flex: 1 },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingTop: 4,
+    paddingHorizontal: 16,
+    paddingTop: 16,
     height: HEADER_HEIGHT,
+    justifyContent: 'flex-start',
     zIndex: 10,
     elevation: 10,
   },
-  sideSlot: { width: 'auto', justifyContent: 'center' },
-  title: { fontSize: 17, fontWeight: '600', color: '#FFFFFF', flex: 1, textAlign: 'center' },
-  markAll: { fontSize: 13, color: '#5B8CFF', textAlign: 'right' },
   list: { paddingTop: 8, paddingBottom: 8 },
   empty: { paddingTop: 80, alignItems: 'center' },
   emptyText: { fontSize: 14, color: 'rgba(255,255,255,0.55)' },

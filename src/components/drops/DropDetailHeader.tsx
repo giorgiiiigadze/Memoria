@@ -1,4 +1,4 @@
-import { GlassBackButton } from '@/components/ui/GlassBackButton'
+import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import { colors, spacing } from '@/theme'
 import { router } from 'expo-router'
 import { StyleSheet, Text, View } from 'react-native'
@@ -12,8 +12,8 @@ export function DropDetailHeader({ title }: DropDetailHeaderProps) {
   const insets = useSafeAreaInsets()
 
   return (
-    <View style={[s.header, { top: insets.top }]}>
-      <GlassBackButton onPress={() => router.back()} />
+    <View style={[s.header, { top: insets.top - 8 }]}>
+      <GlassIconButton onPress={() => router.back()} iconName="chevron.left" iconSize={22} />
       <Text style={s.title} numberOfLines={1}>{title}</Text>
       <View style={s.spacer} />
     </View>

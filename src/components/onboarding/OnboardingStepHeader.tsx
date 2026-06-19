@@ -1,5 +1,5 @@
-import { GlassBackButton } from '@/components/ui/GlassBackButton'
 import { colors, fontWeight, spacing } from '@/theme'
+import { SymbolView } from 'expo-symbols'
 import { useEffect, useRef } from 'react'
 import { Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -33,7 +33,9 @@ export function OnboardingStepHeader({ step, total, onBack, onSkip }: Props) {
     <View style={[s.root, { paddingTop: insets.top + spacing[4] }]}>
       <View style={s.row}>
         <View style={[s.backSlot, !onBack && s.hidden]}>
-          <GlassBackButton onPress={onBack ?? (() => {})} />
+          <TouchableOpacity onPress={onBack ?? (() => {})} hitSlop={12} activeOpacity={0.7}>
+            <SymbolView name="chevron.left" size={22} tintColor={colors.white} />
+          </TouchableOpacity>
         </View>
 
         <View style={s.trackWrap}>

@@ -1,5 +1,6 @@
 import type { DropWithParticipants } from '@/api/drops.api'
 import { DropCard } from '@/components/drops/DropCard'
+import HomeHeader from '@/components/ui/HomeHeader'
 import { RefreshGrid } from '@/components/ui/RefreshGrid'
 import { useDrops } from '@/hooks/useDrops'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
@@ -16,23 +17,52 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import {
+import Animated, {
   Easing,
   cancelAnimation,
+  useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-const HEADER_HEIGHT  = 66
-const PULL_THRESHOLD = 100 // px of overscroll to reach progress = 1
+const PULL_THRESHOLD = 100
 
 function ListFooter({ count }: { count: number }) {
+  const hasAnimated = useRef(false)
+  const headlineY  = useSharedValue(12)
+  const headlineOp = useSharedValue(0)
+  const subY       = useSharedValue(12)
+  const subOp      = useSharedValue(0)
+
+  useEffect(() => {
+    if (count === 0 || hasAnimated.current) return
+    hasAnimated.current = true
+    const spring = { stiffness: 90, damping: 18 }
+    headlineOp.value = withSpring(1, spring)
+    headlineY.value  = withSpring(0, spring)
+    subOp.value      = withDelay(80, withSpring(0.85, spring))
+    subY.value       = withDelay(80, withSpring(0, spring))
+  }, [count])
+
+  const headlineStyle = useAnimatedStyle(() => ({
+    opacity:   headlineOp.value,
+    transform: [{ translateY: headlineY.value }],
+  }))
+
+  const subStyle = useAnimatedStyle(() => ({
+    opacity:   subOp.value,
+    transform: [{ translateY: subY.value }],
+  }))
+
   if (count === 0) return null
+
   return (
     <View style={s.footer}>
-      <View style={s.footerPrimaryRow}>
+      <Animated.View style={[s.footerPrimaryRow, headlineStyle]}>
         <Text style={s.footerPrimaryText}>All caught up</Text>
         <SymbolView
           name="sparkles"
@@ -40,10 +70,12 @@ function ListFooter({ count }: { count: number }) {
           resizeMode="scaleAspectFit"
           tintColor={colors.white}
         />
-      </View>
-      <Text style={s.footerSecondaryText}>
-        Until the next capsule cracks open
-      </Text>
+      </Animated.View>
+      <Animated.View style={subStyle}>
+        <Text style={s.footerSecondaryText}>
+          Until the next capsule cracks open
+        </Text>
+      </Animated.View>
     </View>
   )
 }
@@ -58,11 +90,8 @@ export default function HomeScreen() {
   useFocusEffect(useCallback(() => { if (isLoaded) refresh() }, [isLoaded]))
 
   // ── Animation SharedValues ────────────────────────────────────────────────
-  // gridProgress: scroll-driven (0→1) while pulling, loops while refreshing
   const gridProgress    = useSharedValue(0)
-  // loadingProgress: loops while initial data is loading
   const loadingProgress = useSharedValue(0)
-  // ref so the scroll handler can check without stale closure
   const isRefreshingRef = useRef(false)
 
   useEffect(() => {
@@ -78,7 +107,6 @@ export default function HomeScreen() {
     }
   }, [isLoaded])
 
-  // ── Scroll handler — runs on JS thread, acceptable for slow pull gesture ──
   function handleScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
     if (isRefreshingRef.current) return
     const y = e.nativeEvent.contentOffset.y
@@ -122,46 +150,49 @@ export default function HomeScreen() {
   )
 
   return (
-    <View style={s.root}>
-      {/* Pull-to-refresh indicator — always mounted, invisible at progress=0 */}
-      <View
-        pointerEvents="none"
-        style={[s.refreshOverlay, { top: insets.top + HEADER_HEIGHT + spacing[3] }]}
-      >
-        <RefreshGrid progress={gridProgress} />
-      </View>
+    <>
+      <HomeHeader />
 
-      <FlatList<DropWithParticipants>
-        ref={listRef}
-        data={drops}
-        keyExtractor={d => d.id}
-        showsVerticalScrollIndicator={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="transparent"
-            colors={['transparent']}
-          />
-        }
-        ListEmptyComponent={ListEmpty}
-        contentContainerStyle={[
-          s.content,
-          {
-            paddingTop: insets.top + HEADER_HEIGHT + spacing[2],
-            paddingBottom: insets.bottom + 40,
-          },
-        ]}
-        renderItem={({ item }) => (
-          <View style={s.cardWrapper}>
-            <DropCard drop={item} showCreator={false} />
-          </View>
-        )}
-        ListFooterComponent={<ListFooter count={drops.length} />}
-      />
-    </View>
+      <View style={s.root}>
+        <View
+          pointerEvents="none"
+          style={[s.refreshOverlay, { top: spacing[3] }]}
+        >
+          <RefreshGrid progress={gridProgress} />
+        </View>
+
+        <FlatList<DropWithParticipants>
+          ref={listRef}
+          data={drops}
+          keyExtractor={d => d.id}
+          showsVerticalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="transparent"
+              colors={['transparent']}
+            />
+          }
+          ListEmptyComponent={ListEmpty}
+          contentContainerStyle={[
+            s.content,
+            {
+              paddingTop: spacing[2],
+              paddingBottom: insets.bottom + 40,
+            },
+          ]}
+          renderItem={({ item }) => (
+            <View style={s.cardWrapper}>
+              <DropCard drop={item} showCreator={false} />
+            </View>
+          )}
+          ListFooterComponent={<ListFooter count={drops.length} />}
+        />
+      </View>
+    </>
   )
 }
 
