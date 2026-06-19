@@ -159,7 +159,7 @@ export default function DropDetailScreen() {
     await upload(a.uri, a.width ?? null, a.height ?? null)
   }
 
-  const topInset = insets.top + HEADER_HEIGHT
+  const topInset = insets.top + HEADER_HEIGHT + 12
 
   return (
     <View style={s.root}>

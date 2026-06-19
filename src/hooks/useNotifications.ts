@@ -12,6 +12,8 @@ import { Platform } from 'react-native'
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
@@ -25,7 +27,7 @@ export function useNotifications() {
     if (!user?.id) return
     registerForPushAsync().then((token) => {
       if (token) {
-        supabase.from('profiles').update({ push_token: token }).eq('id', user.id).then().catch(console.error)
+        supabase.from('profiles').update({ push_token: token }).eq('id', user.id).then(() => {}, console.error)
       }
     })
     getNotifications(user.id).then(setNotifications).catch(console.error)

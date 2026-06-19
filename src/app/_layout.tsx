@@ -12,7 +12,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Slot, router } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useRef } from 'react'
-import { StyleSheet } from 'react-native'
+import { LogBox, StyleSheet } from 'react-native'
+
+LogBox.ignoreLogs(['Sending `websocketMessage` with no listeners registered.'])
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 SplashScreen.preventAutoHideAsync()

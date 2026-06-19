@@ -156,7 +156,7 @@ export default function HomeScreen() {
       <View style={s.root}>
         <View
           pointerEvents="none"
-          style={[s.refreshOverlay, { top: spacing[3] }]}
+          style={[s.refreshOverlay, { top: insets.top + 44 + spacing[2] }]}
         >
           <RefreshGrid progress={gridProgress} />
         </View>
@@ -180,7 +180,7 @@ export default function HomeScreen() {
           contentContainerStyle={[
             s.content,
             {
-              paddingTop: spacing[2],
+              paddingTop: insets.top + 44 + spacing[2],
               paddingBottom: insets.bottom + 40,
             },
           ]}
@@ -216,10 +216,8 @@ const s = StyleSheet.create({
   },
 
   loadingBox: {
-    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: spacing[20],
+    paddingTop: spacing[10],
   },
   empty: {
     alignItems: 'center',

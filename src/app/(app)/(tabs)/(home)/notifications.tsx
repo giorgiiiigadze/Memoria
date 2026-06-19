@@ -3,16 +3,18 @@ import {
   markNotificationRead,
   type NotificationWithMeta,
 } from '@/api/notifications.api'
-import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import NotificationItem from '@/components/ui/NotificationItem'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useNotificationsStore } from '@/store/notifications.store'
+import { colors } from '@/theme'
 import { HEADER_HEIGHT } from '@/utils/notifications'
 import { GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
 import { router, useFocusEffect } from 'expo-router'
+import { SymbolView } from 'expo-symbols'
 import { useCallback } from 'react'
 import {
   FlatList,
+  Pressable,
   StyleSheet,
   Text,
   View,
@@ -87,7 +89,14 @@ return (
       <View style={s.content} collapsable={false}>
         <GestureDetector gesture={pan}>
           <View style={s.header} collapsable={false}>
-            <GlassIconButton onPress={() => router.back()} iconName="xmark" iconWeight="semibold" />
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={12}
+              style={({ pressed }) => pressed && s.pressed}
+            >
+              <SymbolView name="xmark" size={20} tintColor={colors.white} />
+            </Pressable>
+            <Text style={s.title}>Notifications</Text>
           </View>
         </GestureDetector>
 
@@ -137,37 +146,25 @@ const s = StyleSheet.create({
   },
 content: { flex: 1 },
   flex: { flex: 1 },
+  pressed: { opacity: 0.6 },
+  title: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    color: colors.white,
+    fontSize: 17,
+    fontWeight: '600',
+  },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
     height: HEADER_HEIGHT,
-    justifyContent: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
     zIndex: 10,
     elevation: 10,
   },
   list: { paddingTop: 8, paddingBottom: 8 },
   empty: { paddingTop: 80, alignItems: 'center' },
   emptyText: { fontSize: 14, color: 'rgba(255,255,255,0.55)' },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
-    gap: 10,
-    backgroundColor: 'transparent',
-  },
-  itemUnread: { backgroundColor: 'rgba(255,255,255,0.07)' },
-  dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: '#5B8CFF',
-    marginTop: 5,
-    flexShrink: 0,
-  },
-  itemBody: { flex: 1, gap: 4 },
-  itemText: { fontSize: 14, color: '#FFFFFF', lineHeight: 20 },
-  itemTime: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
 })

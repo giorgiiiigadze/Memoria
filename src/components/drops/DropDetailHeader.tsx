@@ -1,6 +1,7 @@
 import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import { colors, spacing } from '@/theme'
 import { router } from 'expo-router'
+import { ChevronLeft } from 'lucide-react-native'
 import { StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -12,8 +13,14 @@ export function DropDetailHeader({ title }: DropDetailHeaderProps) {
   const insets = useSafeAreaInsets()
 
   return (
-    <View style={[s.header, { top: insets.top - 8 }]}>
-      <GlassIconButton onPress={() => router.back()} iconName="chevron.left" iconSize={22} />
+    <View style={[s.header, { top: insets.top }]}>
+      <GlassIconButton
+        onPress={() => router.back()}
+        iconName="chevron.left"
+        androidIcon={ChevronLeft}
+        iconSize={22}
+        accessibilityLabel="Go back"
+      />
       <Text style={s.title} numberOfLines={1}>{title}</Text>
       <View style={s.spacer} />
     </View>

@@ -24,11 +24,6 @@ export default function TabsLayout() {
           <NativeTabs.Trigger.Icon sf="person.2.fill" md="group" />
         </NativeTabs.Trigger>
 
-        <NativeTabs.Trigger name="(create)">
-          <NativeTabs.Trigger.Label>Create</NativeTabs.Trigger.Label>
-          <NativeTabs.Trigger.Icon sf="plus" md="add_circle" />
-        </NativeTabs.Trigger>
-
         <NativeTabs.Trigger name="(calendar)">
           <NativeTabs.Trigger.Label>Calendar</NativeTabs.Trigger.Label>
           <NativeTabs.Trigger.Icon sf="calendar" md="calendar_month" />

@@ -1,7 +1,6 @@
 import type { NotificationWithMeta } from '@/api/notifications.api'
 
-// Shared header height for notifications screens
-export const HEADER_HEIGHT = 64
+export const HEADER_HEIGHT = 44
 
 export function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
