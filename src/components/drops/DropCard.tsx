@@ -11,12 +11,11 @@ import { labelStyle, tint } from '@expo/ui/swift-ui/modifiers'
 import { AntDesign } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
-import { Alert, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native'
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 const AVATAR_SIZE = 34
 
 export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipants; showCreator?: boolean }) {
-  const { width } = useWindowDimensions()
   const user = useAuthStore(selectUser)
 
   const creatorName = drop.creator?.display_name ?? drop.creator?.username ?? null
@@ -110,7 +109,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
       </View>
 
       <TouchableOpacity
-        style={[s.photoWrap, { width }]}
+        style={s.photoWrap}
         onPress={handleNavigation}
         activeOpacity={0.9}
       >

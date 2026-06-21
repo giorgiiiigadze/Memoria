@@ -4,8 +4,8 @@ import { useFriendsStore } from '@/store/friends.store'
 import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
 import { formatDate } from '@/utils/date'
 import { Image } from 'expo-image'
-import { router } from 'expo-router'
-import { useState } from 'react'
+import { router, useNavigation } from 'expo-router'
+import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Pressable,
@@ -18,8 +18,14 @@ import {
 export default function ConfirmScreen() {
   const { draft, submitDrop } = useDrops()
   const friends = useFriendsStore(s => s.friends)
+  const navigation = useNavigation()
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const t = draft.title.trim()
+    navigation.setOptions({ headerBackTitle: t.length > 20 ? t.slice(0, 20) + '…' : t || 'Back' })
+  }, [draft.title])
 
   const invitedFriends = friends.filter(f => draft.invitedIds.includes(f.id))
 

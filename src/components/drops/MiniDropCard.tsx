@@ -28,9 +28,9 @@ const STATE_COLOR: Record<DropState, string> = {
   expired: colors.textTertiary,
 }
 
-function MiniDropCard({ drop }: { drop: DropWithParticipants }) {
+function MiniDropCard({ drop, hPad = H_PAD }: { drop: DropWithParticipants; hPad?: number }) {
   const { width } = useWindowDimensions()
-  const cardWidth = Math.floor((width - H_PAD - GAP * (COLS - 1)) / COLS)
+  const cardWidth = Math.floor((width - hPad - GAP * (COLS - 1)) / COLS)
   const cardHeight = Math.floor(cardWidth * (4 / 3))
 
   return (
@@ -95,19 +95,19 @@ export function MiniPhotoCard({ photo, size, onPress }: MiniPhotoCardProps) {
   )
 }
 
-export function MiniDropGrid({ drops }: { drops: DropWithParticipants[] }) {
+export function MiniDropGrid({ drops, hPad }: { drops: DropWithParticipants[]; hPad?: number }) {
   return (
     <View style={s.grid}>
       {drops.map(drop => (
-        <MiniDropCard key={drop.id} drop={drop} />
+        <MiniDropCard key={drop.id} drop={drop} hPad={hPad} />
       ))}
     </View>
   )
 }
 
-function MiniDropCardSkeleton() {
+function MiniDropCardSkeleton({ hPad = H_PAD }: { hPad?: number }) {
   const { width } = useWindowDimensions()
-  const cardWidth = Math.floor((width - H_PAD - GAP * (COLS - 1)) / COLS)
+  const cardWidth = Math.floor((width - hPad - GAP * (COLS - 1)) / COLS)
   const cardHeight = Math.floor(cardWidth * (4 / 3))
   const opacity = useSharedValue(1)
 
@@ -132,11 +132,11 @@ function MiniDropCardSkeleton() {
   )
 }
 
-export function MiniDropGridSkeleton({ count = 6 }: { count?: number }) {
+export function MiniDropGridSkeleton({ count = 6, hPad }: { count?: number; hPad?: number }) {
   return (
     <View style={s.grid}>
       {Array.from({ length: count }, (_, i) => (
-        <MiniDropCardSkeleton key={i} />
+        <MiniDropCardSkeleton key={i} hPad={hPad} />
       ))}
     </View>
   )
@@ -146,6 +146,7 @@ const s = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    alignContent: 'flex-start',
     gap: GAP,
   },
   thumb: {

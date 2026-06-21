@@ -1,7 +1,6 @@
 import { getDrop, type DropWithParticipants } from '@/api/drops.api'
 import { getDropPhotos, uploadDropPhoto, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
-import { DropDetailHeader } from '@/components/drops/DropDetailHeader'
 import { PhotoGrid } from '@/components/drops/PhotoGrid'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
@@ -9,8 +8,7 @@ import { colors } from '@/theme'
 import * as Haptics from 'expo-haptics'
 import * as ImagePicker from 'expo-image-picker'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useFocusEffect, useLocalSearchParams } from 'expo-router'
-import { StatusBar } from 'expo-status-bar'
+import { Stack, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { Camera, Image as ImageIcon } from 'lucide-react-native'
 import { useCallback, useEffect, useState } from 'react'
 import {
@@ -34,8 +32,6 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const { width: SW } = Dimensions.get('window')
-
-const HEADER_HEIGHT = 60
 
 function SkeletonGrid({ topInset }: { topInset: number }) {
   const shimmerX = useSharedValue(0)
@@ -159,11 +155,11 @@ export default function DropDetailScreen() {
     await upload(a.uri, a.width ?? null, a.height ?? null)
   }
 
-  const topInset = insets.top + HEADER_HEIGHT + 12
+  const topInset = insets.top + 44 + 12
 
   return (
     <View style={s.root}>
-      <StatusBar hidden />
+      <Stack.Screen options={{ headerTitle: drop?.title ?? cached?.title ?? '' }} />
 
       {!photosLoaded ? (
         <SkeletonGrid topInset={topInset} />
@@ -186,7 +182,6 @@ export default function DropDetailScreen() {
         style={s.topScrim}
         pointerEvents="none"
       />
-      <DropDetailHeader title={drop?.title ?? 'Drop'} />
 
       {canUpload && (
         <View style={[s.captureWrap, { bottom: insets.bottom + 28 }]} pointerEvents="box-none">

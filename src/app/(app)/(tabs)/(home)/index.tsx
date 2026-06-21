@@ -89,7 +89,6 @@ export default function HomeScreen() {
 
   useFocusEffect(useCallback(() => { if (isLoaded) refresh() }, [isLoaded]))
 
-  // ── Animation SharedValues ────────────────────────────────────────────────
   const gridProgress    = useSharedValue(0)
   const loadingProgress = useSharedValue(0)
   const isRefreshingRef = useRef(false)
@@ -113,7 +112,6 @@ export default function HomeScreen() {
     gridProgress.value = Math.max(0, Math.min(1, -y / PULL_THRESHOLD))
   }
 
-  // ── Pull-to-refresh ───────────────────────────────────────────────────────
   async function handleRefresh() {
     isRefreshingRef.current = true
     setRefreshing(true)
@@ -156,7 +154,7 @@ export default function HomeScreen() {
       <View style={s.root}>
         <View
           pointerEvents="none"
-          style={[s.refreshOverlay, { top: insets.top + 44 + spacing[2] }]}
+          style={[s.refreshOverlay, { top: insets.top + 44 + spacing[6] }]}
         >
           <RefreshGrid progress={gridProgress} />
         </View>
@@ -177,17 +175,12 @@ export default function HomeScreen() {
             />
           }
           ListEmptyComponent={ListEmpty}
-          contentContainerStyle={[
-            s.content,
-            {
-              paddingTop: insets.top + 44 + spacing[2],
-              paddingBottom: insets.bottom + 40,
-            },
-          ]}
+          contentContainerStyle={{
+            paddingTop: insets.top + 44 + spacing[2],
+            paddingBottom: insets.bottom + 40,
+          }}
           renderItem={({ item }) => (
-            <View style={s.cardWrapper}>
-              <DropCard drop={item} showCreator={false} />
-            </View>
+            <DropCard drop={item} showCreator={false} />
           )}
           ListFooterComponent={<ListFooter count={drops.length} />}
         />
@@ -201,11 +194,6 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  content: {},
-  cardWrapper: {
-    marginBottom: spacing[0],
-  },
-
   // Always-present overlay — tiles are opacity 0 when progress=0
   refreshOverlay: {
     position: 'absolute',
@@ -263,8 +251,6 @@ const s = StyleSheet.create({
     fontSize: fontSize.md,
     color: colors.white,
     fontWeight: fontWeight.semiBold,
-    display: 'flex',
-    alignItems: 'center',
   },
   footerSecondaryText: {
     fontSize: fontSize.sm,

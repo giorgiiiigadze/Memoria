@@ -46,7 +46,6 @@ export default function CreateScreen() {
   const today = startOfDay(new Date())
   const canNext = draft.title.trim().length > 0 && draft.openDate !== null
 
-  // Seed default open date so the check button enables as soon as a title is typed
   useEffect(() => {
     if (!draft.openDate) setDraftOpenDate(addDays(today, 1))
   }, [])

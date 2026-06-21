@@ -20,6 +20,18 @@ export async function getMyDrops(): Promise<DropWithParticipants[]> {
   return (data ?? []) as unknown as DropWithParticipants[]
 }
 
+export async function getMyCreatedDrops(): Promise<DropWithParticipants[]> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+  const { data, error } = await supabase
+    .from('drops')
+    .select(DROP_SELECT)
+    .eq('creator_id', user.id)
+    .order('open_date', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as unknown as DropWithParticipants[]
+}
+
 export async function getDrop(dropId: string): Promise<DropWithParticipants | null> {
   const { data, error } = await supabase
     .from('drops')
