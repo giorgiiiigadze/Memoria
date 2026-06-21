@@ -5,6 +5,7 @@ import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 function monthLabel(iso: string) {
   const d = new Date(iso)
@@ -36,6 +37,7 @@ function groupByMonth(drops: DropWithParticipants[]) {
 }
 
 export default function CalendarScreen() {
+  const insets = useSafeAreaInsets()
   const [drops, setDrops] = useState<DropWithParticipants[]>([])
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState(false)
@@ -54,7 +56,8 @@ export default function CalendarScreen() {
   return (
     <ScrollView
       style={s.root}
-      contentContainerStyle={s.content}
+      contentContainerStyle={[s.content, { paddingTop: insets.top + 44 + spacing[2] }]}
+      contentInsetAdjustmentBehavior="never"
       showsVerticalScrollIndicator={false}
     >
       {!loaded && (
@@ -94,7 +97,6 @@ const s = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    paddingTop: spacing[3],
     paddingBottom: spacing[12],
   },
   group: {
