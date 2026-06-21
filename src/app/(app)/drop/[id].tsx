@@ -73,7 +73,7 @@ function SkeletonGrid({ topInset }: { topInset: number }) {
 }
 
 export default function DropDetailScreen() {
-  const { id }  = useLocalSearchParams<{ id: string }>()
+  const { id } = useLocalSearchParams<{ id: string }>()
   const insets  = useSafeAreaInsets()
   const user    = useAuthStore(selectUser)
   const cached  = useDropsStore(s => s.drops.find(d => d.id === id))
@@ -215,6 +215,7 @@ export default function DropDetailScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
+
 
   topScrim: {
     position: 'absolute',

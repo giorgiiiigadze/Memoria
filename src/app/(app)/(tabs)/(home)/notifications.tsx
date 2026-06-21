@@ -14,7 +14,7 @@ import { FlatList, StyleSheet, Text, View } from 'react-native'
 function handleTap(n: NotificationWithMeta) {
   markNotificationRead(n.id).catch(console.error)
   if (n.drop_id) {
-    router.push({ pathname: `/drop/${n.drop_id}`, params: { from: '/(app)/(home)' } } as any)
+    router.push({ pathname: `/drop/${n.drop_id}` } as any)
   } else if (n.type === 'friend_request' || n.type === 'friend_accepted') {
     router.navigate('/(app)/(friends)' as any)
   }

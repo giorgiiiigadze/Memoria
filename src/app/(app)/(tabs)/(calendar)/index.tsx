@@ -1,6 +1,9 @@
 import { getMyCreatedDrops, type DropWithParticipants } from '@/api/drops.api'
 import { MiniDropGrid, MiniDropGridSkeleton } from '@/components/drops/MiniDropCard'
 import { FULL_MONTHS } from '@/constants/drops'
+import { selectUser, useAuthStore } from '@/store/auth.store'
+import { useDropsStore } from '@/store/drops.store'
+import { useShallow } from 'zustand/react/shallow'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
@@ -36,8 +39,10 @@ function groupByMonth(drops: DropWithParticipants[]) {
 }
 
 export default function CalendarScreen() {
-  const [drops, setDrops] = useState<DropWithParticipants[]>([])
-  const [loaded, setLoaded] = useState(false)
+  const user = useAuthStore(selectUser)
+  const cachedDrops = useDropsStore(useShallow(s => s.drops.filter(d => d.creator_id === user?.id)))
+  const [drops, setDrops] = useState<DropWithParticipants[]>(cachedDrops)
+  const [loaded, setLoaded] = useState(cachedDrops.length > 0)
   const [error, setError] = useState(false)
 
   useFocusEffect(

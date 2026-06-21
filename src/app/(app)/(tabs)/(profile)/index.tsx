@@ -3,6 +3,7 @@ import { getMyDrops, type DropWithParticipants } from '@/api/drops.api'
 import { MiniDropGrid, MiniDropGridSkeleton } from '@/components/drops/MiniDropCard'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
+import { useDropsStore } from '@/store/drops.store'
 import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect } from 'expo-router'
@@ -35,8 +36,9 @@ export default function ProfileScreen() {
   const setProfile = useAuthStore(s => s.setProfile)
   const signOut = useAuthStore(s => s.signOut)
 
-  const [drops, setDrops] = useState<DropWithParticipants[]>([])
-  const [loadingDrops, setLoadingDrops] = useState(true)
+  const cachedDrops = useDropsStore(s => s.drops)
+  const [drops, setDrops] = useState<DropWithParticipants[]>(cachedDrops)
+  const [loadingDrops, setLoadingDrops] = useState(cachedDrops.length === 0)
   const [editing, setEditing] = useState(false)
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '')
   const [bio, setBio] = useState(profile?.bio ?? '')
@@ -46,11 +48,9 @@ export default function ProfileScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      setLoadingDrops(true)
       getMyDrops()
-        .then(setDrops)
+        .then(d => { setDrops(d); setLoadingDrops(false) })
         .catch(console.error)
-        .finally(() => setLoadingDrops(false))
     }, [])
   )
 
