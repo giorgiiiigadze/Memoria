@@ -7,7 +7,7 @@ export type FriendRequest = {
 }
 
 export async function searchUsers(query: string, myId: string): Promise<Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url'>[]> {
-  const q = query.trim()
+  const q = query.trim().replace(/[(),]/g, '')
   if (!q) return []
   const { data, error } = await supabase
     .from('profiles')

@@ -239,7 +239,7 @@ export default function ProfileScreen() {
                 <Text style={s.emptyText}>No drops yet. Tap Create to start one.</Text>
               </View>
             ) : (
-              <MiniDropGrid drops={drops} />
+              <MiniDropGrid drops={drops} backTitle="Profile" />
             )}
           </>
         )}

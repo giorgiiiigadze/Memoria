@@ -86,7 +86,7 @@ export default function CalendarScreen() {
       {groups.map(group => (
         <View key={group.label} style={s.group}>
           <Text style={s.monthLabel}>{group.label}</Text>
-          <MiniDropGrid drops={group.items} hPad={0} />
+          <MiniDropGrid drops={group.items} hPad={0} backTitle="Calendar" />
         </View>
       ))}
     </ScrollView>

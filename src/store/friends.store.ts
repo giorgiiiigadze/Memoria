@@ -13,6 +13,7 @@ interface FriendsState {
   setOutgoing: (outgoing: FriendRequest[]) => void
   setIsLoaded: (loaded: boolean) => void
   setError: (error: string | null) => void
+  reset: () => void
 }
 
 export const useFriendsStore = create<FriendsState>((set) => ({
@@ -26,6 +27,7 @@ export const useFriendsStore = create<FriendsState>((set) => ({
   setOutgoing: (outgoing) => set({ outgoing }),
   setIsLoaded: (isLoaded) => set({ isLoaded }),
   setError: (error) => set({ error }),
+  reset: () => set({ friends: [], incoming: [], outgoing: [], isLoaded: false, error: null }),
 }))
 
 export const selectFriends = (s: FriendsState) => s.friends

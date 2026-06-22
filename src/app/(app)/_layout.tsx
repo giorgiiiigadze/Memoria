@@ -14,10 +14,10 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen
         name="drop"
-        options={{
+        options={({ route }) => ({
           ...transparentHeaderOptions,
-          headerBackTitle: 'Home',
-        }}
+          headerBackTitle: (route.params as any)?.backTitle ?? 'Home',
+        })}
       />
       <Stack.Screen
         name="create"

@@ -139,7 +139,6 @@ export default function FriendsScreen() {
 
       {!isSearchMode && !error && (
         <View style={s.section}>
-          {friends.length > 0 && <Text style={s.sectionLabel}>Your friends</Text>}
           {!isLoaded ? null : friends.length === 0 ? (
             <Text style={s.empty}>No friends yet.{'\n'}Search for people to add.</Text>
           ) : (
@@ -157,7 +156,7 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   content: { paddingBottom: spacing[10], paddingTop: spacing[5], paddingHorizontal: spacing[2.5] },
   searchWrap: { marginBottom: spacing[6] },
-section: { marginBottom: spacing[8] },
+  section: { marginBottom: spacing[8] },
   sectionLabel: {
     fontSize: fontSize.md,
     fontWeight: fontWeight.semiBold,

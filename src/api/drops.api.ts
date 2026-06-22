@@ -65,13 +65,17 @@ export async function updateDropThumbnail(dropId: string, uri: string): Promise<
 
   if (arrayBuffer.byteLength > MAX_BYTES) throw new Error('Photo exceeds 50 MB limit')
 
+  const mimeType = `image/${ext === 'jpg' ? 'jpeg' : ext}`
   const { error: upErr } = await supabase.storage
     .from('photos')
-    .upload(path, arrayBuffer, { upsert: true, contentType: `image/${ext}` })
+    .upload(path, arrayBuffer, { upsert: true, contentType: mimeType })
   if (upErr) throw upErr
   const { data } = supabase.storage.from('photos').getPublicUrl(path)
   const { error } = await supabase.from('drops').update({ thumbnail_url: data.publicUrl }).eq('id', dropId)
-  if (error) throw error
+  if (error) {
+    await supabase.storage.from('photos').remove([path]).catch(() => {})
+    throw error
+  }
 }
 
 export async function deleteDrop(dropId: string): Promise<void> {

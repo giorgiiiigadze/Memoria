@@ -24,7 +24,7 @@ export default function HomeLayout() {
         options={{
           ...transparentHeaderOptions,
           headerTitle: 'Notifications',
-          headerBackTitle: 'Back',
+          headerBackTitle: 'Home',
         }}
       />
     </Stack>

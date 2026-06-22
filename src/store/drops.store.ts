@@ -23,6 +23,7 @@ interface DropsState {
   setDraftInvitedIds: (ids: string[]) => void
   setDraftThumbnailUri: (uri: string | null) => void
   clearDraft: () => void
+  reset: () => void
 }
 
 export const useDropsStore = create<DropsState>((set) => ({
@@ -38,6 +39,7 @@ export const useDropsStore = create<DropsState>((set) => ({
   setDraftInvitedIds: (invitedIds) => set((s) => ({ draft: { ...s.draft, invitedIds } })),
   setDraftThumbnailUri: (thumbnailUri) => set((s) => ({ draft: { ...s.draft, thumbnailUri } })),
   clearDraft: () => set({ draft: EMPTY_DRAFT }),
+  reset: () => set({ drops: [], isLoaded: false, error: null, draft: EMPTY_DRAFT }),
 }))
 
 export const selectDrops = (s: DropsState) => s.drops

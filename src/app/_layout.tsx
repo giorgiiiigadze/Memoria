@@ -129,6 +129,8 @@ export default function RootLayout() {
       realtimeCleanup.current = []
       setSession(null)
       setProfile(null)
+      useDropsStore.getState().reset()
+      useFriendsStore.getState().reset()
       router.replace('/(auth)')
       return
     }

@@ -1,4 +1,5 @@
 import { deleteDrop, type DropWithParticipants } from '@/api/drops.api'
+import { shareDrop } from '@/utils/share'
 import { ParticipantAvatars } from '@/components/drops/ParticipantAvatars'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { CARD_RADIUS } from '@/constants/drops'
@@ -90,7 +91,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
               label="Share"
               systemImage="square.and.arrow.up"
               modifiers={[tint(colors.ink)]}
-              onPress={() => Alert.alert('Coming soon', 'Sharing will be available in a future update.')}
+              onPress={() => shareDrop(drop.title, drop.id)}
             />
             <Button
               label="Report"

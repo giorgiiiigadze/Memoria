@@ -3,10 +3,12 @@ import type { PhotoWithUploader } from '@/api/photos.api'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { colors, fontWeight } from '@/theme'
 import type { DropState } from '@/types/database.types'
+import { MenuView } from '@expo/ui/community/menu'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
+import { shareDrop } from '@/utils/share'
 import { useEffect } from 'react'
 import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native'
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated'
@@ -29,17 +31,31 @@ const STATE_ICON: Record<DropState, { name: string; color: string }> = {
   expired: { name: 'xmark.circle',    color: colors.white },
 }
 
-function MiniDropCard({ drop, hPad = H_PAD }: { drop: DropWithParticipants; hPad?: number }) {
+function MiniDropCard({ drop, hPad = H_PAD, backTitle }: { drop: DropWithParticipants; hPad?: number; backTitle?: string }) {
   const { width } = useWindowDimensions()
   const cardWidth = Math.floor((width - hPad - GAP * (COLS - 1)) / COLS)
   const cardHeight = Math.floor(cardWidth * (4 / 3))
 
+  const navigate = () => router.push({ pathname: '/drop/[id]', params: { id: drop.id, backTitle } } as any)
+
   return (
-    <TouchableOpacity
+    <MenuView
+      shouldOpenOnLongPress
       style={{ width: cardWidth }}
-      onPress={() => router.push({ pathname: '/drop/[id]', params: { id: drop.id } } as any)}
-      activeOpacity={0.82}
+      actions={[
+        { id: 'open', title: 'View Drop', image: 'eye' },
+        { id: 'share', title: 'Share', image: 'square.and.arrow.up' },
+      ]}
+      onPressAction={({ nativeEvent }) => {
+        if (nativeEvent.event === 'open') navigate()
+        if (nativeEvent.event === 'share') shareDrop(drop.title, drop.id)
+      }}
     >
+      <TouchableOpacity
+        style={{ width: cardWidth }}
+        onPress={navigate}
+        activeOpacity={0.82}
+      >
       <View style={[s.thumb, { width: cardWidth, height: cardHeight }]}>
         {drop.thumbnail_url ? (
           <Image
@@ -69,8 +85,9 @@ function MiniDropCard({ drop, hPad = H_PAD }: { drop: DropWithParticipants; hPad
         </LinearGradient>
       </View>
 
-      <Text style={s.date}>{fmtShort(drop.open_date)}</Text>
-    </TouchableOpacity>
+      <Text style={s.date}>{drop.state === 'open' || drop.state === 'expired' ? 'Opened' : 'Opens'} · {fmtShort(drop.open_date)}</Text>
+      </TouchableOpacity>
+    </MenuView>
   )
 }
 
@@ -103,11 +120,11 @@ export function MiniPhotoCard({ photo, size, onPress }: MiniPhotoCardProps) {
   )
 }
 
-export function MiniDropGrid({ drops, hPad }: { drops: DropWithParticipants[]; hPad?: number }) {
+export function MiniDropGrid({ drops, hPad, backTitle }: { drops: DropWithParticipants[]; hPad?: number; backTitle?: string }) {
   return (
     <View style={s.grid}>
       {drops.map(drop => (
-        <MiniDropCard key={drop.id} drop={drop} hPad={hPad} />
+        <MiniDropCard key={drop.id} drop={drop} hPad={hPad} backTitle={backTitle} />
       ))}
     </View>
   )

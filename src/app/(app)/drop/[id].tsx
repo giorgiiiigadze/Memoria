@@ -73,7 +73,7 @@ function SkeletonGrid({ topInset }: { topInset: number }) {
 }
 
 export default function DropDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>()
+  const { id, backTitle } = useLocalSearchParams<{ id: string; backTitle?: string }>()
   const insets  = useSafeAreaInsets()
   const user    = useAuthStore(selectUser)
   const cached  = useDropsStore(s => s.drops.find(d => d.id === id))
@@ -88,7 +88,7 @@ export default function DropDetailScreen() {
     useCallback(() => {
       if (!id) return
       getDrop(id).then(d => { if (d) setDrop(d) }).catch(console.error)
-      getDropPhotos(id).then(p => { setPhotos(p); setPhotosLoaded(true) }).catch(console.error)
+      getDropPhotos(id).then(p => setPhotos(p)).catch(console.error).finally(() => setPhotosLoaded(true))
     }, [id])
   )
 
