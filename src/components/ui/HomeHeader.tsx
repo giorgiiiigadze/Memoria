@@ -19,7 +19,7 @@ export default function HomeHeader() {
             </Stack.Toolbar.Badge>
           )}
         </Stack.Toolbar.Button>
-        
+
         <Stack.Toolbar.Button
           accessibilityLabel="New drop"
           tintColor={colors.white}

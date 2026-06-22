@@ -3,12 +3,13 @@ import type { PhotoWithUploader } from '@/api/photos.api'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { colors, fontWeight } from '@/theme'
 import type { DropState } from '@/types/database.types'
+import { shareDrop } from '@/utils/share'
 import { MenuView } from '@expo/ui/community/menu'
+import { BlurView } from 'expo-blur'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
-import { shareDrop } from '@/utils/share'
 import { useEffect } from 'react'
 import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native'
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated'
@@ -94,10 +95,11 @@ function MiniDropCard({ drop, hPad = H_PAD, backTitle }: { drop: DropWithPartici
 type MiniPhotoCardProps = {
   photo: PhotoWithUploader
   size: number
+  blurred?: boolean
   onPress: () => void
 }
 
-export function MiniPhotoCard({ photo, size, onPress }: MiniPhotoCardProps) {
+export function MiniPhotoCard({ photo, size, blurred, onPress }: MiniPhotoCardProps) {
   const cardHeight = Math.floor(size * (4 / 3))
   const name = photo.uploader?.display_name ?? photo.uploader?.username ?? ''
 
@@ -111,10 +113,20 @@ export function MiniPhotoCard({ photo, size, onPress }: MiniPhotoCardProps) {
           recyclingKey={photo.id}
           transition={150}
         />
-      </View>
-      <View style={s.photoMeta}>
-        <InitialAvatar name={name || '?'} avatarUrl={photo.uploader?.avatar_url ?? null} size={16} />
-        {name ? <Text style={s.photoName} numberOfLines={1}>{name}</Text> : null}
+        {blurred && (
+          <BlurView intensity={72} tint="dark" style={[StyleSheet.absoluteFill, s.blurOverlay]}>
+            <SymbolView name="lock.fill" size={20} tintColor={colors.bone} resizeMode="scaleAspectFit" />
+            <Text style={s.blurText}>Hidden until drop opens</Text>
+          </BlurView>
+        )}
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.7)']}
+          style={s.photoFooter}
+          pointerEvents="none"
+        >
+          <InitialAvatar name={name || '?'} avatarUrl={photo.uploader?.avatar_url ?? null} size={24} />
+          {name ? <Text style={s.photoName} numberOfLines={1}>{name}</Text> : null}
+        </LinearGradient>
       </View>
     </TouchableOpacity>
   )
@@ -210,16 +222,34 @@ const s = StyleSheet.create({
   skeletonThumb: {
     backgroundColor: colors.surfaceRaised,
   },
-  photoMeta: {
+  blurOverlay: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  blurText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.bone,
+    textAlign: 'center',
+    letterSpacing: 0.2,
+  },
+  photoFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 5,
-    marginLeft: 2,
+    gap: 10,
+    paddingHorizontal: 8,
+    paddingTop: 28,
+    paddingBottom: 8,
   },
   photoName: {
-    fontSize: 10,
-    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.white,
     flex: 1,
   },
   skeletonDate: {

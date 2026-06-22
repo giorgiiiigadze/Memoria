@@ -49,14 +49,14 @@ function SkeletonGrid({ topInset }: { topInset: number }) {
     transform: [{ translateX: interpolate(shimmerX.value, [0, 1], [-SW, SW]) }],
   }))
 
-  const COLS = 3
+  const COLS = 2
   const GAP = 4
   const tileSize = Math.floor((SW - GAP * (COLS - 1)) / COLS)
   const tileHeight = Math.floor(tileSize * (4 / 3))
 
   return (
     <View style={[s.skeletonGrid, { paddingTop: topInset }]}>
-      {Array.from({ length: 9 }).map((_, i) => (
+      {Array.from({ length: 6 }).map((_, i) => (
         <View key={i} style={[s.skeletonTile, { width: tileSize, height: tileHeight }]}>
           <Animated.View style={[s.shimmerBar, shimmerStyle]}>
             <LinearGradient
@@ -97,10 +97,8 @@ export default function DropDetailScreen() {
     return subscribeToDropPhotos(id, setPhotos)
   }, [id])
 
-  const visiblePhotos =
-    drop && (drop.state === 'active' || drop.state === 'ready')
-      ? photos.filter(p => p.uploader_id === user?.id)
-      : photos
+  const visiblePhotos = photos
+  const isLocked = drop?.state === 'active' || drop?.state === 'ready'
 
   const canUpload = !!user && (drop?.state === 'active' || drop?.state === 'ready')
 
@@ -174,6 +172,8 @@ export default function DropDetailScreen() {
           refreshing={refreshing}
           onRefresh={handleRefresh}
           topInset={topInset}
+          isLocked={isLocked}
+          currentUserId={user?.id}
         />
       )}
 

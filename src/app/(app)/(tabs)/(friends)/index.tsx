@@ -1,13 +1,12 @@
 import { Chip } from '@/components/friends/Chip'
 import { FriendSearchBar } from '@/components/friends/FriendSearchBar'
-import { UserRow } from '@/components/friends/UserRow'
+import { UserRow, UserRowSkeleton } from '@/components/friends/UserRow'
 import { useFriends } from '@/hooks/useFriends'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import type { Profile } from '@/types/database.types'
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -65,7 +64,11 @@ export default function FriendsScreen() {
       {isSearchMode && (
         <View style={s.section}>
           {searching ? (
-            <ActivityIndicator color={colors.textTertiary} size="small" />
+            <>
+              <UserRowSkeleton />
+              <UserRowSkeleton />
+              <UserRowSkeleton />
+            </>
           ) : searchResults.length === 0 ? (
             <Text style={s.empty}>No users found.</Text>
           ) : (

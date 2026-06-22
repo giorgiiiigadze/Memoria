@@ -2,9 +2,8 @@ import type { PhotoWithUploader } from '@/api/photos.api'
 import { MiniPhotoCard } from '@/components/drops/MiniDropCard'
 import { colors } from '@/theme'
 import { FlatList, RefreshControl, useWindowDimensions, View } from 'react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
-const COLS = 3
+const COLS = 2
 const GAP = 4
 
 type Props = {
@@ -13,24 +12,11 @@ type Props = {
   refreshing: boolean
   onRefresh: () => void
   topInset: number
+  isLocked?: boolean
+  currentUserId?: string
 }
 
-type TileProps = {
-  photo: PhotoWithUploader
-  size: number
-  index: number
-  onPress: () => void
-}
-
-function Tile({ photo, size, index, onPress }: TileProps) {
-  return (
-    <Animated.View entering={FadeInDown.delay(Math.min(index * 20, 200)).duration(280)}>
-      <MiniPhotoCard photo={photo} size={size} onPress={onPress} />
-    </Animated.View>
-  )
-}
-
-export function PhotoGrid({ photos, onSelect, refreshing, onRefresh, topInset }: Props) {
+export function PhotoGrid({ photos, onSelect, refreshing, onRefresh, topInset, isLocked, currentUserId }: Props) {
   const { width } = useWindowDimensions()
   const tileSize = Math.floor((width - GAP * (COLS - 1)) / COLS)
 
@@ -52,10 +38,10 @@ export function PhotoGrid({ photos, onSelect, refreshing, onRefresh, topInset }:
         />
       }
       renderItem={({ item, index }) => (
-        <Tile
+        <MiniPhotoCard
           photo={item}
           size={tileSize}
-          index={index}
+          blurred={isLocked && item.uploader_id !== currentUserId}
           onPress={() => onSelect(index)}
         />
       )}

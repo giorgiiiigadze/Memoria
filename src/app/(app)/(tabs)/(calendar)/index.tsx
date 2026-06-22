@@ -1,8 +1,7 @@
-import { getMyCreatedDrops, type DropWithParticipants } from '@/api/drops.api'
+import { getMyDrops, type DropWithParticipants } from '@/api/drops.api'
 import { MiniDropGrid, MiniDropGridSkeleton } from '@/components/drops/MiniDropCard'
 import { FULL_MONTHS } from '@/constants/drops'
-import { selectUser, useAuthStore } from '@/store/auth.store'
-import { useDropsStore } from '@/store/drops.store'
+import { selectDropsLoaded, useDropsStore } from '@/store/drops.store'
 import { useShallow } from 'zustand/react/shallow'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import { useFocusEffect } from 'expo-router'
@@ -39,18 +38,22 @@ function groupByMonth(drops: DropWithParticipants[]) {
 }
 
 export default function CalendarScreen() {
-  const user = useAuthStore(selectUser)
-  const cachedDrops = useDropsStore(useShallow(s => s.drops.filter(d => d.creator_id === user?.id)))
-  const [drops, setDrops] = useState<DropWithParticipants[]>(cachedDrops)
-  const [loaded, setLoaded] = useState(cachedDrops.length > 0)
+  const drops = useDropsStore(useShallow(s => s.drops))
+  const storeLoaded = useDropsStore(selectDropsLoaded)
+  const [apiLoaded, setApiLoaded] = useState(false)
   const [error, setError] = useState(false)
+
+  const loaded = storeLoaded || drops.length > 0 || apiLoaded
 
   useFocusEffect(
     useCallback(() => {
       setError(false)
-      getMyCreatedDrops()
-        .then(d => { setDrops(d); setLoaded(true) })
-        .catch(() => { setError(true); setLoaded(true) })
+      getMyDrops()
+        .then(d => {
+          useDropsStore.getState().upsertDrops(d)
+          setApiLoaded(true)
+        })
+        .catch(() => { setError(true); setApiLoaded(true) })
     }, [])
   )
 

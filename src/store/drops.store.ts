@@ -16,6 +16,7 @@ interface DropsState {
   error: string | null
   draft: Draft
   setDrops: (drops: DropWithParticipants[]) => void
+  upsertDrops: (fresh: DropWithParticipants[]) => void
   setIsLoaded: (loaded: boolean) => void
   setError: (error: string | null) => void
   setDraftTitle: (title: string) => void
@@ -32,6 +33,11 @@ export const useDropsStore = create<DropsState>((set) => ({
   error: null,
   draft: EMPTY_DRAFT,
   setDrops: (drops) => set({ drops }),
+  upsertDrops: (fresh) => set(s => {
+    const map = new Map(s.drops.map(d => [d.id, d]))
+    for (const d of fresh) map.set(d.id, d)
+    return { drops: Array.from(map.values()) }
+  }),
   setIsLoaded: (isLoaded) => set({ isLoaded }),
   setError: (error) => set({ error }),
   setDraftTitle: (title) => set((s) => ({ draft: { ...s.draft, title } })),

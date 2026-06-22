@@ -1,5 +1,4 @@
 import { deleteDrop, type DropWithParticipants } from '@/api/drops.api'
-import { shareDrop } from '@/utils/share'
 import { ParticipantAvatars } from '@/components/drops/ParticipantAvatars'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { CARD_RADIUS } from '@/constants/drops'
@@ -7,6 +6,7 @@ import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { colors, fontSize, spacing } from '@/theme'
 import { formatDate } from '@/utils/date'
+import { shareDrop } from '@/utils/share'
 import { Button, Host, Menu } from '@expo/ui/swift-ui'
 import { labelStyle, tint } from '@expo/ui/swift-ui/modifiers'
 import { AntDesign } from '@expo/vector-icons'
@@ -32,7 +32,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
   const isCreator = user?.id === drop.creator?.id
 
   const handleNavigation = () => {
-    router.push({ pathname: '/drop/[id]', params: { id: drop.id } } as any)
+    router.push({ pathname: '/drop/[id]', params: { id: drop.id, backTitle: 'Home' } } as any)
   }
 
   function handleDelete() {
@@ -146,7 +146,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginBottom: 10,
+    marginBottom: 8,
     paddingHorizontal: SIDE,
   },
   headerText: {
