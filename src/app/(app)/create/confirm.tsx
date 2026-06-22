@@ -34,7 +34,8 @@ export default function ConfirmScreen() {
     setError(null)
     try {
       await submitDrop()
-      router.dismiss()
+      router.dismissAll()
+      router.replace('/(app)/(tabs)/(home)' as any)
     } catch (e) {
       console.error('[confirm] submitDrop:', e)
       setError('Something went wrong. Please try again.')

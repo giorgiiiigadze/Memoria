@@ -1,12 +1,12 @@
 import { supabase } from '@/api/client'
 import { SocialButton } from '@/components/ui/SocialButton'
 import { useAuthStore } from '@/store/auth.store'
-import { colors, fontWeight, spacing } from '@/theme'
-import { AntDesign } from '@expo/vector-icons'
+import { colors, fontWeight, radii, spacing } from '@/theme'
 import { router } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { useState } from 'react'
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Dimensions, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+
 import Animated, {
   Extrapolation,
   interpolate,
@@ -103,22 +103,25 @@ export default function LandingScreen() {
   const [agreed, setAgreed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const scrollX = useSharedValue(0)
 
   const scrollHandler = useAnimatedScrollHandler((e) => {
     scrollX.value = e.contentOffset.x
   })
 
-  async function handleDevSignIn() {
+  async function handleSignIn() {
     if (!agreed) { setError('Please agree to the terms to continue.'); return }
+    if (!email.trim() || !password) { setError('Enter your email and password.'); return }
     try {
       setLoading(true)
       setError(null)
       const { data, error: e } = await supabase.auth.signInWithPassword({
-        email: 'salo@gmail.com',
-        password: 'salosalo',
+        email: email.trim(),
+        password,
       })
-      if (e || !data.session) { setError('Dev sign-in failed'); return }
+      if (e || !data.session) { setError(e?.message ?? 'Sign-in failed'); return }
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
@@ -128,15 +131,17 @@ export default function LandingScreen() {
       useAuthStore.getState().setProfile(profile ?? null)
       router.replace(profile?.display_name ? '/(app)/(tabs)/(home)' : '/(auth)/onboarding')
     } catch {
-      setError('Dev sign-in failed')
+      setError('Sign-in failed. Check your credentials.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <View style={s.root}>
-
+    <KeyboardAvoidingView
+      style={s.root}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <Animated.ScrollView
         horizontal
         pagingEnabled
@@ -168,6 +173,32 @@ export default function LandingScreen() {
           ))}
         </View>
 
+        <View style={s.form}>
+          <TextInput
+            style={s.input}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email"
+            placeholderTextColor={colors.textTertiary}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="next"
+            editable={!loading}
+          />
+          <TextInput
+            style={s.input}
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Password"
+            placeholderTextColor={colors.textTertiary}
+            secureTextEntry
+            returnKeyType="done"
+            onSubmitEditing={handleSignIn}
+            editable={!loading}
+          />
+        </View>
+
         <View style={s.tosRow}>
           <TouchableOpacity
             onPress={() => { setAgreed(v => !v); setError(null) }}
@@ -193,32 +224,15 @@ export default function LandingScreen() {
 
         {error ? <Text style={s.error}>{error}</Text> : null}
 
-        {/* ── REAL Apple Sign-In — uncomment when on device ───────────────
-        <TouchableOpacity
-          style={[s.appleBtn, (!agreed || loading) && s.btnDimmed]}
-          onPress={handleAppleSignIn}
+        <SocialButton
+          label={loading ? 'Signing in…' : 'Sign In'}
+          onPress={handleSignIn}
           disabled={!agreed || loading}
-          activeOpacity={0.88}
-        >
-          <AntDesign name="apple" size={18} color={colors.ink} />
-          <Text style={s.appleBtnLabel}>
-            {loading ? 'Signing in…' : 'Continue with Apple'}
-          </Text>
-        </TouchableOpacity>
-        ─────────────────────────────────────────────────────────────────── */}
-
-        {__DEV__ && (
-          <SocialButton
-            label={loading ? 'Signing in…' : 'Dev Sign In'}
-            onPress={handleDevSignIn}
-            disabled={!agreed}
-            loading={loading}
-            icon={<AntDesign name="lock" size={18} color={colors.ink} />}
-            style={s.fullWidth}
-          />
-        )}
+          loading={loading}
+          style={s.fullWidth}
+        />
       </View>
-    </View>
+    </KeyboardAvoidingView>
   )
 }
 
@@ -230,7 +244,7 @@ const s = StyleSheet.create({
 
   pager: {
     flexGrow: 0,
-    height: SH * 0.6,
+    height: SH * 0.35,
   },
   slide: {
     width: SW,
@@ -248,20 +262,21 @@ const s = StyleSheet.create({
 
   content: {
     flex: 1,
-    paddingHorizontal: spacing[2.5],
-    paddingBottom: spacing[12],
-    paddingTop: spacing[4],
-    gap: spacing[10],
+    paddingHorizontal: spacing[5],
+    paddingBottom: spacing[8],
+    paddingTop: spacing[5],
+    gap: spacing[4],
     alignItems: 'center',
+    justifyContent: 'flex-end',
   },
 
   headlineStack: {
-    height: 92,
+    height: 72,
     alignSelf: 'stretch',
     justifyContent: 'center',
   },
   headline: {
-    fontSize: 38,
+    fontSize: 30,
     textAlign: 'center',
     fontWeight: fontWeight.regular,
   },
@@ -282,6 +297,20 @@ const s = StyleSheet.create({
     height: 8,
     borderRadius: 10,
     backgroundColor: colors.textPrimary,
+  },
+  form: {
+    gap: spacing[3],
+    alignSelf: 'stretch',
+  },
+  input: {
+    backgroundColor: colors.surface,
+    borderWidth: 0.5,
+    borderColor: colors.borderDefault,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing[4],
+    paddingVertical: 13,
+    fontSize: 15,
+    color: colors.white,
   },
   tosRow: {
     flexDirection: 'row',

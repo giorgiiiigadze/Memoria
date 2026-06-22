@@ -6,6 +6,7 @@ import type { DropState } from '@/types/database.types'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
+import { SymbolView } from 'expo-symbols'
 import { useEffect } from 'react'
 import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native'
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated'
@@ -21,11 +22,11 @@ function fmtShort(iso: string | null) {
   return `${MONTHS[d.getMonth()]} ${d.getDate()}`
 }
 
-const STATE_COLOR: Record<DropState, string> = {
-  active: colors.primary,
-  ready: colors.success,
-  open: colors.warning,
-  expired: colors.textTertiary,
+const STATE_ICON: Record<DropState, { name: string; color: string }> = {
+  active:  { name: 'lock.fill',       color: colors.white },
+  ready:   { name: 'lock.open.fill',  color: colors.white },
+  open:    { name: 'photo.fill',      color: colors.white },
+  expired: { name: 'xmark.circle',    color: colors.white },
 }
 
 function MiniDropCard({ drop, hPad = H_PAD }: { drop: DropWithParticipants; hPad?: number }) {
@@ -50,7 +51,14 @@ function MiniDropCard({ drop, hPad = H_PAD }: { drop: DropWithParticipants; hPad
           <View style={[StyleSheet.absoluteFill, s.placeholder]} />
         )}
 
-        <View style={[s.stateDot, { backgroundColor: STATE_COLOR[drop.state] }]} />
+        <View style={s.stateIcon}>
+          <SymbolView
+            name={STATE_ICON[drop.state].name as any}
+            size={11}
+            tintColor={STATE_ICON[drop.state].color}
+            resizeMode="scaleAspectFit"
+          />
+        </View>
 
         <LinearGradient
           colors={['transparent', 'rgba(0,0,0,0.75)']}
@@ -157,13 +165,10 @@ const s = StyleSheet.create({
   placeholder: {
     backgroundColor: colors.surfaceRaised,
   },
-  stateDot: {
+  stateIcon: {
     position: 'absolute',
     top: 6,
     right: 6,
-    width: 7,
-    height: 7,
-    borderRadius: 4,
   },
   gradient: {
     position: 'absolute',

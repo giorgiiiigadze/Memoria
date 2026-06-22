@@ -9,7 +9,7 @@ export function UserRow({ profile, right }: { profile: Profile; right?: ReactNod
   return (
     <View style={s.row}>
       <View style={s.avatarWrap}>
-        <InitialAvatar name={name} avatarUrl={profile.avatar_url} size={40} />
+        <InitialAvatar name={name} avatarUrl={profile.avatar_url} size={54} />
       </View>
       <View style={s.rowInfo}>
         <Text style={s.rowName}>{profile.display_name ?? profile.username}</Text>
@@ -24,7 +24,7 @@ const s = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
   avatarWrap: { marginRight: spacing[3] },
   rowInfo: { flex: 1 },
-  rowName: { fontSize: 15, fontWeight: fontWeight.medium, color: colors.white },
+  rowName: { fontSize: 15, fontWeight: fontWeight.regular, color: colors.white },
   rowHandle: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: 1 },
   rowRight: { marginLeft: spacing[3] },
 })

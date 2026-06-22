@@ -28,7 +28,6 @@ export const colors = {
   borderDefault: '#3B3B3B',
   borderSubtle: '#252525',
 
-  // Semantic
   accent: '#D6A45B',
   blue: '#0A84FF',
   primary: '#0044FF',

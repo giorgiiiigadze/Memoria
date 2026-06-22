@@ -26,6 +26,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
   const secondary = showIdentity ? drop.title : null
 
   const dateLabel = formatDate(drop.open_date)
+  const datePrefix = drop.state === 'open' ? 'Opened' : 'Opens'
   const showAvatar = !!(creatorAvatar || creatorName)
   const isCreator = user?.id === drop.creator?.id
 
@@ -75,7 +76,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
             <Text style={s.subtitle} numberOfLines={1}>{secondary}</Text>
           )}
           {dateLabel && (
-            <Text style={s.date} numberOfLines={1}>{dateLabel}</Text>
+            <Text style={s.date} numberOfLines={1}>{datePrefix} · {dateLabel}</Text>
           )}
         </TouchableOpacity>
 
@@ -97,13 +98,15 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
               modifiers={[tint(colors.ink)]}
               onPress={() => Alert.alert('Coming soon', 'Reporting will be available in a future update.')}
             />
-            <Button
-              label="Delete"
-              role="destructive"
-              systemImage="trash"
-              modifiers={[tint(colors.ink)]}
-              onPress={isCreator ? handleDelete : () => {}}
-            />
+            {isCreator && (
+              <Button
+                label="Delete"
+                role="destructive"
+                systemImage="trash"
+                modifiers={[tint(colors.error)]}
+                onPress={handleDelete}
+              />
+            )}
           </Menu>
         </Host>
       </View>
@@ -121,9 +124,11 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
           </View>
         )}
 
-        <View style={s.footer}>
-          <ParticipantAvatars participants={drop.participants} />
-        </View>
+        {drop.participants.length > 0 && (
+          <View style={s.footer}>
+            <ParticipantAvatars participants={drop.participants} />
+          </View>
+        )}
       </TouchableOpacity>
     </View>
   )
@@ -190,8 +195,7 @@ const s = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing[3],
-    paddingBottom: 14,
-    zIndex: 1,
+    paddingHorizontal: spacing[4],
+    paddingBottom: spacing[4],
   },
 })

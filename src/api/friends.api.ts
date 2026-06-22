@@ -7,11 +7,12 @@ export type FriendRequest = {
 }
 
 export async function searchUsers(query: string, myId: string): Promise<Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url'>[]> {
-  if (!query.trim()) return []
+  const q = query.trim()
+  if (!q) return []
   const { data, error } = await supabase
     .from('profiles')
     .select('id, username, display_name, avatar_url')
-    .ilike('username', `%${query.trim()}%`)
+    .or(`username.ilike.%${q}%,display_name.ilike.%${q}%`)
     .neq('id', myId)
     .limit(20)
   if (error) throw error

@@ -3,7 +3,7 @@ import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { colors, fontSize } from '@/theme'
 import { StyleSheet, Text, View } from 'react-native'
 
-const PARTICIPANT_AVATAR_SIZE = 28
+const PARTICIPANT_AVATAR_SIZE = 30
 const PARTICIPANT_OVERLAP = 10
 const MAX_VISIBLE_PARTICIPANTS = 5
 

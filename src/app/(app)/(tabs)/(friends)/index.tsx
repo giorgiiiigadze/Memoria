@@ -4,7 +4,8 @@ import { UserRow } from '@/components/friends/UserRow'
 import { useFriends } from '@/hooks/useFriends'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import type { Profile } from '@/types/database.types'
-import { useEffect, useRef, useState } from 'react'
+import { useFocusEffect } from 'expo-router'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   ScrollView,
@@ -15,7 +16,13 @@ import {
 } from 'react-native'
 
 export default function FriendsScreen() {
-  const { friends, incoming, outgoing, isLoaded, error, actionLoading, add, accept, decline, search, retry } = useFriends()
+  const { friends, incoming, outgoing, isLoaded, error, actionLoading, add, accept, decline, search, refresh, retry } = useFriends()
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh()
+    }, [])
+  )
   const [query, setQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Profile[]>([])
   const [searching, setSearching] = useState(false)
@@ -84,7 +91,7 @@ export default function FriendsScreen() {
                   ) : (
                     <Chip
                       label="Add"
-                      variant="blue"
+                      variant="white"
                       onPress={() => add(user.id)}
                       disabled={actionLoading}
                     />
@@ -152,11 +159,9 @@ const s = StyleSheet.create({
   searchWrap: { marginBottom: spacing[6] },
 section: { marginBottom: spacing[8] },
   sectionLabel: {
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.medium,
-    color: colors.textTertiary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semiBold,
+    color: colors.white,
     marginBottom: spacing[3],
   },
   empty: { fontSize: fontSize.sm, color: colors.textTertiary, textAlign: 'center', paddingVertical: spacing[6], lineHeight: 22 },

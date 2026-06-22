@@ -51,6 +51,7 @@ export function useNotifications() {
 
 async function registerForPushAsync(): Promise<string | null> {
   if (!Device.isDevice) return null
+  if (Platform.OS === 'android' && Constants.appOwnership === 'expo') return null
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
