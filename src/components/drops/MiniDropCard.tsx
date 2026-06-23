@@ -1,7 +1,6 @@
 import type { DropWithParticipants } from '@/api/drops.api'
 import type { PhotoWithUploader } from '@/api/photos.api'
-import { InitialAvatar } from '@/components/ui/InitialAvatar'
-import { colors, fontWeight } from '@/theme'
+import { colors, fontWeight, radii } from '@/theme'
 import type { DropState } from '@/types/database.types'
 import { shareDrop } from '@/utils/share'
 import { MenuView } from '@expo/ui/community/menu'
@@ -101,34 +100,37 @@ type MiniPhotoCardProps = {
 
 export function MiniPhotoCard({ photo, size, blurred, onPress }: MiniPhotoCardProps) {
   const cardHeight = Math.floor(size * (4 / 3))
-  const name = photo.uploader?.display_name ?? photo.uploader?.username ?? ''
 
   return (
-    <TouchableOpacity style={{ width: size }} onPress={onPress} activeOpacity={0.82}>
-      <View style={[s.thumb, { width: size, height: cardHeight }]}>
-        <Image
-          source={{ uri: photo.cdn_url }}
-          style={StyleSheet.absoluteFill}
-          contentFit="cover"
-          recyclingKey={photo.id}
-          transition={150}
-        />
-        {blurred && (
-          <BlurView intensity={72} tint="dark" style={[StyleSheet.absoluteFill, s.blurOverlay]}>
-            <SymbolView name="lock.fill" size={20} tintColor={colors.bone} resizeMode="scaleAspectFit" />
-            <Text style={s.blurText}>Hidden until drop opens</Text>
-          </BlurView>
-        )}
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.7)']}
-          style={s.photoFooter}
-          pointerEvents="none"
-        >
-          <InitialAvatar name={name || '?'} avatarUrl={photo.uploader?.avatar_url ?? null} size={24} />
-          {name ? <Text style={s.photoName} numberOfLines={1}>{name}</Text> : null}
-        </LinearGradient>
-      </View>
-    </TouchableOpacity>
+    <MenuView
+      shouldOpenOnLongPress={!blurred}
+      style={{ width: size }}
+      actions={blurred ? [] : [
+        { id: 'view', title: 'View Photo', image: 'eye' },
+        { id: 'share', title: 'Share', image: 'square.and.arrow.up' },
+      ]}
+      onPressAction={({ nativeEvent }) => {
+        if (nativeEvent.event === 'view') onPress()
+      }}
+    >
+      <TouchableOpacity style={{ width: size }} onPress={blurred ? undefined : onPress} activeOpacity={blurred ? 1 : 0.82}>
+        <View style={[s.thumb, { width: size, height: cardHeight }]}>
+          <Image
+            source={{ uri: photo.cdn_url }}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+            recyclingKey={photo.id}
+            transition={150}
+          />
+          {blurred && (
+            <BlurView intensity={72} tint="dark" style={[StyleSheet.absoluteFill, s.blurOverlay]}>
+              <SymbolView name="lock.fill" size={20} tintColor={colors.bone} resizeMode="scaleAspectFit" />
+            </BlurView>
+          )}
+        </View>
+        <Text style={s.date}>{fmtShort(photo.uploaded_at)}</Text>
+      </TouchableOpacity>
+    </MenuView>
   )
 }
 
@@ -187,7 +189,7 @@ const s = StyleSheet.create({
     gap: GAP,
   },
   thumb: {
-    borderRadius: 10,
+    borderRadius: radii.md,
     overflow: 'hidden',
     backgroundColor: colors.surfaceDeep,
   },

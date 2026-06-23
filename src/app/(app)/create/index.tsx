@@ -21,10 +21,11 @@ import {
   scrollDismissesKeyboard,
   tint,
 } from '@expo/ui/swift-ui/modifiers'
+import * as ImagePicker from 'expo-image-picker'
 import { router, Stack } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
-import { useEffect } from 'react'
-import { Text as RNText, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { useEffect, useState } from 'react'
+import { Alert, Text as RNText, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 
 function addDays(d: Date, n: number) {
   const r = new Date(d); r.setDate(r.getDate() + n); return r
@@ -37,12 +38,35 @@ function startOfDay(d: Date) {
 const ROW = [listRowBackground(colors.surfaceGroupedElevated), foregroundStyle(colors.white)] as const
 
 export default function CreateScreen() {
-  const { draft, setDraftTitle, setDraftOpenDate, setDraftInvitedIds } = useDropsStore()
+  const { draft, setDraftTitle, setDraftOpenDate, setDraftInvitedIds, setDraftThumbnailUri } = useDropsStore()
   const friends = useFriendsStore(s => s.friends)
   const title = useNativeState(draft.title)
 
   const today = startOfDay(new Date())
   const canNext = draft.title.trim().length > 0 && draft.openDate !== null
+  const [opening, setOpening] = useState(false)
+
+  async function handleNext() {
+    if (__DEV__) {
+      router.push('/create/confirm' as any)
+      return
+    }
+    if (opening) return
+    setOpening(true)
+    try {
+      const perm = await ImagePicker.requestCameraPermissionsAsync()
+      if (!perm.granted) {
+        Alert.alert('Camera access needed', 'Enable camera access in Settings to add a cover photo.')
+        return
+      }
+      const result = await ImagePicker.launchCameraAsync({ quality: 0.8 })
+      if (result.canceled) return
+      setDraftThumbnailUri(result.assets[0].uri)
+      router.push('/create/confirm' as any)
+    } finally {
+      setOpening(false)
+    }
+  }
 
   useEffect(() => {
     if (!draft.openDate) setDraftOpenDate(addDays(today, 1))
@@ -60,9 +84,9 @@ export default function CreateScreen() {
       <Stack.Toolbar placement="right">
         <Stack.Toolbar.Button
           accessibilityLabel="Next"
-          disabled={!canNext}
+          disabled={!canNext || opening}
           tintColor={colors.blue}
-          onPress={() => router.push('/create/confirm' as any)}
+          onPress={handleNext}
         >
           <Stack.Toolbar.Icon sf="checkmark" />
         </Stack.Toolbar.Button>

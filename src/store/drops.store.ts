@@ -15,6 +15,7 @@ interface DropsState {
   isLoaded: boolean
   error: string | null
   draft: Draft
+  dropPhotoFilter: 'all' | 'mine'
   setDrops: (drops: DropWithParticipants[]) => void
   upsertDrops: (fresh: DropWithParticipants[]) => void
   setIsLoaded: (loaded: boolean) => void
@@ -25,6 +26,7 @@ interface DropsState {
   setDraftThumbnailUri: (uri: string | null) => void
   clearDraft: () => void
   reset: () => void
+  setDropPhotoFilter: (filter: 'all' | 'mine') => void
 }
 
 export const useDropsStore = create<DropsState>((set) => ({
@@ -32,6 +34,8 @@ export const useDropsStore = create<DropsState>((set) => ({
   isLoaded: false,
   error: null,
   draft: EMPTY_DRAFT,
+  dropPhotoFilter: 'all',
+  setDropPhotoFilter: (dropPhotoFilter) => set({ dropPhotoFilter }),
   setDrops: (drops) => set({ drops }),
   upsertDrops: (fresh) => set(s => {
     const map = new Map(s.drops.map(d => [d.id, d]))

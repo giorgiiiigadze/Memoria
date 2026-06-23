@@ -1,79 +1,31 @@
 import { getDrop, type DropWithParticipants } from '@/api/drops.api'
 import { getDropPhotos, uploadDropPhoto, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
-import { PhotoGrid } from '@/components/drops/PhotoGrid'
+import { PhotosByUploader, PhotosByUploaderSkeleton } from '@/components/drops/PhotosByUploader'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
-import { colors } from '@/theme'
+import { colors, spacing } from '@/theme'
+import { GlassContainer, GlassView } from 'expo-glass-effect'
 import * as Haptics from 'expo-haptics'
 import * as ImagePicker from 'expo-image-picker'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Stack, useFocusEffect, useLocalSearchParams } from 'expo-router'
-import { Camera, Image as ImageIcon } from 'lucide-react-native'
+import { useFocusEffect, useLocalSearchParams } from 'expo-router'
+import { SymbolView } from 'expo-symbols'
+import { Image as ImageIcon } from 'lucide-react-native'
 import { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native'
-import Animated, {
-  cancelAnimation,
-  Easing,
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-const { width: SW } = Dimensions.get('window')
-
-function SkeletonGrid({ topInset }: { topInset: number }) {
-  const shimmerX = useSharedValue(0)
-
-  useEffect(() => {
-    shimmerX.value = withRepeat(
-      withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      false,
-    )
-    return () => cancelAnimation(shimmerX)
-  }, [])
-
-  const shimmerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: interpolate(shimmerX.value, [0, 1], [-SW, SW]) }],
-  }))
-
-  const COLS = 2
-  const GAP = 4
-  const tileSize = Math.floor((SW - GAP * (COLS - 1)) / COLS)
-  const tileHeight = Math.floor(tileSize * (4 / 3))
-
-  return (
-    <View style={[s.skeletonGrid, { paddingTop: topInset }]}>
-      {Array.from({ length: 6 }).map((_, i) => (
-        <View key={i} style={[s.skeletonTile, { width: tileSize, height: tileHeight }]}>
-          <Animated.View style={[s.shimmerBar, shimmerStyle]}>
-            <LinearGradient
-              colors={['transparent', 'rgba(255,255,255,0.04)', 'transparent']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={StyleSheet.absoluteFill}
-            />
-          </Animated.View>
-        </View>
-      ))}
-    </View>
-  )
-}
-
 export default function DropDetailScreen() {
-  const { id, backTitle } = useLocalSearchParams<{ id: string; backTitle?: string }>()
+  const { id } = useLocalSearchParams<{ id: string; backTitle?: string }>()
   const insets  = useSafeAreaInsets()
   const user    = useAuthStore(selectUser)
   const cached  = useDropsStore(s => s.drops.find(d => d.id === id))
@@ -97,9 +49,7 @@ export default function DropDetailScreen() {
     return subscribeToDropPhotos(id, setPhotos)
   }, [id])
 
-  const visiblePhotos = photos
   const isLocked = drop?.state === 'active' || drop?.state === 'ready'
-
   const canUpload = !!user && (drop?.state === 'active' || drop?.state === 'ready')
 
   async function handleRefresh() {
@@ -153,21 +103,21 @@ export default function DropDetailScreen() {
     await upload(a.uri, a.width ?? null, a.height ?? null)
   }
 
-  const topInset = insets.top + 44 + 12
+  const topInset = insets.top + 44 + spacing[4]
 
   return (
     <View style={s.root}>
-      <Stack.Screen options={{ headerTitle: drop?.title ?? cached?.title ?? '' }} />
-
       {!photosLoaded ? (
-        <SkeletonGrid topInset={topInset} />
-      ) : visiblePhotos.length === 0 ? (
+        <PhotosByUploaderSkeleton topInset={topInset} />
+      ) : photos.length === 0 ? (
         <View style={s.empty}>
-          <Text style={s.emptyText}>No photos yet</Text>
+          <Text style={s.emptyText}>
+            {isLocked ? 'No photos yet' : 'No photos were uploaded to this drop'}
+          </Text>
         </View>
       ) : (
-        <PhotoGrid
-          photos={visiblePhotos}
+        <PhotosByUploader
+          photos={photos}
           onSelect={() => {}}
           refreshing={refreshing}
           onRefresh={handleRefresh}
@@ -195,18 +145,17 @@ export default function DropDetailScreen() {
               <ImageIcon size={18} color={colors.bone} />
             </TouchableOpacity>
           )}
-          <TouchableOpacity
-            style={s.captureBtn}
-            onPress={handleCapture}
-            disabled={capturing}
-            activeOpacity={0.85}
-          >
-            {capturing ? (
-              <ActivityIndicator color={colors.ink} />
-            ) : (
-              <Camera size={28} color={colors.ink} />
-            )}
-          </TouchableOpacity>
+          <GlassContainer>
+            <Pressable onPress={handleCapture} disabled={capturing}>
+              <GlassView isInteractive colorScheme="light" tintColor={colors.white} style={s.glassCaptureBtn}>
+                {capturing ? (
+                  <ActivityIndicator color={colors.bone} />
+                ) : (
+                  <SymbolView name="camera.fill" size={30} tintColor={colors.ink} resizeMode="scaleAspectFit" />
+                )}
+              </GlassView>
+            </Pressable>
+          </GlassContainer>
         </View>
       )}
     </View>
@@ -215,7 +164,6 @@ export default function DropDetailScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
-
 
   topScrim: {
     position: 'absolute',
@@ -226,34 +174,15 @@ const s = StyleSheet.create({
     zIndex: 5,
   },
 
-  skeletonGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-  },
-  skeletonTile: {
-    backgroundColor: colors.surface,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  shimmerBar: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: SW * 0.5,
-  },
-
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText: { color: colors.textTertiary, fontSize: 15 },
 
   captureWrap: {
     position: 'absolute',
-    left: 0,
-    right: 0,
+    right: spacing[4],
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
+    gap: 12,
     zIndex: 20,
   },
   devPickBtn: {
@@ -266,19 +195,12 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  captureBtn: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.bone,
+  glassCaptureBtn: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 4,
-    borderColor: 'rgba(242, 238, 230, 0.35)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    backgroundColor: 'rgba(242,238,230,0.85)',
   },
 })

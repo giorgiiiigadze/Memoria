@@ -1,4 +1,4 @@
-import { transparentHeaderOptions } from '@/theme'
+import { colors } from '@/theme'
 import { Stack } from 'expo-router'
 
 export default function CalendarLayout() {
@@ -6,15 +6,12 @@ export default function CalendarLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: 'transparent' },
+        contentStyle: { backgroundColor: colors.background },
       }}
     >
       <Stack.Screen
         name="index"
-        options={{
-          ...transparentHeaderOptions,
-          headerTitle: 'Calendar',
-        }}
+        options={{ headerShown: false }}
       />
     </Stack>
   )

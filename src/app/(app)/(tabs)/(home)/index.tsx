@@ -44,7 +44,7 @@ function ListFooter({ count }: { count: number }) {
     const spring = { stiffness: 90, damping: 18 }
     headlineOp.value = withSpring(1, spring)
     headlineY.value  = withSpring(0, spring)
-    subOp.value      = withDelay(80, withSpring(0.85, spring))
+    subOp.value      = withDelay(80, withSpring(1, spring))
     subY.value       = withDelay(80, withSpring(0, spring))
   }, [count])
 
@@ -128,7 +128,6 @@ export default function HomeScreen() {
     setRefreshing(false)
   }
 
-  // ── Empty / loading / error states ───────────────────────────────────────
   const ListEmpty = !isLoaded ? (
     <View style={s.loadingBox}>
       <RefreshGrid progress={loadingProgress} />
@@ -194,7 +193,7 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  // Always-present overlay — tiles are opacity 0 when progress=0
+
   refreshOverlay: {
     position: 'absolute',
     left: 0,
@@ -245,7 +244,6 @@ const s = StyleSheet.create({
   footer: {
     alignItems: 'center',
     paddingTop: spacing[6],
-    gap: spacing[2],
   },
   footerPrimaryText: {
     fontSize: fontSize.md,
@@ -254,7 +252,7 @@ const s = StyleSheet.create({
   },
   footerSecondaryText: {
     fontSize: fontSize.sm,
-    color: colors.textTertiary,
+    color: colors.white,
     fontWeight: fontWeight.regular,
   },
 })

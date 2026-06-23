@@ -1,12 +1,24 @@
 import { getMyDrops, type DropWithParticipants } from '@/api/drops.api'
 import { MiniDropGrid, MiniDropGridSkeleton } from '@/components/drops/MiniDropCard'
+import CalendarHeader, { CALENDAR_TABS, type CalendarTab } from '@/components/ui/CalendarHeader'
 import { FULL_MONTHS } from '@/constants/drops'
+import { selectUser, useAuthStore } from '@/store/auth.store'
 import { selectDropsLoaded, useDropsStore } from '@/store/drops.store'
-import { useShallow } from 'zustand/react/shallow'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import { useFocusEffect } from 'expo-router'
-import { useCallback, useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { useCallback, useRef, useState } from 'react'
+import {
+  Dimensions,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
+import { useShallow } from 'zustand/react/shallow'
+
+const SW = Dimensions.get('window').width
 
 function monthLabel(iso: string) {
   const d = new Date(iso)
@@ -37,28 +49,13 @@ function groupByMonth(drops: DropWithParticipants[]) {
   return groups
 }
 
-export default function CalendarScreen() {
-  const drops = useDropsStore(useShallow(s => s.drops))
-  const storeLoaded = useDropsStore(selectDropsLoaded)
-  const [apiLoaded, setApiLoaded] = useState(false)
-  const [error, setError] = useState(false)
+type PageProps = {
+  loaded: boolean
+  error: boolean
+  groups: { label: string; items: DropWithParticipants[] }[]
+}
 
-  const loaded = storeLoaded || drops.length > 0 || apiLoaded
-
-  useFocusEffect(
-    useCallback(() => {
-      setError(false)
-      getMyDrops()
-        .then(d => {
-          useDropsStore.getState().upsertDrops(d)
-          setApiLoaded(true)
-        })
-        .catch(() => { setError(true); setApiLoaded(true) })
-    }, [])
-  )
-
-  const groups = groupByMonth(drops)
-
+function CalendarPage({ loaded, error, groups }: PageProps) {
   return (
     <ScrollView
       style={s.root}
@@ -96,13 +93,79 @@ export default function CalendarScreen() {
   )
 }
 
+export default function CalendarScreen() {
+  const drops = useDropsStore(useShallow(s => s.drops))
+  const storeLoaded = useDropsStore(selectDropsLoaded)
+  const user = useAuthStore(selectUser)
+  const [apiLoaded, setApiLoaded] = useState(false)
+  const [error, setError] = useState(false)
+  const [activeTab, setActiveTab] = useState<CalendarTab>('All Drops')
+  const scrollRef = useRef<ScrollView>(null)
+
+  const loaded = storeLoaded || drops.length > 0 || apiLoaded
+
+  useFocusEffect(
+    useCallback(() => {
+      setError(false)
+      getMyDrops()
+        .then(d => {
+          useDropsStore.getState().upsertDrops(d)
+          setApiLoaded(true)
+        })
+        .catch(() => { setError(true); setApiLoaded(true) })
+    }, [])
+  )
+
+  const allGroups = groupByMonth(drops)
+  const myGroups = groupByMonth(drops.filter(d => d.creator_id === user?.id))
+
+  function handleTabChange(tab: CalendarTab) {
+    setActiveTab(tab)
+    scrollRef.current?.scrollTo({ x: CALENDAR_TABS.indexOf(tab) * SW, animated: true })
+  }
+
+  function handleMomentumScrollEnd(e: NativeSyntheticEvent<NativeScrollEvent>) {
+    const page = Math.round(e.nativeEvent.contentOffset.x / SW)
+    setActiveTab(CALENDAR_TABS[page])
+  }
+
+  return (
+    <>
+      <CalendarHeader activeTab={activeTab} onTabChange={handleTabChange} />
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        style={s.pager}
+      >
+        <View style={s.page}>
+          <CalendarPage loaded={loaded} error={error} groups={allGroups} />
+        </View>
+        <View style={s.page}>
+          <CalendarPage loaded={loaded} error={error} groups={myGroups} />
+        </View>
+      </ScrollView>
+    </>
+  )
+}
+
 const s = StyleSheet.create({
+  pager: {
+    flex: 1,
+  },
+  page: {
+    width: SW,
+    flex: 1,
+  },
   root: {
     flex: 1,
     backgroundColor: colors.background,
   },
   content: {
-    paddingTop: spacing[2],
+    paddingTop: spacing[4],
     paddingBottom: spacing[12],
   },
   group: {
@@ -110,7 +173,7 @@ const s = StyleSheet.create({
   },
   monthLabel: {
     fontSize: fontSize.md,
-    fontWeight: fontWeight.semiBold,
+    fontWeight: fontWeight.strong,
     color: colors.white,
     marginBottom: spacing[3],
     paddingHorizontal: spacing[5],
