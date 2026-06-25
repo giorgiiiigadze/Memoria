@@ -1,6 +1,7 @@
 import type { DropWithParticipants } from '@/api/drops.api'
 import type { PhotoWithUploader } from '@/api/photos.api'
 import { colors, fontWeight, radii } from '@/theme'
+import { timeAgo } from '@/utils/date'
 import type { DropState } from '@/types/database.types'
 import { shareDrop } from '@/utils/share'
 import { MenuView } from '@expo/ui/community/menu'
@@ -10,7 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { useEffect } from 'react'
-import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native'
+import { Alert, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native'
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated'
 
 const COLS = 3
@@ -135,7 +136,7 @@ export function MiniPhotoCard({ photo, size, blurred, onPress }: MiniPhotoCardPr
           style={s.photoGradient}
           pointerEvents="none"
         >
-          <Text style={s.photoDate} numberOfLines={1}>{fmtShort(photo.uploaded_at)}</Text>
+          <Text style={s.photoDate} numberOfLines={1}>{timeAgo(photo.uploaded_at)}</Text>
         </LinearGradient>
       )}
     </View>
@@ -155,10 +156,12 @@ export function MiniPhotoCard({ photo, size, blurred, onPress }: MiniPhotoCardPr
       style={{ width: size }}
       actions={[
         { id: 'view', title: 'View Photo', image: 'eye' },
+        { id: 'save', title: 'Save Photo', image: 'square.and.arrow.down' },
         { id: 'share', title: 'Share', image: 'square.and.arrow.up' },
       ]}
       onPressAction={({ nativeEvent }) => {
         if (nativeEvent.event === 'view') onPress()
+        if (nativeEvent.event === 'save') Alert.alert('Coming soon', 'Photo saving will be available in a future update.')
       }}
     >
       <TouchableOpacity style={{ width: size }} onPress={onPress} activeOpacity={0.82}>

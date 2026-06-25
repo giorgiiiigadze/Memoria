@@ -1,6 +1,7 @@
 import type { PhotoWithUploader } from '@/api/photos.api'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { colors, radii, spacing } from '@/theme'
+import { timeAgo } from '@/utils/date'
 import { GlassContainer, GlassView } from 'expo-glass-effect'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -12,7 +13,6 @@ import {
   Modal,
   PanResponder,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -23,24 +23,15 @@ const SW = Dimensions.get('window').width
 const SH = Dimensions.get('window').height
 const DISMISS_THRESHOLD = 50
 
-const THUMB_W            = 36
-const THUMB_H            = 36   // square, like iOS Photos
-const THUMB_GAP          = 4
-const THUMB_ITEM_W       = THUMB_W + THUMB_GAP
-const FILMSTRIP_H        = 56   // paddingTop(4) + thumb(36) + paddingBottom(16)
-const FILMSTRIP_PAD      = SW / 2 - THUMB_W / 2
-// Header height: glass button(44) + paddingBottom(8)
+const THUMB_W        = 60
+const THUMB_H        = 80
+const THUMB_ACTIVE_W = 94
+const THUMB_ACTIVE_H = 125
+const THUMB_MARGIN   = 0
+const THUMB_ITEM_W   = THUMB_W + 2 * THUMB_MARGIN
+const FILMSTRIP_H    = 96
+const FILMSTRIP_PAD  = SW / 2 - THUMB_W / 2
 const HEADER_H           = 52
-
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-function fmtUpload(iso: string | null | undefined) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  const h = d.getHours(), m = d.getMinutes().toString().padStart(2,'0')
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  return `${MONTHS[d.getMonth()]} ${d.getDate()} · ${h % 12 || 12}:${m} ${ampm}`
-}
-// ─── Filmstrip thumb ──────────────────────────────────────────────────────────
 
 function FilmstripThumb({
   item,
@@ -51,25 +42,48 @@ function FilmstripThumb({
   isActive: boolean
   onPress: () => void
 }) {
+  const anim = useRef(new Animated.Value(isActive ? 1 : 0)).current
+
+  useEffect(() => {
+    Animated.spring(anim, {
+      toValue: isActive ? 1 : 0,
+      useNativeDriver: false,
+      tension: 220,
+      friction: 22,
+    }).start()
+  }, [isActive])
+
+  const width   = anim.interpolate({ inputRange: [0, 1], outputRange: [THUMB_W, THUMB_ACTIVE_W] })
+  const height  = anim.interpolate({ inputRange: [0, 1], outputRange: [THUMB_H, THUMB_ACTIVE_H] })
+  const opacity = anim.interpolate({ inputRange: [0, 1], outputRange: [0.55, 1] })
+  const radius  = anim.interpolate({ inputRange: [0, 1], outputRange: [7, 10] })
+
   return (
-    <Pressable onPress={onPress} style={{ marginRight: THUMB_GAP }}>
-      <View style={[ft.thumb, isActive && ft.thumbActive]}>
-        <Image source={{ uri: item.cdn_url }} style={StyleSheet.absoluteFill} contentFit="cover" />
-      </View>
-    </Pressable>
+    <Animated.View style={[ft.slot, { width, height, opacity }]}>
+      <Pressable onPress={onPress} style={StyleSheet.absoluteFill}>
+        <Animated.View style={[ft.border, isActive && ft.borderActive, { borderRadius: radius }]}>
+          <Animated.View style={[ft.clip, { borderRadius: anim.interpolate({ inputRange: [0, 1], outputRange: [4.5, 7.5] }) }]}>
+            <Image source={{ uri: item.cdn_url }} style={StyleSheet.absoluteFill} contentFit="cover" />
+          </Animated.View>
+        </Animated.View>
+      </Pressable>
+    </Animated.View>
   )
 }
 
 const ft = StyleSheet.create({
-  thumb: {
-    width: THUMB_W,
-    height: THUMB_H,
-    borderRadius: 4,
-    overflow: 'hidden',
-    opacity: 0.55,
+  slot: { marginHorizontal: THUMB_MARGIN },
+  border: {
+    flex: 1,
+    borderWidth: 2.5,
+    borderColor: 'transparent',
   },
-  thumbActive: {
-    opacity: 1,
+  borderActive: {
+    borderColor: '#000',
+  },
+  clip: {
+    flex: 1,
+    overflow: 'hidden',
   },
 })
 
@@ -84,8 +98,8 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
   const insets = useSafeAreaInsets()
   const [index, setIndex] = useState(initialIndex)
 
-  const onCloseRef   = useRef(onClose)
-  const filmstripRef = useRef<ScrollView>(null)
+  const onCloseRef        = useRef(onClose)
+  const filmstripTranslate = useRef(new Animated.Value(0)).current
   useEffect(() => { onCloseRef.current = onClose }, [onClose])
 
   const translateY = useRef(new Animated.Value(0)).current
@@ -127,25 +141,18 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
     translateX.stopAnimation()
     translateY.setValue(0)
     translateX.setValue(0)
+    filmstripTranslate.setValue(-(initialIndex * THUMB_ITEM_W) - (THUMB_ACTIVE_W - THUMB_W) / 2 - THUMB_MARGIN)
     setIndex(initialIndex)
   }, [visible, initialIndex])
 
-  // Auto-advance every 5 seconds
-  useEffect(() => {
-    if (!visible) return
-    const t = setTimeout(() => {
-      if (index === photos.length - 1) {
-        onCloseRef.current()
-      } else {
-        setIndex(i => i + 1)
-      }
-    }, 5000)
-    return () => clearTimeout(t)
-  }, [visible, index])
 
   useEffect(() => {
-    if (!filmstripRef.current) return
-    filmstripRef.current.scrollTo({ x: index * THUMB_ITEM_W, animated: true })
+    Animated.spring(filmstripTranslate, {
+      toValue: -(index * THUMB_ITEM_W) - (THUMB_ACTIVE_W - THUMB_W) / 2 - THUMB_MARGIN,
+      useNativeDriver: true,
+      tension: 220,
+      friction: 24,
+    }).start()
   }, [index])
 
   function dismiss(vy = 0) {
@@ -287,7 +294,7 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
 
         <View style={s.headerMeta}>
           <Text style={s.headerName} numberOfLines={1}>{name}</Text>
-          <Text style={s.headerDate} numberOfLines={1}>{fmtUpload(photo.uploaded_at)}</Text>
+          <Text style={s.headerDate} numberOfLines={1}>{timeAgo(photo.uploaded_at)}</Text>
         </View>
 
         <View style={s.headerSpacer} />
@@ -307,12 +314,8 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
         pointerEvents="box-none"
       >
         <View style={s.filmstripTrack}>
-          <ScrollView
-            ref={filmstripRef}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            scrollEnabled={false}
-            contentContainerStyle={s.filmstripContent}
+          <Animated.View
+            style={[s.filmstripContent, { transform: [{ translateX: filmstripTranslate }] }]}
           >
             {photos.map((item, i) => (
               <FilmstripThumb
@@ -322,22 +325,8 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
                 onPress={() => setIndex(i)}
               />
             ))}
-          </ScrollView>
+          </Animated.View>
 
-          <LinearGradient
-            colors={['rgba(0,0,0,0.85)', 'transparent']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={s.filmstripFadeLeft}
-            pointerEvents="none"
-          />
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.85)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={s.filmstripFadeRight}
-            pointerEvents="none"
-          />
         </View>
       </Animated.View>
     </Modal>
@@ -407,26 +396,15 @@ const s = StyleSheet.create({
     left: 0,
     right: 0,
     paddingTop: spacing[1],
+    overflow: 'visible',
   },
   filmstripTrack: {
-    position: 'relative',
+    overflow: 'visible',
   },
   filmstripContent: {
+    flexDirection: 'row',
     paddingHorizontal: FILMSTRIP_PAD,
-    alignItems: 'center',
-  },
-  filmstripFadeLeft: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    width: 56,
-  },
-  filmstripFadeRight: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    right: 0,
-    width: 56,
+    alignItems: 'flex-end',
+    overflow: 'visible',
   },
 })

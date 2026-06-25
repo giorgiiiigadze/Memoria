@@ -203,10 +203,7 @@ export function PhotosByUploaderSkeleton({ topInset }: { topInset: number }) {
           {Array.from({ length: 2 }).map((_, ri) => (
             <View key={ri} style={[sk.row, ri > 0 && { marginTop: GAP }]}>
               {Array.from({ length: COLS }).map((_, ci) => (
-                <View key={ci} style={{ width: tileSize }}>
-                  <Animated.View style={[sk.tile, pulse, { width: tileSize, height: tileHeight }]} />
-                  <Animated.View style={[sk.dateStub, pulse]} />
-                </View>
+                <Animated.View key={ci} style={[sk.tile, pulse, { width: tileSize, height: tileHeight }]} />
               ))}
             </View>
           ))}
@@ -229,7 +226,7 @@ const sk = StyleSheet.create({
   avatar: {
     width: 30,
     height: 30,
-    borderRadius: 15,
+    borderRadius: 6,
     backgroundColor: colors.surfaceRaised,
   },
   nameLine: {
@@ -250,13 +247,5 @@ const sk = StyleSheet.create({
   tile: {
     backgroundColor: colors.surfaceRaised,
     borderRadius: radii.sm,
-  },
-  dateStub: {
-    height: 10,
-    width: 32,
-    borderRadius: 5,
-    backgroundColor: colors.surfaceRaised,
-    marginTop: 4,
-    marginLeft: 2,
   },
 })

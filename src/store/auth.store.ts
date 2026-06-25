@@ -1,5 +1,3 @@
-// src/store/auth.store.ts
-
 import { supabase } from '@/api/client'
 import type { Database } from '@/types/database.types'
 import { Session, User } from '@supabase/supabase-js'
