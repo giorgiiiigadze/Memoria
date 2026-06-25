@@ -5,8 +5,7 @@ import { GlassContainer, GlassView } from 'expo-glass-effect'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { SymbolView } from 'expo-symbols'
-import { useEffect, useRef } from 'react'
-import { useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import {
   Animated,
   Dimensions,
@@ -21,7 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const SW = Dimensions.get('window').width
 const SH = Dimensions.get('window').height
-const DISMISS_THRESHOLD = 80
+const DISMISS_THRESHOLD = 60
 
 type Props = {
   photos: PhotoWithUploader[]
@@ -34,33 +33,66 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
   const insets = useSafeAreaInsets()
   const [index, setIndex] = useState(initialIndex)
 
-  // Keep onClose ref-stable so PanResponder (created once) always calls current version
   const onCloseRef = useRef(onClose)
   useEffect(() => { onCloseRef.current = onClose }, [onClose])
 
   const translateY = useRef(new Animated.Value(0)).current
-  const bgOpacity = useRef(new Animated.Value(1)).current
+  const translateX = useRef(new Animated.Value(0)).current
+  const segmentProgress = useRef(new Animated.Value(0)).current
 
-  // Derived values from drag position
-  const contentScale = translateY.interpolate({
+  // Track live translateY so PanResponder grant can pick up from mid-animation
+  const currentY = useRef(0)
+  useEffect(() => {
+    const id = translateY.addListener(({ value }: { value: number }) => { currentY.current = value })
+    return () => translateY.removeListener(id)
+  }, [translateY])
+
+  // Everything derived from translateY — single source of truth for drag state
+  const bgOpacity = translateY.interpolate({
     inputRange: [0, SH * 0.5],
-    outputRange: [1, 0.88],
+    outputRange: [1, 0],
     extrapolate: 'clamp',
   })
 
-  useEffect(() => {
-    if (visible) setIndex(initialIndex)
+  // Photo card scales from 1 → 0.72 — more card-like as you drag
+  const photoScale = translateY.interpolate({
+    inputRange: [0, SH * 0.55],
+    outputRange: [1, 0.72],
+    extrapolate: 'clamp',
+  })
+
+  // Overlays fade fast (first 80px) so only the photo remains during drag
+  const overlayOpacity = translateY.interpolate({
+    inputRange: [0, 80],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  })
+
+  // Horizontal resistance: 15% of actual drag, clamped to screen edges
+  const resistedX = translateX.interpolate({
+    inputRange: [-SW, 0, SW],
+    outputRange: [-SW * 0.15, 0, SW * 0.15],
+    extrapolate: 'clamp',
+  })
+
+  // Reset index + drag state synchronously, before the first frame of an
+  // open is painted. A drag-dismiss parks translateY at SH and intentionally
+  // leaves it there (resetting it earlier caused a flash). If we reset it in
+  // a post-paint effect instead, the reopened photo races the paint: some
+  // frames render it off-screen / scaled / invisible until the reset lands —
+  // that's the intermittent "animation fails" on reopen. useLayoutEffect runs
+  // before paint, so the photo is always at rest by the time it's shown.
+  useLayoutEffect(() => {
+    if (!visible) return
+    translateY.stopAnimation()
+    translateX.stopAnimation()
+    translateY.setValue(0)
+    translateX.setValue(0)
+    segmentProgress.setValue(0)
+    setIndex(initialIndex)
   }, [visible, initialIndex])
 
-  // Reset animation values each time the modal opens
-  useEffect(() => {
-    if (visible) {
-      translateY.setValue(0)
-      bgOpacity.setValue(1)
-    }
-  }, [visible])
-
-  // Auto-advance story
+  // Auto-advance every 5 seconds
   useEffect(() => {
     if (!visible) return
     const t = setTimeout(() => {
@@ -73,21 +105,30 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
     return () => clearTimeout(t)
   }, [visible, index])
 
-  function dismiss() {
-    Animated.parallel([
-      Animated.timing(translateY, {
-        toValue: SH,
-        duration: 260,
-        useNativeDriver: true,
-      }),
-      Animated.timing(bgOpacity, {
-        toValue: 0,
-        duration: 220,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      translateY.setValue(0)
-      bgOpacity.setValue(1)
+  // Segment fill animation — visual only, in sync with the 5s timer above
+  useEffect(() => {
+    if (!visible) return
+    segmentProgress.setValue(0)
+    Animated.timing(segmentProgress, {
+      toValue: 1,
+      duration: 5000,
+      useNativeDriver: false,
+    }).start()
+    return () => segmentProgress.stopAnimation()
+  }, [visible, index])
+
+  function dismiss(vy = 0) {
+    // Faster dismiss when flicked — cap at 160ms, floor at 280ms
+    const duration = Math.max(160, 280 - Math.min(vy, 3) * 40)
+    Animated.timing(translateY, {
+      toValue: SH,
+      duration,
+      useNativeDriver: true,
+    }).start(() => {
+      // Don't reset values here — the photo stays off-screen (translateY=SH)
+      // until the modal is gone. Resetting before onClose causes a one-frame
+      // flash where the photo jumps back to full position while the modal
+      // is still mounted. The visible=true useEffect resets on next open.
       onCloseRef.current()
     })
   }
@@ -97,50 +138,50 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
       Animated.spring(translateY, {
         toValue: 0,
         useNativeDriver: true,
-        tension: 120,
-        friction: 10,
+        tension: 220,
+        friction: 24,
       }),
-      Animated.spring(bgOpacity, {
-        toValue: 1,
+      Animated.spring(translateX, {
+        toValue: 0,
         useNativeDriver: true,
-        tension: 120,
-        friction: 10,
+        tension: 220,
+        friction: 24,
       }),
     ]).start()
   }
 
-  // Offset saved at grant time so the view doesn't jump when PanResponder
-  // steals the touch from the Pressable after the initial movement threshold.
+  // Offset saved at grant so the card doesn't jump when PanResponder steals
+  // the touch from Pressable after the initial movement threshold.
   const grantDyRef = useRef(0)
+  const grantDxRef = useRef(0)
 
   const pan = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, g) =>
         g.dy > 6 && Math.abs(g.dy) > Math.abs(g.dx),
       onPanResponderGrant: (_, g) => {
-        // @ts-ignore — read current value to preserve position on re-grab during snap-back
-        const currentY = (translateY._value as number) ?? 0
-        grantDyRef.current = g.dy - currentY
+        // Capture grant-time gesture position + current animated position
+        // so move handler produces zero-jump displacement from here
+        grantDyRef.current = g.dy - currentY.current
+        grantDxRef.current = g.dx
         translateY.stopAnimation()
-        bgOpacity.stopAnimation()
+        translateX.stopAnimation()
       },
       onPanResponderMove: (_, g) => {
         const dy = g.dy - grantDyRef.current
         if (dy < 0) return
         translateY.setValue(dy)
-        const progress = Math.min(dy / (SH * 0.45), 1)
-        bgOpacity.setValue(1 - progress * 0.85)
+        translateX.setValue(g.dx - grantDxRef.current)
       },
       onPanResponderRelease: (_, g) => {
         const dy = g.dy - grantDyRef.current
-        if (dy > DISMISS_THRESHOLD || g.vy > 1.2) {
-          dismiss()
+        if (dy > DISMISS_THRESHOLD || g.vy > 0.8) {
+          dismiss(g.vy)
         } else {
           snapBack()
         }
       },
       onPanResponderTerminate: () => snapBack(),
-      // Don't let a parent ScrollView steal the gesture mid-swipe
       onPanResponderTerminateRequest: () => false,
     })
   ).current
@@ -169,19 +210,23 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
       presentationStyle="overFullScreen"
       animationType="fade"
     >
-      {/* Separate fading background so it dims as you drag */}
+      {/* Background fully fades to transparent so you see through during drag */}
       <Animated.View
         style={[StyleSheet.absoluteFill, s.bg, { opacity: bgOpacity }]}
         pointerEvents="none"
       />
 
-      {/* Draggable content container */}
+      {/* Photo card: translate + horizontal resistance + scale */}
       <Animated.View
         style={[
           s.root,
           { paddingTop: insets.top },
           {
-            transform: [{ translateY }, { scale: contentScale }],
+            transform: [
+              { translateY },
+              { translateX: resistedX },
+              { scale: photoScale },
+            ],
           },
         ]}
         {...pan.panHandlers}
@@ -209,33 +254,51 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
           onPress={e => handleTap(e.nativeEvent.locationX)}
         />
 
-        <View style={s.header}>
+        {/* Header fades within first 80px of drag so only the photo remains */}
+        <Animated.View style={[s.header, { opacity: overlayOpacity }]}>
           <GlassContainer>
-            <Pressable onPress={dismiss}>
-              <GlassView
-                isInteractive
-                colorScheme="light"
-                style={s.glassCloseBtn}
-              >
+            <Pressable onPress={() => dismiss()}>
+              <GlassView isInteractive colorScheme="light" style={s.glassCloseBtn}>
                 <SymbolView name="chevron.down" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
               </GlassView>
             </Pressable>
           </GlassContainer>
+
           <View style={s.progressRow}>
             {photos.map((_, i) => (
               <View
                 key={i}
-                style={[s.seg, i <= index ? s.segFilled : s.segEmpty]}
-              />
+                style={[s.seg, i < index ? s.segFilled : s.segEmpty]}
+              >
+                {i === index && (
+                  <Animated.View
+                    style={[
+                      s.segActiveFill,
+                      {
+                        width: segmentProgress.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ['0%', '100%'],
+                        }),
+                      },
+                    ]}
+                  />
+                )}
+              </View>
             ))}
           </View>
-        </View>
+        </Animated.View>
 
-        <View style={[s.bottomBar, { paddingBottom: insets.bottom + spacing[6] }]}>
+        {/* Bottom bar fades in sync with header */}
+        <Animated.View
+          style={[
+            s.bottomBar,
+            { paddingBottom: insets.bottom + spacing[6], opacity: overlayOpacity },
+          ]}
+        >
           <InitialAvatar name={name} avatarUrl={photo.uploader?.avatar_url ?? null} size={28} />
           <Text style={s.uploaderName} numberOfLines={1}>{name}</Text>
           <Text style={s.counter}>{index + 1} / {photos.length}</Text>
-        </View>
+        </Animated.View>
       </Animated.View>
     </Modal>
   )
@@ -293,12 +356,20 @@ const s = StyleSheet.create({
     flex: 1,
     height: 2.5,
     borderRadius: radii.full,
+    overflow: 'hidden',
   },
   segFilled: {
     backgroundColor: colors.bone,
   },
   segEmpty: {
     backgroundColor: 'rgba(242,238,230,0.35)',
+  },
+  segActiveFill: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    backgroundColor: colors.bone,
   },
   glassCloseBtn: {
     width: 44,
