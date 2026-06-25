@@ -100,12 +100,50 @@ type MiniPhotoCardProps = {
 
 export function MiniPhotoCard({ photo, size, blurred, onPress }: MiniPhotoCardProps) {
   const cardHeight = Math.floor(size * (4 / 3))
+  const blurOpacity = useSharedValue(blurred ? 1 : 0)
+
+  useEffect(() => {
+    blurOpacity.value = withTiming(blurred ? 1 : 0, { duration: 300 })
+  }, [blurred])
+
+  const blurStyle = useAnimatedStyle(() => ({ opacity: blurOpacity.value }))
+
+  const thumb = (
+    <View style={[s.thumb, { width: size, height: cardHeight }]}>
+      <Image
+        source={{ uri: photo.cdn_url }}
+        style={StyleSheet.absoluteFill}
+        contentFit="cover"
+        recyclingKey={photo.id}
+        transition={150}
+      />
+      <Animated.View style={[StyleSheet.absoluteFill, blurStyle]} pointerEvents="none">
+        <BlurView intensity={30} tint="dark" style={[StyleSheet.absoluteFill, s.blurOverlay]}>
+          <View style={s.lockBadge}>
+            <SymbolView name="lock.fill" size={11} tintColor={colors.bone} resizeMode="scaleAspectFit" />
+            <Text style={s.lockBadgeText}>Locked</Text>
+          </View>
+        </BlurView>
+      </Animated.View>
+    </View>
+  )
+
+  const dateLabel = fmtShort(photo.uploaded_at)
+
+  if (blurred) {
+    return (
+      <View style={{ width: size }}>
+        {thumb}
+        <Text style={s.date}>{dateLabel}</Text>
+      </View>
+    )
+  }
 
   return (
     <MenuView
-      shouldOpenOnLongPress={!blurred}
+      shouldOpenOnLongPress
       style={{ width: size }}
-      actions={blurred ? [] : [
+      actions={[
         { id: 'view', title: 'View Photo', image: 'eye' },
         { id: 'share', title: 'Share', image: 'square.and.arrow.up' },
       ]}
@@ -113,22 +151,9 @@ export function MiniPhotoCard({ photo, size, blurred, onPress }: MiniPhotoCardPr
         if (nativeEvent.event === 'view') onPress()
       }}
     >
-      <TouchableOpacity style={{ width: size }} onPress={blurred ? undefined : onPress} activeOpacity={blurred ? 1 : 0.82}>
-        <View style={[s.thumb, { width: size, height: cardHeight }]}>
-          <Image
-            source={{ uri: photo.cdn_url }}
-            style={StyleSheet.absoluteFill}
-            contentFit="cover"
-            recyclingKey={photo.id}
-            transition={150}
-          />
-          {blurred && (
-            <BlurView intensity={72} tint="dark" style={[StyleSheet.absoluteFill, s.blurOverlay]}>
-              <SymbolView name="lock.fill" size={20} tintColor={colors.bone} resizeMode="scaleAspectFit" />
-            </BlurView>
-          )}
-        </View>
-        <Text style={s.date}>{fmtShort(photo.uploaded_at)}</Text>
+      <TouchableOpacity style={{ width: size }} onPress={onPress} activeOpacity={0.82}>
+        {thumb}
+        <Text style={s.date}>{dateLabel}</Text>
       </TouchableOpacity>
     </MenuView>
   )
@@ -227,13 +252,20 @@ const s = StyleSheet.create({
   blurOverlay: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
   },
-  blurText: {
+  lockBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(14,14,16,0.55)',
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  lockBadgeText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     color: colors.bone,
-    textAlign: 'center',
     letterSpacing: 0.2,
   },
   photoFooter: {

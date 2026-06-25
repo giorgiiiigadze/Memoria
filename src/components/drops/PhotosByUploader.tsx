@@ -4,13 +4,15 @@ import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { colors, fontWeight, radii, spacing } from '@/theme'
 import { useEffect } from 'react'
 import {
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   RefreshControl,
   ScrollView,
   SectionList,
   StyleSheet,
   Text,
-  View,
   useWindowDimensions,
+  View,
 } from 'react-native'
 import Animated, {
   cancelAnimation,
@@ -23,7 +25,8 @@ import Animated, {
 } from 'react-native-reanimated'
 
 const COLS = 3
-const GAP = 2
+const GAP = 4
+
 
 type PhotoRow = PhotoWithUploader[]
 
@@ -73,7 +76,9 @@ type Props = {
   onSelect: (photo: PhotoWithUploader) => void
   refreshing: boolean
   onRefresh: () => void
+  onScroll?: (e: NativeSyntheticEvent<NativeScrollEvent>) => void
   topInset: number
+  bottomPad: number
   isLocked?: boolean
   currentUserId?: string
 }
@@ -83,7 +88,9 @@ export function PhotosByUploader({
   onSelect,
   refreshing,
   onRefresh,
+  onScroll,
   topInset,
+  bottomPad,
   isLocked,
   currentUserId,
 }: Props) {
@@ -97,24 +104,28 @@ export function PhotosByUploader({
       keyExtractor={(row, i) => `${row[0]?.id ?? 'empty'}-${i}`}
       showsVerticalScrollIndicator={false}
       stickySectionHeadersEnabled={false}
-      contentContainerStyle={{ paddingTop: topInset, paddingBottom: spacing[10] }}
+      contentContainerStyle={{ paddingTop: topInset, paddingBottom: bottomPad }}
+      onScroll={onScroll}
+      scrollEventThrottle={16}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          tintColor={colors.bone}
-          colors={[colors.bone]}
+          tintColor="transparent"
+          colors={['transparent']}
         />
       }
       renderSectionHeader={({ section }) => {
         const name = section.uploader?.display_name ?? section.uploader?.username ?? 'Unknown'
         return (
           <View style={s.sectionHeader}>
-            <InitialAvatar name={name} avatarUrl={section.uploader?.avatar_url} size={28} />
-            <Text style={s.uploaderName} numberOfLines={1}>{name}</Text>
-            <Text style={s.count}>
-              {section.photoCount} {section.photoCount === 1 ? 'photo' : 'photos'}
-            </Text>
+            <InitialAvatar name={name} avatarUrl={section.uploader?.avatar_url} size={30} />
+            <View style={s.uploaderInfo}>
+              <Text style={s.uploaderName} numberOfLines={1}>{name}</Text>
+              <Text style={s.count}>
+                {section.photoCount} {section.photoCount === 1 ? 'photo' : 'photos'}
+              </Text>
+            </View>
           </View>
         )
       }}
@@ -140,6 +151,7 @@ export function PhotosByUploader({
   )
 }
 
+
 const s = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
@@ -149,17 +161,19 @@ const s = StyleSheet.create({
     paddingTop: spacing[4],
     paddingBottom: spacing[3],
   },
-  uploaderName: {
+  uploaderInfo: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: fontWeight.semiBold,
+    flexDirection: 'column',
+    gap: 2,
+  },
+  uploaderName: {
+    fontSize: 14,
+    fontWeight: fontWeight.strong,
     color: colors.white,
-    flexShrink: 1,
   },
   count: {
     fontSize: 12,
     color: colors.textTertiary,
-    flexShrink: 0,
   },
   row: {
     flexDirection: 'row',

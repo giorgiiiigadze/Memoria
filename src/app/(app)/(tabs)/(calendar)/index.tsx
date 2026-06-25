@@ -18,7 +18,7 @@ import {
 } from 'react-native'
 import { useShallow } from 'zustand/react/shallow'
 
-const SW = Dimensions.get('window').width
+const { width: SW, height: SH } = Dimensions.get('window')
 
 function monthLabel(iso: string) {
   const d = new Date(iso)
@@ -158,7 +158,7 @@ const s = StyleSheet.create({
   },
   page: {
     width: SW,
-    flex: 1,
+    height: SH,
   },
   root: {
     flex: 1,

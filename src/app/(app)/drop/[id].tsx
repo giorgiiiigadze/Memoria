@@ -2,6 +2,8 @@ import { getDrop, type DropWithParticipants } from '@/api/drops.api'
 import { getDropPhotos, uploadDropPhoto, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
 import { PhotosByUploader, PhotosByUploaderSkeleton } from '@/components/drops/PhotosByUploader'
+import { StoryViewer } from '@/components/drops/StoryViewer'
+import { RefreshGrid } from '@/components/ui/RefreshGrid'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { colors, spacing } from '@/theme'
@@ -12,17 +14,28 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { Image as ImageIcon } from 'lucide-react-native'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native'
+import Animated, {
+  cancelAnimation,
+  Easing,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+
+const PULL_THRESHOLD = 100
 
 export default function DropDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string; backTitle?: string }>()
@@ -35,6 +48,18 @@ export default function DropDetailScreen() {
   const [photosLoaded, setPhotosLoaded] = useState(false)
   const [capturing, setCapturing]       = useState(false)
   const [refreshing, setRefreshing]     = useState(false)
+  const [storyOpen, setStoryOpen]       = useState(false)
+  const [storyIndex, setStoryIndex]     = useState(0)
+  const storyAutoOpened                 = useRef(false)
+
+  const gridProgress    = useSharedValue(0)
+  const isRefreshingRef = useRef(false)
+
+  function handleScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
+    if (isRefreshingRef.current) return
+    const y = e.nativeEvent.contentOffset.y
+    gridProgress.value = Math.max(0, Math.min(1, -y / PULL_THRESHOLD))
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -49,19 +74,39 @@ export default function DropDetailScreen() {
     return subscribeToDropPhotos(id, setPhotos)
   }, [id])
 
-  const isLocked = drop?.state === 'active' || drop?.state === 'ready'
+  const isLocked  = drop?.state === 'active' || drop?.state === 'ready'
+  const isOpen    = drop?.state === 'open' || drop?.state === 'expired'
+
+  useEffect(() => {
+    if (!photosLoaded || !drop || storyAutoOpened.current) return
+    if (isOpen && photos.length > 0 && photos.length < 5) {
+      storyAutoOpened.current = true
+      setStoryOpen(true)
+    }
+  }, [photosLoaded, drop])
+
   const canUpload = !!user && (drop?.state === 'active' || drop?.state === 'ready')
+  const bottomPad = canUpload ? insets.bottom + 28 + 64 + spacing[4] : spacing[10]
+  const topInset  = insets.top + 44 + spacing[4]
 
   async function handleRefresh() {
     if (!id) return
+    isRefreshingRef.current = true
+    setRefreshing(true)
+    gridProgress.value = withRepeat(
+      withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true,
+    )
     try {
-      setRefreshing(true)
       const [d, p] = await Promise.all([getDrop(id), getDropPhotos(id)])
       if (d) setDrop(d)
       setPhotos(p)
     } catch (e) {
       console.error('[drop/refresh]', e)
     } finally {
+      cancelAnimation(gridProgress)
+      isRefreshingRef.current = false
       setRefreshing(false)
     }
   }
@@ -103,7 +148,12 @@ export default function DropDetailScreen() {
     await upload(a.uri, a.width ?? null, a.height ?? null)
   }
 
-  const topInset = insets.top + 44 + spacing[4]
+  function handlePhotoSelect(photo: PhotoWithUploader) {
+    if (!isOpen) return
+    const idx = photos.findIndex(p => p.id === photo.id)
+    setStoryIndex(idx >= 0 ? idx : 0)
+    setStoryOpen(true)
+  }
 
   return (
     <View style={s.root}>
@@ -118,14 +168,23 @@ export default function DropDetailScreen() {
       ) : (
         <PhotosByUploader
           photos={photos}
-          onSelect={() => {}}
+          onSelect={handlePhotoSelect}
           refreshing={refreshing}
           onRefresh={handleRefresh}
+          onScroll={handleScroll}
           topInset={topInset}
+          bottomPad={bottomPad}
           isLocked={isLocked}
           currentUserId={user?.id}
         />
       )}
+
+      <Animated.View
+        pointerEvents="none"
+        style={[s.refreshOverlay, { top: insets.top + 44 + spacing[6] }]}
+      >
+        <RefreshGrid progress={gridProgress} />
+      </Animated.View>
 
       <LinearGradient
         colors={['rgba(0,0,0,0.55)', 'transparent']}
@@ -145,6 +204,7 @@ export default function DropDetailScreen() {
               <ImageIcon size={18} color={colors.bone} />
             </TouchableOpacity>
           )}
+
           <GlassContainer>
             <Pressable onPress={handleCapture} disabled={capturing}>
               <GlassView isInteractive colorScheme="light" tintColor={colors.white} style={s.glassCaptureBtn}>
@@ -158,12 +218,27 @@ export default function DropDetailScreen() {
           </GlassContainer>
         </View>
       )}
+
+      <StoryViewer
+        photos={photos}
+        initialIndex={storyIndex}
+        visible={storyOpen}
+        onClose={() => setStoryOpen(false)}
+      />
     </View>
   )
 }
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
+
+  refreshOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 10,
+  },
 
   topScrim: {
     position: 'absolute',
@@ -179,13 +254,17 @@ const s = StyleSheet.create({
 
   captureWrap: {
     position: 'absolute',
-    right: spacing[4],
+    left: 0,
+    right: 0,
     flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
     gap: 12,
     zIndex: 20,
   },
   devPickBtn: {
+    position: 'absolute',
+    left: spacing[4],
     width: 44,
     height: 44,
     borderRadius: 22,
