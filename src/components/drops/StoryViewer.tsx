@@ -1,6 +1,6 @@
 import type { PhotoWithUploader } from '@/api/photos.api'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
-import { colors, fontWeight, radii, spacing } from '@/theme'
+import { colors, radii, spacing } from '@/theme'
 import { GlassContainer, GlassView } from 'expo-glass-effect'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -23,12 +23,23 @@ const SW = Dimensions.get('window').width
 const SH = Dimensions.get('window').height
 const DISMISS_THRESHOLD = 50
 
-const THUMB_W            = 48
-const THUMB_H            = 64   // 3:4 ratio
-const THUMB_GAP          = 6
+const THUMB_W            = 36
+const THUMB_H            = 36   // square, like iOS Photos
+const THUMB_GAP          = 4
 const THUMB_ITEM_W       = THUMB_W + THUMB_GAP
-const FILMSTRIP_H        = 96
+const FILMSTRIP_H        = 56   // paddingTop(4) + thumb(36) + paddingBottom(16)
 const FILMSTRIP_PAD      = SW / 2 - THUMB_W / 2
+// Header height: glass button(44) + paddingBottom(8)
+const HEADER_H           = 52
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+function fmtUpload(iso: string | null | undefined) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const h = d.getHours(), m = d.getMinutes().toString().padStart(2,'0')
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  return `${MONTHS[d.getMonth()]} ${d.getDate()} · ${h % 12 || 12}:${m} ${ampm}`
+}
 // ─── Filmstrip thumb ──────────────────────────────────────────────────────────
 
 function FilmstripThumb({
@@ -53,16 +64,14 @@ const ft = StyleSheet.create({
   thumb: {
     width: THUMB_W,
     height: THUMB_H,
-    borderRadius: radii.md,
+    borderRadius: 4,
     overflow: 'hidden',
-    opacity: 0.5,
+    opacity: 0.55,
   },
   thumbActive: {
     opacity: 1,
   },
 })
-
-// ─── Story viewer ─────────────────────────────────────────────────────────────
 
 type Props = {
   photos: PhotoWithUploader[]
@@ -236,10 +245,10 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
         pointerEvents="none"
       />
 
+      {/* Photo card — translates + scales during drag-to-dismiss */}
       <Animated.View
         style={[
           s.root,
-          { paddingTop: insets.top },
           {
             transform: [
               { translateY },
@@ -252,16 +261,11 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
       >
         <Image
           source={{ uri: photo.cdn_url }}
-          style={[s.photo, { top: insets.top, bottom: photoBottom }]}
+          style={[s.photo, { top: insets.top + HEADER_H, bottom: photoBottom }]}
           contentFit="cover"
           contentPosition="center"
         />
 
-        <LinearGradient
-          colors={['rgba(0,0,0,0.55)', 'transparent']}
-          style={[s.topGradient, { top: insets.top }]}
-          pointerEvents="none"
-        />
         <LinearGradient
           colors={['transparent', 'rgba(0,0,0,0.55)']}
           style={[s.bottomGradient, { bottom: photoBottom }]}
@@ -269,65 +273,72 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
         />
 
         <Pressable
-          style={[StyleSheet.absoluteFill, { top: insets.top, bottom: photoBottom }]}
+          style={[StyleSheet.absoluteFill, { top: insets.top + HEADER_H, bottom: photoBottom }]}
           onPress={e => handleTap(e.nativeEvent.locationX)}
         />
+      </Animated.View>
 
-        {/* Header: close + uploader info */}
-        <Animated.View style={[s.header, { opacity: overlayOpacity }]}>
-          <GlassContainer>
-            <Pressable onPress={() => dismiss()}>
-              <GlassView isInteractive colorScheme="light" style={s.glassCloseBtn}>
-                <SymbolView name="chevron.down" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
-              </GlassView>
-            </Pressable>
-          </GlassContainer>
+      {/* Header — fixed, doesn't move with the card */}
+      <Animated.View
+        style={[s.header, { paddingTop: insets.top, opacity: overlayOpacity }]}
+        pointerEvents="box-none"
+      >
+        <InitialAvatar name={name} avatarUrl={photo.uploader?.avatar_url ?? null} size={32} />
 
-          <View style={s.uploaderInfo}>
-            <InitialAvatar name={name} avatarUrl={photo.uploader?.avatar_url ?? null} size={24} />
-            <Text style={s.uploaderName} numberOfLines={1}>{name}</Text>
-          </View>
-        </Animated.View>
+        <View style={s.headerMeta}>
+          <Text style={s.headerName} numberOfLines={1}>{name}</Text>
+          <Text style={s.headerDate} numberOfLines={1}>{fmtUpload(photo.uploaded_at)}</Text>
+        </View>
 
-        {/* Bottom filmstrip */}
-        <Animated.View
-          style={[s.filmstrip, { paddingBottom: insets.bottom + spacing[3], opacity: overlayOpacity }]}
-          pointerEvents="box-none"
-        >
-          <View style={s.filmstripTrack}>
-            <ScrollView
-              ref={filmstripRef}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              scrollEnabled={false}
-              contentContainerStyle={s.filmstripContent}
-            >
-              {photos.map((item, i) => (
-                <FilmstripThumb
-                  key={i}
-                  item={item}
-                  isActive={i === index}
-                  onPress={() => setIndex(i)}
-                />
-              ))}
-            </ScrollView>
+        <View style={s.headerSpacer} />
 
-            <LinearGradient
-              colors={['rgba(0,0,0,0.85)', 'transparent']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={s.filmstripFadeLeft}
-              pointerEvents="none"
-            />
-            <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.85)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={s.filmstripFadeRight}
-              pointerEvents="none"
-            />
-          </View>
-        </Animated.View>
+        <GlassContainer>
+          <Pressable onPress={() => dismiss()}>
+            <GlassView isInteractive colorScheme="light" style={s.glassCloseBtn}>
+              <SymbolView name="chevron.down" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+            </GlassView>
+          </Pressable>
+        </GlassContainer>
+      </Animated.View>
+
+      {/* Filmstrip — fixed, doesn't move with the card */}
+      <Animated.View
+        style={[s.filmstrip, { paddingBottom: insets.bottom + spacing[3], opacity: overlayOpacity }]}
+        pointerEvents="box-none"
+      >
+        <View style={s.filmstripTrack}>
+          <ScrollView
+            ref={filmstripRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            scrollEnabled={false}
+            contentContainerStyle={s.filmstripContent}
+          >
+            {photos.map((item, i) => (
+              <FilmstripThumb
+                key={i}
+                item={item}
+                isActive={i === index}
+                onPress={() => setIndex(i)}
+              />
+            ))}
+          </ScrollView>
+
+          <LinearGradient
+            colors={['rgba(0,0,0,0.85)', 'transparent']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={s.filmstripFadeLeft}
+            pointerEvents="none"
+          />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.85)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={s.filmstripFadeRight}
+            pointerEvents="none"
+          />
+        </View>
       </Animated.View>
     </Modal>
   )
@@ -339,22 +350,14 @@ const s = StyleSheet.create({
   },
   root: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   photo: {
     position: 'absolute',
     left: 0,
     right: 0,
-    borderWidth: 1,
-    borderColor: 'rgba(242,238,230,0.18)',
-    borderRadius: radii.xl,
+    borderRadius: radii.lg,
     overflow: 'hidden',
-  },
-  topGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 140,
   },
   bottomGradient: {
     position: 'absolute',
@@ -365,24 +368,31 @@ const s = StyleSheet.create({
     borderBottomRightRadius: radii.lg,
   },
   header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: spacing[2],
-    paddingTop: spacing[2],
-    paddingBottom: spacing[3],
+    paddingBottom: spacing[2],
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
   },
-  uploaderInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-    maxWidth: 130,
-  },
-  uploaderName: {
-    color: colors.bone,
-    fontSize: 13,
-    fontWeight: fontWeight.semiBold,
+  headerMeta: {
     flexShrink: 1,
+    gap: 2,
+  },
+  headerName: {
+    color: colors.bone,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  headerDate: {
+    color: 'rgba(242,238,230,0.6)',
+    fontSize: 12,
+  },
+  headerSpacer: {
+    flex: 1,
   },
   glassCloseBtn: {
     width: 44,
@@ -396,7 +406,7 @@ const s = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingTop: spacing[2],
+    paddingTop: spacing[1],
   },
   filmstripTrack: {
     position: 'relative',

@@ -21,7 +21,11 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 function fmtShort(iso: string | null) {
   if (!iso) return ''
   const d = new Date(iso)
-  return `${MONTHS[d.getMonth()]} ${d.getDate()}`
+  const h = d.getHours()
+  const m = d.getMinutes().toString().padStart(2, '0')
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const hour = h % 12 || 12
+  return `${MONTHS[d.getMonth()]} ${d.getDate()} · ${hour}:${m} ${ampm}`
 }
 
 const STATE_ICON: Record<DropState, { name: string; color: string }> = {
@@ -125,16 +129,22 @@ export function MiniPhotoCard({ photo, size, blurred, onPress }: MiniPhotoCardPr
           </View>
         </BlurView>
       </Animated.View>
+      {!blurred && (
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.7)']}
+          style={s.photoGradient}
+          pointerEvents="none"
+        >
+          <Text style={s.photoDate} numberOfLines={1}>{fmtShort(photo.uploaded_at)}</Text>
+        </LinearGradient>
+      )}
     </View>
   )
-
-  const dateLabel = fmtShort(photo.uploaded_at)
 
   if (blurred) {
     return (
       <View style={{ width: size }}>
         {thumb}
-        <Text style={s.date}>{dateLabel}</Text>
       </View>
     )
   }
@@ -153,7 +163,6 @@ export function MiniPhotoCard({ photo, size, blurred, onPress }: MiniPhotoCardPr
     >
       <TouchableOpacity style={{ width: size }} onPress={onPress} activeOpacity={0.82}>
         {thumb}
-        <Text style={s.date}>{dateLabel}</Text>
       </TouchableOpacity>
     </MenuView>
   )
@@ -214,7 +223,7 @@ const s = StyleSheet.create({
     gap: GAP,
   },
   thumb: {
-    borderRadius: radii.md,
+    borderRadius: radii.sm,
     overflow: 'hidden',
     backgroundColor: colors.surfaceDeep,
   },
@@ -245,6 +254,20 @@ const s = StyleSheet.create({
     color: colors.textTertiary,
     marginTop: 4,
     marginLeft: 2,
+  },
+  photoGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 6,
+    paddingTop: 20,
+    paddingBottom: 6,
+  },
+  photoDate: {
+    fontSize: 9,
+    fontWeight: fontWeight.medium,
+    color: colors.white,
   },
   skeletonThumb: {
     backgroundColor: colors.surfaceRaised,

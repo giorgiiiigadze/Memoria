@@ -1,6 +1,7 @@
 import { getDrop, type DropWithParticipants } from '@/api/drops.api'
 import { getDropPhotos, uploadDropPhoto, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
+import { DropHeaderMenu } from '@/components/drops/DropHeaderMenu'
 import { PhotosByUploader, PhotosByUploaderSkeleton } from '@/components/drops/PhotosByUploader'
 import { StoryViewer } from '@/components/drops/StoryViewer'
 import { selectUser, useAuthStore } from '@/store/auth.store'
@@ -10,10 +11,10 @@ import { GlassContainer, GlassView } from 'expo-glass-effect'
 import * as Haptics from 'expo-haptics'
 import * as ImagePicker from 'expo-image-picker'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useFocusEffect, useLocalSearchParams } from 'expo-router'
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { Image as ImageIcon } from 'lucide-react-native'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
@@ -26,10 +27,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 export default function DropDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string; backTitle?: string }>()
-  const insets  = useSafeAreaInsets()
-  const user    = useAuthStore(selectUser)
-  const cached  = useDropsStore(s => s.drops.find(d => d.id === id))
+  const { id } = useLocalSearchParams<{ id: string }>()
+  const insets = useSafeAreaInsets()
+  const user   = useAuthStore(selectUser)
+  const cached = useDropsStore(s => s.drops.find(d => d.id === id))
 
   const [drop, setDrop]                 = useState<DropWithParticipants | null>(cached ?? null)
   const [photos, setPhotos]             = useState<PhotoWithUploader[]>([])
@@ -37,7 +38,6 @@ export default function DropDetailScreen() {
   const [capturing, setCapturing]       = useState(false)
   const [storyOpen, setStoryOpen]       = useState(false)
   const [storyIndex, setStoryIndex]     = useState(0)
-  const storyAutoOpened                 = useRef(false)
 
   useFocusEffect(
     useCallback(() => {
@@ -55,13 +55,6 @@ export default function DropDetailScreen() {
   const isLocked  = drop?.state === 'active' || drop?.state === 'ready'
   const isOpen    = drop?.state === 'open' || drop?.state === 'expired'
 
-  useEffect(() => {
-    if (!photosLoaded || !drop || storyAutoOpened.current) return
-    if (isOpen && photos.length > 0 && photos.length < 5) {
-      storyAutoOpened.current = true
-      setStoryOpen(true)
-    }
-  }, [photosLoaded, drop])
 
   const canUpload = !!user && (drop?.state === 'active' || drop?.state === 'ready')
   const bottomPad = canUpload ? insets.bottom + 28 + 64 + spacing[4] : spacing[10]
@@ -105,7 +98,10 @@ export default function DropDetailScreen() {
   }
 
   function handlePhotoSelect(photo: PhotoWithUploader) {
-    if (!isOpen) return
+    if (!isOpen) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {})
+      return
+    }
     const idx = photos.findIndex(p => p.id === photo.id)
     setStoryIndex(idx >= 0 ? idx : 0)
     setStoryOpen(true)
@@ -117,8 +113,15 @@ export default function DropDetailScreen() {
         <PhotosByUploaderSkeleton topInset={topInset} />
       ) : photos.length === 0 ? (
         <View style={s.empty}>
+          <Text style={s.emptyTitle}>
+            {isLocked ? 'No photos yet' : 'Nothing here'}
+          </Text>
           <Text style={s.emptyText}>
-            {isLocked ? 'No photos yet' : 'No photos were uploaded to this drop'}
+            {isLocked && canUpload
+              ? 'Be the first to add a photo using the camera below.'
+              : isLocked
+              ? 'Participants haven\'t uploaded anything yet.'
+              : 'No photos were uploaded before this drop closed.'}
           </Text>
         </View>
       ) : (
@@ -132,11 +135,27 @@ export default function DropDetailScreen() {
         />
       )}
 
+      {/* Gradient scrim behind custom header */}
       <LinearGradient
-        colors={['rgba(0,0,0,0.55)', 'transparent']}
+        colors={['rgba(0,0,0,0.8)', 'transparent']}
         style={s.topScrim}
         pointerEvents="none"
       />
+
+      {/* Custom header */}
+      <View style={[s.header, { paddingTop: insets.top }]} pointerEvents="box-none">
+        <GlassContainer>
+          <Pressable onPress={() => router.back()}>
+            <GlassView isInteractive colorScheme="light" style={s.glassBtn}>
+              <SymbolView name="chevron.left" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+            </GlassView>
+          </Pressable>
+        </GlassContainer>
+
+        <View style={s.headerSpacer} />
+
+        <DropHeaderMenu id={id ?? ''} />
+      </View>
 
       {canUpload && (
         <View style={[s.captureWrap, { bottom: insets.bottom + 28 }]} pointerEvents="box-none">
@@ -183,12 +202,35 @@ const s = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 120,
+    height: 160,
     zIndex: 5,
   },
+  header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing[2],
+    paddingBottom: spacing[2],
+    gap: spacing[2],
+    zIndex: 10,
+  },
+  headerSpacer: {
+    flex: 1,
+  },
+  glassBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { color: colors.textTertiary, fontSize: 15 },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing[8] },
+  emptyTitle: { color: colors.textPrimary, fontSize: 17, fontWeight: '600', marginBottom: spacing[2], textAlign: 'center' },
+  emptyText: { color: colors.textTertiary, fontSize: 14, textAlign: 'center', lineHeight: 20 },
 
   captureWrap: {
     position: 'absolute',

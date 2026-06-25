@@ -4,9 +4,10 @@ import { useDropsStore } from '@/store/drops.store'
 import { colors } from '@/theme'
 import { shareDrop } from '@/utils/share'
 import { MenuView } from '@expo/ui/community/menu'
+import { GlassContainer, GlassView } from 'expo-glass-effect'
 import { router } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
-import { Alert, StyleSheet, TouchableOpacity } from 'react-native'
+import { Alert, StyleSheet } from 'react-native'
 
 export function DropHeaderMenu({ id }: { id: string }) {
   const user = useAuthStore(selectUser)
@@ -53,9 +54,11 @@ export function DropHeaderMenu({ id }: { id: string }) {
         if (nativeEvent.event === 'delete') handleDelete()
       }}
     >
-      <TouchableOpacity style={s.btn} hitSlop={8} activeOpacity={0.7}>
-        <SymbolView name="ellipsis" size={20} tintColor={colors.white} resizeMode="scaleAspectFit" />
-      </TouchableOpacity>
+      <GlassContainer>
+        <GlassView isInteractive colorScheme="light" style={s.btn}>
+          <SymbolView name="ellipsis" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+        </GlassView>
+      </GlassContainer>
     </MenuView>
   )
 }
@@ -64,6 +67,7 @@ const s = StyleSheet.create({
   btn: {
     width: 44,
     height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },

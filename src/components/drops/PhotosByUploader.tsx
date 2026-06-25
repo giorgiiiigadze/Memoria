@@ -249,7 +249,7 @@ const sk = StyleSheet.create({
   },
   tile: {
     backgroundColor: colors.surfaceRaised,
-    borderRadius: radii.md,
+    borderRadius: radii.sm,
   },
   dateStub: {
     height: 10,
