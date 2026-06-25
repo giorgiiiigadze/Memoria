@@ -119,8 +119,10 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
       duration,
       useNativeDriver: true,
     }).start(() => {
-      translateY.setValue(0)
-      translateX.setValue(0)
+      // Don't reset values here — the photo stays off-screen (translateY=SH)
+      // until the modal is gone. Resetting before onClose causes a one-frame
+      // flash where the photo jumps back to full position while the modal
+      // is still mounted. The visible=true useEffect resets on next open.
       onCloseRef.current()
     })
   }
