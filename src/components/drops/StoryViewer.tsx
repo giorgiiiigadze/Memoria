@@ -5,7 +5,7 @@ import { GlassContainer, GlassView } from 'expo-glass-effect'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { SymbolView } from 'expo-symbols'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import {
   Animated,
   Dimensions,
@@ -75,16 +75,22 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
     extrapolate: 'clamp',
   })
 
-  useEffect(() => {
-    if (visible) setIndex(initialIndex)
+  // Reset index + drag state synchronously, before the first frame of an
+  // open is painted. A drag-dismiss parks translateY at SH and intentionally
+  // leaves it there (resetting it earlier caused a flash). If we reset it in
+  // a post-paint effect instead, the reopened photo races the paint: some
+  // frames render it off-screen / scaled / invisible until the reset lands —
+  // that's the intermittent "animation fails" on reopen. useLayoutEffect runs
+  // before paint, so the photo is always at rest by the time it's shown.
+  useLayoutEffect(() => {
+    if (!visible) return
+    translateY.stopAnimation()
+    translateX.stopAnimation()
+    translateY.setValue(0)
+    translateX.setValue(0)
+    segmentProgress.setValue(0)
+    setIndex(initialIndex)
   }, [visible, initialIndex])
-
-  useEffect(() => {
-    if (visible) {
-      translateY.setValue(0)
-      translateX.setValue(0)
-    }
-  }, [visible])
 
   // Auto-advance every 5 seconds
   useEffect(() => {
