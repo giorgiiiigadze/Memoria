@@ -3,7 +3,6 @@ import { getDropPhotos, uploadDropPhoto, type PhotoWithUploader } from '@/api/ph
 import { subscribeToDropPhotos } from '@/api/realtime'
 import { PhotosByUploader, PhotosByUploaderSkeleton } from '@/components/drops/PhotosByUploader'
 import { StoryViewer } from '@/components/drops/StoryViewer'
-import { RefreshGrid } from '@/components/ui/RefreshGrid'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { colors, spacing } from '@/theme'
@@ -18,24 +17,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
   Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native'
-import Animated, {
-  cancelAnimation,
-  Easing,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-
-const PULL_THRESHOLD = 100
 
 export default function DropDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string; backTitle?: string }>()
@@ -47,19 +35,9 @@ export default function DropDetailScreen() {
   const [photos, setPhotos]             = useState<PhotoWithUploader[]>([])
   const [photosLoaded, setPhotosLoaded] = useState(false)
   const [capturing, setCapturing]       = useState(false)
-  const [refreshing, setRefreshing]     = useState(false)
   const [storyOpen, setStoryOpen]       = useState(false)
   const [storyIndex, setStoryIndex]     = useState(0)
   const storyAutoOpened                 = useRef(false)
-
-  const gridProgress    = useSharedValue(0)
-  const isRefreshingRef = useRef(false)
-
-  function handleScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
-    if (isRefreshingRef.current) return
-    const y = e.nativeEvent.contentOffset.y
-    gridProgress.value = Math.max(0, Math.min(1, -y / PULL_THRESHOLD))
-  }
 
   useFocusEffect(
     useCallback(() => {
@@ -88,28 +66,6 @@ export default function DropDetailScreen() {
   const canUpload = !!user && (drop?.state === 'active' || drop?.state === 'ready')
   const bottomPad = canUpload ? insets.bottom + 28 + 64 + spacing[4] : spacing[10]
   const topInset  = insets.top + 44 + spacing[4]
-
-  async function handleRefresh() {
-    if (!id) return
-    isRefreshingRef.current = true
-    setRefreshing(true)
-    gridProgress.value = withRepeat(
-      withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true,
-    )
-    try {
-      const [d, p] = await Promise.all([getDrop(id), getDropPhotos(id)])
-      if (d) setDrop(d)
-      setPhotos(p)
-    } catch (e) {
-      console.error('[drop/refresh]', e)
-    } finally {
-      cancelAnimation(gridProgress)
-      isRefreshingRef.current = false
-      setRefreshing(false)
-    }
-  }
 
   async function upload(uri: string, width: number | null, height: number | null) {
     if (!id || !user) return
@@ -169,22 +125,12 @@ export default function DropDetailScreen() {
         <PhotosByUploader
           photos={photos}
           onSelect={handlePhotoSelect}
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          onScroll={handleScroll}
           topInset={topInset}
           bottomPad={bottomPad}
           isLocked={isLocked}
           currentUserId={user?.id}
         />
       )}
-
-      <Animated.View
-        pointerEvents="none"
-        style={[s.refreshOverlay, { top: insets.top + 44 + spacing[6] }]}
-      >
-        <RefreshGrid progress={gridProgress} />
-      </Animated.View>
 
       <LinearGradient
         colors={['rgba(0,0,0,0.55)', 'transparent']}
@@ -231,14 +177,6 @@ export default function DropDetailScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
-
-  refreshOverlay: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 10,
-  },
 
   topScrim: {
     position: 'absolute',

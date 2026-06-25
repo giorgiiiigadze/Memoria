@@ -4,9 +4,6 @@ import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { colors, fontWeight, radii, spacing } from '@/theme'
 import { useEffect } from 'react'
 import {
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-  RefreshControl,
   ScrollView,
   SectionList,
   StyleSheet,
@@ -74,9 +71,6 @@ function groupPhotos(photos: PhotoWithUploader[], currentUserId?: string): Uploa
 type Props = {
   photos: PhotoWithUploader[]
   onSelect: (photo: PhotoWithUploader) => void
-  refreshing: boolean
-  onRefresh: () => void
-  onScroll?: (e: NativeSyntheticEvent<NativeScrollEvent>) => void
   topInset: number
   bottomPad: number
   isLocked?: boolean
@@ -86,9 +80,6 @@ type Props = {
 export function PhotosByUploader({
   photos,
   onSelect,
-  refreshing,
-  onRefresh,
-  onScroll,
   topInset,
   bottomPad,
   isLocked,
@@ -105,16 +96,6 @@ export function PhotosByUploader({
       showsVerticalScrollIndicator={false}
       stickySectionHeadersEnabled={false}
       contentContainerStyle={{ paddingTop: topInset, paddingBottom: bottomPad }}
-      onScroll={onScroll}
-      scrollEventThrottle={16}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor="transparent"
-          colors={['transparent']}
-        />
-      }
       renderSectionHeader={({ section }) => {
         const name = section.uploader?.display_name ?? section.uploader?.username ?? 'Unknown'
         return (
@@ -146,7 +127,7 @@ export function PhotosByUploader({
         </View>
       )}
       ItemSeparatorComponent={() => <View style={{ height: GAP }} />}
-      renderSectionFooter={() => <View style={{ height: spacing[8] }} />}
+      renderSectionFooter={() => <View style={{ height: spacing[2] }} />}
     />
   )
 }
@@ -207,25 +188,25 @@ export function PhotosByUploaderSkeleton({ topInset }: { topInset: number }) {
   return (
     <ScrollView scrollEnabled={false} contentContainerStyle={{ paddingTop: topInset, paddingBottom: spacing[10] }}>
       {Array.from({ length: 3 }).map((_, si) => (
-        <View key={si} style={{ marginBottom: spacing[8] }}>
+        <View key={si} style={{ marginBottom: spacing[2] }}>
 
           {/* Section header */}
           <View style={sk.header}>
             <Animated.View style={[sk.avatar, pulse]} />
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, gap: 3 }}>
               <Animated.View style={[sk.nameLine, pulse, { width: 72 + si * 24 }]} />
+              <Animated.View style={[sk.countLine, pulse]} />
             </View>
-            <Animated.View style={[sk.countLine, pulse]} />
           </View>
 
           {/* Photo rows */}
           {Array.from({ length: 2 }).map((_, ri) => (
             <View key={ri} style={[sk.row, ri > 0 && { marginTop: GAP }]}>
               {Array.from({ length: COLS }).map((_, ci) => (
-                <Animated.View
-                  key={ci}
-                  style={[sk.tile, pulse, { width: tileSize, height: tileHeight }]}
-                />
+                <View key={ci} style={{ width: tileSize }}>
+                  <Animated.View style={[sk.tile, pulse, { width: tileSize, height: tileHeight }]} />
+                  <Animated.View style={[sk.dateStub, pulse]} />
+                </View>
               ))}
             </View>
           ))}
@@ -246,9 +227,9 @@ const sk = StyleSheet.create({
     paddingBottom: spacing[3],
   },
   avatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: colors.surfaceRaised,
   },
   nameLine: {
@@ -269,5 +250,13 @@ const sk = StyleSheet.create({
   tile: {
     backgroundColor: colors.surfaceRaised,
     borderRadius: radii.md,
+  },
+  dateStub: {
+    height: 10,
+    width: 32,
+    borderRadius: 5,
+    backgroundColor: colors.surfaceRaised,
+    marginTop: 4,
+    marginLeft: 2,
   },
 })

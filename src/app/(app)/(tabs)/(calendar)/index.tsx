@@ -9,12 +9,12 @@ import { useFocusEffect } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
 import {
   Dimensions,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
   Text,
   View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from 'react-native'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -169,7 +169,7 @@ const s = StyleSheet.create({
     paddingBottom: spacing[12],
   },
   group: {
-    marginBottom: spacing[8],
+    marginBottom: spacing[2],
   },
   monthLabel: {
     fontSize: fontSize.md,
