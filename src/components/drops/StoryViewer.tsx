@@ -214,6 +214,7 @@ export function StoryViewer({ photos, initialIndex, visible, onClose }: Props) {
       <Animated.View
         style={[
           s.root,
+          { paddingTop: insets.top },
           {
             transform: [
               { translateY },
