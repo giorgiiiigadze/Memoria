@@ -30,6 +30,7 @@ export const colors = {
 
   accent: '#D6A45B',
   blue: '#0A84FF',
+  blueNotif: '#3D8EFF',
   primary: '#0044FF',
   success: '#4CAF7D',
   error: '#EA4942',

@@ -17,3 +17,26 @@ export function formatDate(value: Date | string | null | undefined): string | nu
   if (isNaN(d.getTime())) return null
   return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
 }
+
+export function fmtDropDate(state: 'active' | 'ready' | 'open' | 'expired', iso: string | null): string {
+  if (!iso) return ''
+  const now = Date.now()
+  const target = new Date(iso).getTime()
+  const d = new Date(iso)
+  const dateStr = `${MONTHS[d.getMonth()]} ${d.getDate()}`
+  const isOpen = state === 'open' || state === 'expired'
+
+  if (isOpen) {
+    const pastDays = Math.floor((now - target) / 86400000)
+    if (pastDays === 0) return 'Opened today'
+    if (pastDays === 1) return 'Opened yesterday'
+    if (pastDays < 7)  return `Opened ${pastDays} days ago`
+    return `Opened ${dateStr}`
+  } else {
+    const futureDays = Math.floor((target - now) / 86400000)
+    if (futureDays <= 0) return 'Opens today'
+    if (futureDays === 1) return 'Opens tomorrow'
+    if (futureDays < 7)  return `Opens in ${futureDays} days`
+    return `Opens ${dateStr}`
+  }
+}

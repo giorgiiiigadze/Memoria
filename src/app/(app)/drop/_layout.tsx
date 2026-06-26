@@ -1,11 +1,12 @@
 import { colors } from '@/theme'
-import { Slot } from 'expo-router'
-import { View } from 'react-native'
+import { Stack } from 'expo-router'
 
 export default function DropLayout() {
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <Slot />
-    </View>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+      <Stack.Screen name="[id]" />
+      <Stack.Screen name="story" options={{ presentation: 'transparentModal', gestureEnabled: false, animation: 'fade' }} />
+      <Stack.Screen name="upload" />
+    </Stack>
   )
 }

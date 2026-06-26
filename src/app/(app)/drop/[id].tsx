@@ -1,9 +1,8 @@
 import { getDrop, type DropWithParticipants } from '@/api/drops.api'
-import { getDropPhotos, uploadDropPhoto, type PhotoWithUploader } from '@/api/photos.api'
+import { deleteDropPhoto, getDropPhotos, primeStoryCache, uploadDropPhoto, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
 import { DropHeaderMenu } from '@/components/drops/DropHeaderMenu'
 import { PhotosByUploader, PhotosByUploaderSkeleton } from '@/components/drops/PhotosByUploader'
-import { StoryViewer } from '@/components/drops/StoryViewer'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { colors, spacing } from '@/theme'
@@ -36,8 +35,6 @@ export default function DropDetailScreen() {
   const [photos, setPhotos]             = useState<PhotoWithUploader[]>([])
   const [photosLoaded, setPhotosLoaded] = useState(false)
   const [capturing, setCapturing]       = useState(false)
-  const [storyOpen, setStoryOpen]       = useState(false)
-  const [storyIndex, setStoryIndex]     = useState(0)
 
   useFocusEffect(
     useCallback(() => {
@@ -97,14 +94,38 @@ export default function DropDetailScreen() {
     await upload(a.uri, a.width ?? null, a.height ?? null)
   }
 
+  function handleDeletePhoto(photo: PhotoWithUploader) {
+    Alert.alert(
+      'Delete Photo',
+      'Remove this photo from the drop? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setPhotos(prev => prev.filter(p => p.id !== photo.id))
+            try {
+              await deleteDropPhoto(photo.id, photo.storage_path)
+            } catch {
+              setPhotos(prev => [...prev, photo].sort((a, b) => a.sort_order - b.sort_order))
+              Alert.alert('Delete Failed', 'Could not delete the photo. Please try again.')
+            }
+          },
+        },
+      ],
+    )
+  }
+
   function handlePhotoSelect(photo: PhotoWithUploader) {
     if (!isOpen) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {})
+      Alert.alert('Drop is locked', 'Photos will be revealed when this drop opens on its scheduled date.')
       return
     }
     const idx = photos.findIndex(p => p.id === photo.id)
-    setStoryIndex(idx >= 0 ? idx : 0)
-    setStoryOpen(true)
+    primeStoryCache(photos)
+    router.push({ pathname: '/drop/story', params: { dropId: id ?? '', index: String(idx >= 0 ? idx : 0) } })
   }
 
   return (
@@ -128,6 +149,7 @@ export default function DropDetailScreen() {
         <PhotosByUploader
           photos={photos}
           onSelect={handlePhotoSelect}
+          onDelete={handleDeletePhoto}
           topInset={topInset}
           bottomPad={bottomPad}
           isLocked={isLocked}
@@ -174,7 +196,7 @@ export default function DropDetailScreen() {
             <Pressable onPress={handleCapture} disabled={capturing}>
               <GlassView isInteractive colorScheme="light" tintColor={colors.white} style={s.glassCaptureBtn}>
                 {capturing ? (
-                  <ActivityIndicator color={colors.bone} />
+                  <ActivityIndicator color={colors.ink} />
                 ) : (
                   <SymbolView name="camera.fill" size={30} tintColor={colors.ink} resizeMode="scaleAspectFit" />
                 )}
@@ -184,12 +206,6 @@ export default function DropDetailScreen() {
         </View>
       )}
 
-      <StoryViewer
-        photos={photos}
-        initialIndex={storyIndex}
-        visible={storyOpen}
-        onClose={() => setStoryOpen(false)}
-      />
     </View>
   )
 }
@@ -255,9 +271,9 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   glassCaptureBtn: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(242,238,230,0.85)',

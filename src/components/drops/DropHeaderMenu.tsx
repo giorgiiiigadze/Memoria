@@ -7,9 +7,9 @@ import { MenuView } from '@expo/ui/community/menu'
 import { GlassContainer, GlassView } from 'expo-glass-effect'
 import { router } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
-import { Alert, StyleSheet } from 'react-native'
+import { Alert, StyleSheet, View } from 'react-native'
 
-export function DropHeaderMenu({ id }: { id: string }) {
+export function DropHeaderMenu({ id, plain }: { id: string; plain?: boolean }) {
   const user = useAuthStore(selectUser)
   const drop = useDropsStore(s => s.drops.find(d => d.id === id))
   const isCreator = !!drop && drop.creator_id === user?.id
@@ -54,11 +54,17 @@ export function DropHeaderMenu({ id }: { id: string }) {
         if (nativeEvent.event === 'delete') handleDelete()
       }}
     >
-      <GlassContainer>
-        <GlassView isInteractive colorScheme="light" style={s.btn}>
-          <SymbolView name="ellipsis" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
-        </GlassView>
-      </GlassContainer>
+      {plain ? (
+        <View style={s.plainBtn}>
+          <SymbolView name="ellipsis" size={20} tintColor={colors.white} resizeMode="scaleAspectFit" />
+        </View>
+      ) : (
+        <GlassContainer>
+          <GlassView isInteractive colorScheme="light" style={s.btn}>
+            <SymbolView name="ellipsis" size={20} tintColor={colors.white} resizeMode="scaleAspectFit" />
+          </GlassView>
+        </GlassContainer>
+      )}
     </MenuView>
   )
 }
@@ -68,6 +74,12 @@ const s = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  plainBtn: {
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },

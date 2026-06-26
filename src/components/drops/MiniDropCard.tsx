@@ -1,8 +1,8 @@
 import type { DropWithParticipants } from '@/api/drops.api'
 import type { PhotoWithUploader } from '@/api/photos.api'
 import { colors, fontWeight, radii } from '@/theme'
-import { timeAgo } from '@/utils/date'
 import type { DropState } from '@/types/database.types'
+import { fmtDropDate, timeAgo } from '@/utils/date'
 import { shareDrop } from '@/utils/share'
 import { MenuView } from '@expo/ui/community/menu'
 import { BlurView } from 'expo-blur'
@@ -18,16 +18,6 @@ const COLS = 3
 const GAP = 4
 const H_PAD = 40
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-function fmtShort(iso: string | null) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  const h = d.getHours()
-  const m = d.getMinutes().toString().padStart(2, '0')
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const hour = h % 12 || 12
-  return `${MONTHS[d.getMonth()]} ${d.getDate()} · ${hour}:${m} ${ampm}`
-}
 
 const STATE_ICON: Record<DropState, { name: string; color: string }> = {
   active:  { name: 'lock.fill',       color: colors.white },
@@ -90,7 +80,7 @@ function MiniDropCard({ drop, hPad = H_PAD, backTitle }: { drop: DropWithPartici
         </LinearGradient>
       </View>
 
-      <Text style={s.date}>{drop.state === 'open' || drop.state === 'expired' ? 'Opened' : 'Opens'} · {fmtShort(drop.open_date)}</Text>
+      <Text style={s.date}>{fmtDropDate(drop.state, drop.open_date)}</Text>
       </TouchableOpacity>
     </MenuView>
   )
@@ -101,9 +91,12 @@ type MiniPhotoCardProps = {
   size: number
   blurred?: boolean
   onPress: () => void
+  showUploader?: boolean
+  isOwn?: boolean
+  onDelete?: () => void
 }
 
-export function MiniPhotoCard({ photo, size, blurred, onPress }: MiniPhotoCardProps) {
+export function MiniPhotoCard({ photo, size, blurred, onPress, showUploader, isOwn, onDelete }: MiniPhotoCardProps) {
   const cardHeight = Math.floor(size * (4 / 3))
   const blurOpacity = useSharedValue(blurred ? 1 : 0)
 
@@ -112,6 +105,8 @@ export function MiniPhotoCard({ photo, size, blurred, onPress }: MiniPhotoCardPr
   }, [blurred])
 
   const blurStyle = useAnimatedStyle(() => ({ opacity: blurOpacity.value }))
+
+  const uploaderName = photo.uploader?.display_name ?? photo.uploader?.username ?? null
 
   const thumb = (
     <View style={[s.thumb, { width: size, height: cardHeight }]}>
@@ -123,22 +118,18 @@ export function MiniPhotoCard({ photo, size, blurred, onPress }: MiniPhotoCardPr
         transition={150}
       />
       <Animated.View style={[StyleSheet.absoluteFill, blurStyle]} pointerEvents="none">
-        <BlurView intensity={30} tint="dark" style={[StyleSheet.absoluteFill, s.blurOverlay]}>
-          <View style={s.lockBadge}>
-            <SymbolView name="lock.fill" size={11} tintColor={colors.bone} resizeMode="scaleAspectFit" />
-            <Text style={s.lockBadgeText}>Locked</Text>
-          </View>
-        </BlurView>
+        <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
       </Animated.View>
-      {!blurred && (
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.7)']}
-          style={s.photoGradient}
-          pointerEvents="none"
-        >
-          <Text style={s.photoDate} numberOfLines={1}>{timeAgo(photo.uploaded_at)}</Text>
-        </LinearGradient>
-      )}
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.75)']}
+        style={s.photoGradient}
+        pointerEvents="none"
+      >
+        {showUploader && uploaderName && (
+          <Text style={s.photoName} numberOfLines={1}>{uploaderName}</Text>
+        )}
+        <Text style={s.photoDate} numberOfLines={1}>{timeAgo(photo.uploaded_at)}</Text>
+      </LinearGradient>
     </View>
   )
 
@@ -156,12 +147,14 @@ export function MiniPhotoCard({ photo, size, blurred, onPress }: MiniPhotoCardPr
       style={{ width: size }}
       actions={[
         { id: 'view', title: 'View Photo', image: 'eye' },
-        { id: 'save', title: 'Save Photo', image: 'square.and.arrow.down' },
+        { id: 'save', title: 'Save to Camera Roll', image: 'photo.badge.arrow.down' },
         { id: 'share', title: 'Share', image: 'square.and.arrow.up' },
+        ...(isOwn && onDelete ? [{ id: 'delete', title: 'Delete Photo', image: 'trash', attributes: { destructive: true } }] : []),
       ]}
       onPressAction={({ nativeEvent }) => {
         if (nativeEvent.event === 'view') onPress()
         if (nativeEvent.event === 'save') Alert.alert('Coming soon', 'Photo saving will be available in a future update.')
+        if (nativeEvent.event === 'delete') onDelete?.()
       }}
     >
       <TouchableOpacity style={{ width: size }} onPress={onPress} activeOpacity={0.82}>
@@ -226,7 +219,7 @@ const s = StyleSheet.create({
     gap: GAP,
   },
   thumb: {
-    borderRadius: radii.sm,
+    borderRadius: radii.photo,
     overflow: 'hidden',
     backgroundColor: colors.surfaceDeep,
   },
@@ -248,12 +241,13 @@ const s = StyleSheet.create({
     paddingBottom: 7,
   },
   title: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: fontWeight.semiBold,
     color: colors.white,
   },
   date: {
-    fontSize: 10,
+    fontSize: 12,
+    fontWeight: fontWeight.semiBold,
     color: colors.textTertiary,
     marginTop: 4,
     marginLeft: 2,
@@ -264,35 +258,16 @@ const s = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 6,
-    paddingTop: 20,
+    paddingTop: 32,
     paddingBottom: 6,
   },
   photoDate: {
-    fontSize: 9,
-    fontWeight: fontWeight.medium,
-    color: colors.white,
+    fontSize: 12,
+    fontWeight: fontWeight.semiBold,
+    color: colors.textTertiary,
   },
   skeletonThumb: {
     backgroundColor: colors.surfaceRaised,
-  },
-  blurOverlay: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  lockBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(14,14,16,0.55)',
-    borderRadius: 20,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  lockBadgeText: {
-    fontSize: 11,
-    fontWeight: '600' as const,
-    color: colors.bone,
-    letterSpacing: 0.2,
   },
   photoFooter: {
     position: 'absolute',
@@ -307,10 +282,9 @@ const s = StyleSheet.create({
     paddingBottom: 8,
   },
   photoName: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: fontWeight.semiBold,
     color: colors.white,
-    flex: 1,
   },
   skeletonDate: {
     height: 10,

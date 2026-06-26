@@ -4,8 +4,8 @@ import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { CARD_RADIUS } from '@/constants/drops'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
-import { colors, fontSize, spacing } from '@/theme'
-import { formatDate } from '@/utils/date'
+import { colors, fontWeight, fontSize, spacing } from '@/theme'
+import { fmtDropDate } from '@/utils/date'
 import { shareDrop } from '@/utils/share'
 import { Button, Host, Menu } from '@expo/ui/swift-ui'
 import { labelStyle, tint } from '@expo/ui/swift-ui/modifiers'
@@ -26,8 +26,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
   const primary = showIdentity ? creatorName : drop.title
   const secondary = showIdentity ? drop.title : null
 
-  const dateLabel = formatDate(drop.open_date)
-  const datePrefix = drop.state === 'open' ? 'Opened' : 'Opens'
+  const dateLabel = fmtDropDate(drop.state, drop.open_date)
   const showAvatar = !!(creatorAvatar || creatorName)
   const isCreator = user?.id === drop.creator?.id
 
@@ -77,7 +76,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
             <Text style={s.subtitle} numberOfLines={1}>{secondary}</Text>
           )}
           {dateLabel && (
-            <Text style={s.date} numberOfLines={1}>{datePrefix} · {dateLabel}</Text>
+            <Text style={s.date} numberOfLines={1}>{dateLabel}</Text>
           )}
         </TouchableOpacity>
 
@@ -160,16 +159,18 @@ const s = StyleSheet.create({
   },
   name: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: fontWeight.semiBold,
     color: colors.white,
   },
   subtitle: {
     fontSize: 14,
+    fontWeight: fontWeight.semiBold,
     color: colors.textMuted,
     marginTop: 1,
   },
   date: {
     fontSize: fontSize.xs,
+    fontWeight: fontWeight.semiBold,
     color: colors.textTertiary,
     marginTop: 2,
   },

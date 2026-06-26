@@ -8,8 +8,8 @@ import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useNotificationsStore } from '@/store/notifications.store'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import { router, useFocusEffect } from 'expo-router'
-import { useCallback } from 'react'
-import { SectionList, StyleSheet, Text, View } from 'react-native'
+import { useCallback, useState } from 'react'
+import { RefreshControl, SectionList, StyleSheet, Text, View } from 'react-native'
 
 function handleTap(n: NotificationWithMeta) {
   markNotificationRead(n.id).catch(console.error)
@@ -40,13 +40,27 @@ function buildSections(notifications: NotificationWithMeta[]) {
 export default function NotificationsScreen() {
   const user = useAuthStore(selectUser)
   const { notifications, setNotifications, markOneRead } = useNotificationsStore()
+  const [refreshing, setRefreshing] = useState(false)
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!user?.id) return
-      getNotifications(user.id).then(setNotifications).catch(console.error)
-    }, [user?.id])
-  )
+  const load = useCallback(() => {
+    if (!user?.id) return
+    getNotifications(user.id).then(setNotifications).catch(console.error)
+  }, [user?.id])
+
+  useFocusEffect(load)
+
+  const onRefresh = useCallback(async () => {
+    if (!user?.id) return
+    setRefreshing(true)
+    try {
+      const data = await getNotifications(user.id)
+      setNotifications(data)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setRefreshing(false)
+    }
+  }, [user?.id])
 
   const sections = buildSections(notifications)
 
@@ -58,6 +72,13 @@ export default function NotificationsScreen() {
       contentContainerStyle={s.list}
       showsVerticalScrollIndicator={false}
       stickySectionHeadersEnabled={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.white}
+        />
+      }
       renderSectionHeader={({ section }) => (
         <Text style={s.sectionLabel}>{section.title}</Text>
       )}

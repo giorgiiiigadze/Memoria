@@ -6,6 +6,14 @@ export type PhotoWithUploader = Photo & {
   uploader: { username: string; display_name: string | null; avatar_url: string | null } | null
 }
 
+let _storyCache: PhotoWithUploader[] = []
+export const primeStoryCache = (photos: PhotoWithUploader[]) => { _storyCache = photos }
+export const consumeStoryCache = (): PhotoWithUploader[] => {
+  const cached = _storyCache
+  _storyCache = []
+  return cached
+}
+
 export async function getDropPhotos(dropId: string): Promise<PhotoWithUploader[]> {
   const { data, error } = await supabase
     .from('photos')
@@ -63,4 +71,11 @@ export async function uploadDropPhoto(
     .update({ status: 'accepted' as const, has_uploaded: true, uploaded_at: new Date().toISOString() })
     .eq('drop_id', dropId)
     .eq('user_id', uploaderId)
+}
+
+export async function deleteDropPhoto(photoId: string, storagePath: string): Promise<void> {
+  const { error: storageError } = await supabase.storage.from('photos').remove([storagePath])
+  if (storageError) throw storageError
+  const { error } = await supabase.from('photos').delete().eq('id', photoId)
+  if (error) throw error
 }
