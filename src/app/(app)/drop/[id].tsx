@@ -1,12 +1,11 @@
 import { getDrop, type DropWithParticipants } from '@/api/drops.api'
-import { deleteDropPhoto, getDropPhotos, primeStoryCache, uploadDropPhoto, type PhotoWithUploader } from '@/api/photos.api'
+import { deleteDropPhoto, getDropPhotos, pinPhoto, primeStoryCache, uploadDropPhoto, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
-import { DropHeaderMenu } from '@/components/drops/DropHeaderMenu'
 import { PhotosByUploader, PhotosByUploaderSkeleton } from '@/components/drops/PhotosByUploader'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { colors, spacing } from '@/theme'
-import { GlassContainer, GlassView } from 'expo-glass-effect'
+import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import * as Haptics from 'expo-haptics'
 import * as ImagePicker from 'expo-image-picker'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -25,22 +24,35 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+function sortPhotos(photos: PhotoWithUploader[]) {
+  return [...photos].sort((a, b) => {
+    if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1
+    return a.sort_order - b.sort_order
+  })
+}
+
 export default function DropDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const insets = useSafeAreaInsets()
   const user   = useAuthStore(selectUser)
   const cached = useDropsStore(s => s.drops.find(d => d.id === id))
 
+  const cachedPhotos = useDropsStore(s => s.photosByDrop[id ?? ''])
+  const cacheDropPhotos = useDropsStore(s => s.cacheDropPhotos)
+
   const [drop, setDrop]                 = useState<DropWithParticipants | null>(cached ?? null)
-  const [photos, setPhotos]             = useState<PhotoWithUploader[]>([])
-  const [photosLoaded, setPhotosLoaded] = useState(false)
+  const [photos, setPhotos]             = useState<PhotoWithUploader[]>(cachedPhotos ?? [])
+  const [photosLoaded, setPhotosLoaded] = useState(cachedPhotos != null)
   const [capturing, setCapturing]       = useState(false)
 
   useFocusEffect(
     useCallback(() => {
       if (!id) return
       getDrop(id).then(d => { if (d) setDrop(d) }).catch(console.error)
-      getDropPhotos(id).then(p => setPhotos(p)).catch(console.error).finally(() => setPhotosLoaded(true))
+      getDropPhotos(id).then(p => {
+        setPhotos(p)
+        cacheDropPhotos(id, p)
+      }).catch(console.error).finally(() => setPhotosLoaded(true))
     }, [id])
   )
 
@@ -64,6 +76,7 @@ export default function DropDetailScreen() {
       await uploadDropPhoto(id, user.id, uri, width, height)
       const fresh = await getDropPhotos(id)
       setPhotos(fresh)
+      cacheDropPhotos(id, fresh)
     } catch (e) {
       console.error('[capture] upload failed:', e)
       Alert.alert('Upload failed', 'Could not upload your photo. Please try again.')
@@ -117,6 +130,17 @@ export default function DropDetailScreen() {
     )
   }
 
+  async function handlePinPhoto(photo: PhotoWithUploader) {
+    const next = !photo.is_pinned
+    setPhotos(prev => sortPhotos(prev.map(p => p.id === photo.id ? { ...p, is_pinned: next } : p)))
+    try {
+      await pinPhoto(photo.id, next)
+    } catch {
+      setPhotos(prev => sortPhotos(prev.map(p => p.id === photo.id ? { ...p, is_pinned: !next } : p)))
+      Alert.alert('Error', 'Could not update pin.')
+    }
+  }
+
   function handlePhotoSelect(photo: PhotoWithUploader) {
     if (!isOpen) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {})
@@ -150,6 +174,7 @@ export default function DropDetailScreen() {
           photos={photos}
           onSelect={handlePhotoSelect}
           onDelete={handleDeletePhoto}
+          onPin={handlePinPhoto}
           topInset={topInset}
           bottomPad={bottomPad}
           isLocked={isLocked}
@@ -166,17 +191,11 @@ export default function DropDetailScreen() {
 
       {/* Custom header */}
       <View style={[s.header, { paddingTop: insets.top }]} pointerEvents="box-none">
-        <GlassContainer>
-          <Pressable onPress={() => router.back()}>
-            <GlassView isInteractive colorScheme="light" style={s.glassBtn}>
-              <SymbolView name="chevron.left" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
-            </GlassView>
-          </Pressable>
-        </GlassContainer>
+        <GlassIconButton onPress={() => router.back()}>
+          <SymbolView name="chevron.left" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+        </GlassIconButton>
 
         <View style={s.headerSpacer} />
-
-        <DropHeaderMenu id={id ?? ''} />
       </View>
 
       {canUpload && (
@@ -192,17 +211,13 @@ export default function DropDetailScreen() {
             </TouchableOpacity>
           )}
 
-          <GlassContainer>
-            <Pressable onPress={handleCapture} disabled={capturing}>
-              <GlassView isInteractive colorScheme="light" tintColor={colors.white} style={s.glassCaptureBtn}>
-                {capturing ? (
-                  <ActivityIndicator color={colors.ink} />
-                ) : (
-                  <SymbolView name="camera.fill" size={30} tintColor={colors.ink} resizeMode="scaleAspectFit" />
-                )}
-              </GlassView>
-            </Pressable>
-          </GlassContainer>
+          <GlassIconButton onPress={handleCapture} disabled={capturing} style={s.glassCaptureBtn}>
+            {capturing ? (
+              <ActivityIndicator color={colors.ink} />
+            ) : (
+              <SymbolView name="camera.fill" size={30} tintColor={colors.ink} resizeMode="scaleAspectFit" />
+            )}
+          </GlassIconButton>
         </View>
       )}
 
@@ -246,7 +261,7 @@ const s = StyleSheet.create({
 
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing[8] },
   emptyTitle: { color: colors.textPrimary, fontSize: 17, fontWeight: '600', marginBottom: spacing[2], textAlign: 'center' },
-  emptyText: { color: colors.textTertiary, fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  emptyText: { color: colors.textPrimary, fontSize: 14, textAlign: 'center', lineHeight: 20 },
 
   captureWrap: {
     position: 'absolute',

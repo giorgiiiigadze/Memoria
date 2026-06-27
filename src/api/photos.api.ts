@@ -19,6 +19,7 @@ export async function getDropPhotos(dropId: string): Promise<PhotoWithUploader[]
     .from('photos')
     .select('*, uploader:profiles!uploader_id(username, display_name, avatar_url)')
     .eq('drop_id', dropId)
+    .order('is_pinned', { ascending: false })
     .order('sort_order', { ascending: true })
   if (error) throw error
   return (data ?? []) as unknown as PhotoWithUploader[]
@@ -71,6 +72,11 @@ export async function uploadDropPhoto(
     .update({ status: 'accepted' as const, has_uploaded: true, uploaded_at: new Date().toISOString() })
     .eq('drop_id', dropId)
     .eq('user_id', uploaderId)
+}
+
+export async function pinPhoto(photoId: string, pinned: boolean): Promise<void> {
+  const { error } = await supabase.from('photos').update({ is_pinned: pinned }).eq('id', photoId)
+  if (error) throw error
 }
 
 export async function deleteDropPhoto(photoId: string, storagePath: string): Promise<void> {

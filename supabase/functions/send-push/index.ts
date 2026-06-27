@@ -63,6 +63,14 @@ Deno.serve(async (req: Request) => {
         title = 'Friend request accepted'
         body = `${actorName} accepted your friend request`
         break
+      case 'drop_ready':
+        title = 'Drop ready to open!'
+        body = `"${dropTitle}" is ready — open it now`
+        break
+      case 'participant_uploaded':
+        title = 'New photo added'
+        body = `${actorName} added a photo to "${dropTitle}"`
+        break
       default:
         return new Response('unhandled type', { status: 200 })
     }

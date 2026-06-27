@@ -1,4 +1,5 @@
 import type { DropWithParticipants } from '@/api/drops.api'
+import type { PhotoWithUploader } from '@/api/photos.api'
 import { create } from 'zustand'
 
 interface Draft {
@@ -16,6 +17,7 @@ interface DropsState {
   error: string | null
   draft: Draft
   dropPhotoFilter: 'all' | 'mine'
+  photosByDrop: Record<string, PhotoWithUploader[]>
   setDrops: (drops: DropWithParticipants[]) => void
   upsertDrops: (fresh: DropWithParticipants[]) => void
   setIsLoaded: (loaded: boolean) => void
@@ -27,6 +29,7 @@ interface DropsState {
   clearDraft: () => void
   reset: () => void
   setDropPhotoFilter: (filter: 'all' | 'mine') => void
+  cacheDropPhotos: (dropId: string, photos: PhotoWithUploader[]) => void
 }
 
 export const useDropsStore = create<DropsState>((set) => ({
@@ -35,6 +38,7 @@ export const useDropsStore = create<DropsState>((set) => ({
   error: null,
   draft: EMPTY_DRAFT,
   dropPhotoFilter: 'all',
+  photosByDrop: {},
   setDropPhotoFilter: (dropPhotoFilter) => set({ dropPhotoFilter }),
   setDrops: (drops) => set({ drops }),
   upsertDrops: (fresh) => set(s => {
@@ -50,6 +54,9 @@ export const useDropsStore = create<DropsState>((set) => ({
   setDraftThumbnailUri: (thumbnailUri) => set((s) => ({ draft: { ...s.draft, thumbnailUri } })),
   clearDraft: () => set({ draft: EMPTY_DRAFT }),
   reset: () => set({ drops: [], isLoaded: false, error: null, draft: EMPTY_DRAFT }),
+  cacheDropPhotos: (dropId, photos) => set(s => ({
+    photosByDrop: { ...s.photosByDrop, [dropId]: photos },
+  })),
 }))
 
 export const selectDrops = (s: DropsState) => s.drops

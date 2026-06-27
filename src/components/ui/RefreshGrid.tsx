@@ -10,7 +10,7 @@ const COLS = 3
 const ROWS = 2
 const TOTAL = COLS * ROWS
 const GAP = 2
-const ASPECT = 9 / 16
+const ASPECT = 3 / 4
 const DEFAULT_COLOR = colors.white
 
 function easeInOut(t: number): number {

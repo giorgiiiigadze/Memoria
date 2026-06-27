@@ -74,12 +74,13 @@ export default function RootLayout() {
       await prefetchInitialData(session.user.id)
       setHydrated()
 
+      realtimeCleanup.current.forEach(fn => fn())
       realtimeCleanup.current = [
         subscribeToUserDrops(session.user.id),
         subscribeToNotifications(session.user.id),
       ]
 
-      if (!profile?.display_name) {
+      if (!profile?.display_name && !profile?.username) {
         router.replace('/(auth)/onboarding')
       } else {
         router.replace('/(app)/(tabs)/(home)')

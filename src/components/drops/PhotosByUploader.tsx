@@ -25,6 +25,7 @@ type Props = {
   photos: PhotoWithUploader[]
   onSelect: (photo: PhotoWithUploader) => void
   onDelete?: (photo: PhotoWithUploader) => void
+  onPin?: (photo: PhotoWithUploader) => void
   topInset: number
   bottomPad: number
   isLocked?: boolean
@@ -35,6 +36,7 @@ export function PhotosByUploader({
   photos,
   onSelect,
   onDelete,
+  onPin,
   topInset,
   bottomPad,
   isLocked,
@@ -59,6 +61,7 @@ export function PhotosByUploader({
             showUploader
             isOwn={photo.uploader_id === currentUserId}
             onDelete={onDelete ? () => onDelete(photo) : undefined}
+            onPin={onPin ? () => onPin(photo) : undefined}
           />
         ))}
       </View>

@@ -134,6 +134,7 @@ export interface Database {
           taken_at: string | null
           uploaded_at: string
           sort_order: number
+          is_pinned: boolean
         }
         Insert: {
           id?: string
@@ -146,9 +147,11 @@ export interface Database {
           taken_at?: string | null
           uploaded_at?: string
           sort_order?: number
+          is_pinned?: boolean
         }
         Update: {
           sort_order?: number
+          is_pinned?: boolean
         }
         Relationships: []
       }

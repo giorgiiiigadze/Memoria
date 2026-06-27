@@ -77,10 +77,9 @@ function MiniDropCard({ drop, hPad = H_PAD, backTitle }: { drop: DropWithPartici
           pointerEvents="none"
         >
           <Text style={s.title} numberOfLines={1}>{drop.title}</Text>
+          <Text style={s.date} numberOfLines={1}>{fmtDropDate(drop.state, drop.open_date)}</Text>
         </LinearGradient>
       </View>
-
-      <Text style={s.date}>{fmtDropDate(drop.state, drop.open_date)}</Text>
       </TouchableOpacity>
     </MenuView>
   )
@@ -94,9 +93,10 @@ type MiniPhotoCardProps = {
   showUploader?: boolean
   isOwn?: boolean
   onDelete?: () => void
+  onPin?: () => void
 }
 
-export function MiniPhotoCard({ photo, size, blurred, onPress, showUploader, isOwn, onDelete }: MiniPhotoCardProps) {
+export function MiniPhotoCard({ photo, size, blurred, onPress, showUploader, isOwn, onDelete, onPin }: MiniPhotoCardProps) {
   const cardHeight = Math.floor(size * (4 / 3))
   const blurOpacity = useSharedValue(blurred ? 1 : 0)
 
@@ -130,6 +130,11 @@ export function MiniPhotoCard({ photo, size, blurred, onPress, showUploader, isO
         )}
         <Text style={s.photoDate} numberOfLines={1}>{timeAgo(photo.uploaded_at)}</Text>
       </LinearGradient>
+      {photo.is_pinned && (
+        <View style={s.pinBadge} pointerEvents="none">
+          <SymbolView name="pin.fill" size={15} tintColor={colors.white} resizeMode="scaleAspectFit" />
+        </View>
+      )}
     </View>
   )
 
@@ -146,14 +151,16 @@ export function MiniPhotoCard({ photo, size, blurred, onPress, showUploader, isO
       shouldOpenOnLongPress
       style={{ width: size }}
       actions={[
-        { id: 'view', title: 'View Photo', image: 'eye' },
-        { id: 'save', title: 'Save to Camera Roll', image: 'photo.badge.arrow.down' },
-        { id: 'share', title: 'Share', image: 'square.and.arrow.up' },
-        ...(isOwn && onDelete ? [{ id: 'delete', title: 'Delete Photo', image: 'trash', attributes: { destructive: true } }] : []),
+        { id: 'view', title: 'View Photo', image: 'eye' as const },
+        { id: 'save', title: 'Save to Camera Roll', image: 'photo.badge.arrow.down' as const },
+        { id: 'share', title: 'Share', image: 'square.and.arrow.up' as const },
+        ...(onPin ? [{ id: 'pin', title: photo.is_pinned ? 'Unpin Photo' : 'Pin Photo', image: photo.is_pinned ? 'pin.slash' as const : 'pin' as const }] : []),
+        ...(isOwn && onDelete ? [{ id: 'delete', title: 'Delete Photo', image: 'trash' as const, attributes: { destructive: true } }] : []),
       ]}
       onPressAction={({ nativeEvent }) => {
         if (nativeEvent.event === 'view') onPress()
         if (nativeEvent.event === 'save') Alert.alert('Coming soon', 'Photo saving will be available in a future update.')
+        if (nativeEvent.event === 'pin') onPin?.()
         if (nativeEvent.event === 'delete') onDelete?.()
       }}
     >
@@ -196,7 +203,6 @@ function MiniDropCardSkeleton({ hPad = H_PAD }: { hPad?: number }) {
   return (
     <Animated.View style={[{ width: cardWidth }, pulse]}>
       <View style={[s.thumb, s.skeletonThumb, { width: cardWidth, height: cardHeight }]} />
-      <View style={s.skeletonDate} />
     </Animated.View>
   )
 }
@@ -246,11 +252,10 @@ const s = StyleSheet.create({
     color: colors.white,
   },
   date: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: fontWeight.semiBold,
-    color: colors.textTertiary,
-    marginTop: 4,
-    marginLeft: 2,
+    color: colors.textOverlay,
+    marginTop: 2,
   },
   photoGradient: {
     position: 'absolute',
@@ -264,7 +269,12 @@ const s = StyleSheet.create({
   photoDate: {
     fontSize: 12,
     fontWeight: fontWeight.semiBold,
-    color: colors.textTertiary,
+    color: colors.textOverlay,
+  },
+  pinBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
   },
   skeletonThumb: {
     backgroundColor: colors.surfaceRaised,
@@ -285,13 +295,5 @@ const s = StyleSheet.create({
     fontSize: 12,
     fontWeight: fontWeight.semiBold,
     color: colors.white,
-  },
-  skeletonDate: {
-    height: 10,
-    width: 32,
-    borderRadius: 5,
-    backgroundColor: colors.surfaceRaised,
-    marginTop: 5,
-    marginLeft: 2,
   },
 })

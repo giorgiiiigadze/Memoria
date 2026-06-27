@@ -4,7 +4,7 @@ import { useDropsStore } from '@/store/drops.store'
 import { colors } from '@/theme'
 import { shareDrop } from '@/utils/share'
 import { MenuView } from '@expo/ui/community/menu'
-import { GlassContainer, GlassView } from 'expo-glass-effect'
+import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import { router } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { Alert, StyleSheet, View } from 'react-native'
@@ -59,11 +59,9 @@ export function DropHeaderMenu({ id, plain }: { id: string; plain?: boolean }) {
           <SymbolView name="ellipsis" size={20} tintColor={colors.white} resizeMode="scaleAspectFit" />
         </View>
       ) : (
-        <GlassContainer>
-          <GlassView isInteractive colorScheme="light" style={s.btn}>
-            <SymbolView name="ellipsis" size={20} tintColor={colors.white} resizeMode="scaleAspectFit" />
-          </GlassView>
-        </GlassContainer>
+        <GlassIconButton>
+          <SymbolView name="ellipsis" size={20} tintColor={colors.white} resizeMode="scaleAspectFit" />
+        </GlassIconButton>
       )}
     </MenuView>
   )

@@ -28,15 +28,15 @@ export function fmtDropDate(state: 'active' | 'ready' | 'open' | 'expired', iso:
 
   if (isOpen) {
     const pastDays = Math.floor((now - target) / 86400000)
-    if (pastDays === 0) return 'Opened today'
-    if (pastDays === 1) return 'Opened yesterday'
-    if (pastDays < 7)  return `Opened ${pastDays} days ago`
-    return `Opened ${dateStr}`
+    if (pastDays === 0) return 'today'
+    if (pastDays === 1) return 'yesterday'
+    if (pastDays < 7)  return `${pastDays}d ago`
+    return dateStr
   } else {
     const futureDays = Math.floor((target - now) / 86400000)
-    if (futureDays <= 0) return 'Opens today'
-    if (futureDays === 1) return 'Opens tomorrow'
-    if (futureDays < 7)  return `Opens in ${futureDays} days`
-    return `Opens ${dateStr}`
+    if (futureDays <= 0) return 'today'
+    if (futureDays === 1) return 'tomorrow'
+    if (futureDays < 7)  return `in ${futureDays}d`
+    return dateStr
   }
 }

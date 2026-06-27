@@ -23,6 +23,7 @@ export const colors = {
   textMuted: '#898989',
   textLight: '#C4C4C4',
   textPlaceholder: '#8E8E93',
+  textOverlay: 'rgba(255,255,255,0.6)',
 
   // Borders
   borderDefault: '#3B3B3B',

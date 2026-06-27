@@ -28,7 +28,7 @@ export function subscribeToUserDrops(userId: string): () => void {
     .channel(`user-drops-${userId}`)
     .on(
       'postgres_changes',
-      { event: '*', schema: 'public', table: 'drops' },
+      { event: '*', schema: 'public', table: 'drops', filter: `creator_id=eq.${userId}` },
       (payload) => {
         const dropId =
           (payload.new as { id?: string } | undefined)?.id ??

@@ -189,15 +189,19 @@ const s = StyleSheet.create({
   empty: {
     alignItems: 'center',
     paddingTop: spacing[10],
+    paddingHorizontal: spacing[8],
   },
   emptyTitle: {
     fontSize: 17,
-    fontWeight: fontWeight.medium,
-    color: colors.white,
-    marginBottom: 6,
+    fontWeight: fontWeight.semiBold,
+    color: colors.textPrimary,
+    marginBottom: spacing[2],
+    textAlign: 'center',
   },
   emptySub: {
-    fontSize: fontSize.sm,
-    color: colors.textTertiary,
+    fontSize: 14,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 })

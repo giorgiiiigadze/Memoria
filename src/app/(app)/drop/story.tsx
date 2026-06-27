@@ -1,9 +1,10 @@
 import { consumeStoryCache, getDropPhotos, type PhotoWithUploader } from '@/api/photos.api'
 import { DropHeaderMenu } from '@/components/drops/DropHeaderMenu'
+import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { colors, fontWeight, radii, spacing } from '@/theme'
 import { timeAgo } from '@/utils/date'
 import { MenuView } from '@expo/ui/community/menu'
-import { GlassContainer, GlassView } from 'expo-glass-effect'
+import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -31,12 +32,19 @@ const THUMB_GAP         = 4
 const THUMB_RADIUS      = 6
 const FILMSTRIP_CLEARANCE = THUMB_SIZE + spacing[2] + spacing[3]
 
+function sortPhotos(photos: PhotoWithUploader[]) {
+  return [...photos].sort((a, b) => {
+    if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1
+    return a.sort_order - b.sort_order
+  })
+}
+
 export default function StoryScreen() {
   const { dropId, index: indexParam } = useLocalSearchParams<{ dropId: string; index: string }>()
   const insets = useSafeAreaInsets()
-
-  const [photos, setPhotos] = useState<PhotoWithUploader[]>(() => consumeStoryCache())
+  const [photos, setPhotos] = useState<PhotoWithUploader[]>(() => sortPhotos(consumeStoryCache()))
   const [index, setIndex]   = useState(parseInt(indexParam ?? '0', 10))
+
   const filmstripRef = useRef<ScrollView>(null)
 
   const translateY = useSharedValue(0)
@@ -49,7 +57,7 @@ export default function StoryScreen() {
 
   useEffect(() => {
     if (!dropId) return
-    getDropPhotos(dropId).then(setPhotos).catch(console.error)
+    getDropPhotos(dropId).then(p => setPhotos(sortPhotos(p))).catch(console.error)
   }, [dropId])
 
   useEffect(() => {
@@ -96,9 +104,6 @@ export default function StoryScreen() {
     })
 
 
-  // ─── Close tap for X button (inside RNGH system) ───────────────────────────
-  const closeTap = Gesture.Tap().onEnd(() => { runOnJS(goBack)() })
-
   // ─── Animated styles ────────────────────────────────────────────────────────
   const bgStyle = useAnimatedStyle(() => ({
     opacity: interpolate(translateY.value, [0, SH * 0.5], [1, 0], Extrapolation.CLAMP),
@@ -134,6 +139,22 @@ export default function StoryScreen() {
             paddingTop: insets.top + 44 + spacing[2],
             paddingBottom: insets.bottom + FILMSTRIP_CLEARANCE,
           }]}>
+            {photo.uploader && (
+              <View style={s.uploaderRow}>
+                <InitialAvatar
+                  name={photo.uploader.display_name ?? photo.uploader.username ?? '?'}
+                  avatarUrl={photo.uploader.avatar_url}
+                  size={36}
+                />
+                <View>
+                  <Text style={s.uploaderName} numberOfLines={1}>
+                    {photo.uploader.display_name ?? photo.uploader.username}
+                  </Text>
+                  <Text style={s.uploaderTime}>{timeAgo(photo.uploaded_at)}</Text>
+                </View>
+              </View>
+            )}
+
             <View style={s.photoWrap}>
               <Image
                 source={{ uri: photo.cdn_url }}
@@ -150,7 +171,9 @@ export default function StoryScreen() {
               <MenuView
                 shouldOpenOnLongPress
                 style={StyleSheet.absoluteFill}
-                actions={[{ id: 'save', title: 'Save to Camera Roll', image: 'photo.badge.arrow.down' }]}
+                actions={[
+                  { id: 'save', title: 'Save to Camera Roll', image: 'photo.badge.arrow.down' as const },
+                ]}
                 onPressAction={() => Alert.alert('Coming soon', 'Photo saving will be available in a future update.')}
               >
                 <View style={StyleSheet.absoluteFill} />
@@ -169,13 +192,9 @@ export default function StoryScreen() {
         pointerEvents="box-none"
       >
         <View style={s.headerRow}>
-          <GlassContainer>
-            <GestureDetector gesture={closeTap}>
-              <GlassView isInteractive colorScheme="light" style={s.glassBtn}>
-                <SymbolView name="chevron.down" size={16} tintColor={colors.white} resizeMode="scaleAspectFit" />
-              </GlassView>
-            </GestureDetector>
-          </GlassContainer>
+          <GlassIconButton onPress={goBack}>
+            <SymbolView name="chevron.down" size={16} tintColor={colors.white} resizeMode="scaleAspectFit" />
+          </GlassIconButton>
 
           <Text style={s.headerTitle} numberOfLines={1}>{timeAgo(photo.uploaded_at)}</Text>
 
@@ -187,6 +206,7 @@ export default function StoryScreen() {
         style={[s.filmstrip, { bottom: insets.bottom + spacing[2] }, overlayStyle]}
         pointerEvents="box-none"
       >
+        <View style={s.filmstripIndicator} pointerEvents="none" />
         <ScrollView
           ref={filmstripRef}
           horizontal
@@ -234,12 +254,21 @@ const s = StyleSheet.create({
     paddingBottom: spacing[2],
     gap: spacing[2],
   },
-  glassBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  uploaderRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: spacing[2],
+    paddingHorizontal: spacing[1],
+  },
+  uploaderName: {
+    fontSize: 14,
+    fontWeight: fontWeight.semiBold,
+    color: colors.white,
+  },
+  uploaderTime: {
+    fontSize: 12,
+    color: colors.textOverlay,
+    marginTop: 1,
   },
   headerTitle: {
     flex: 1,
@@ -251,7 +280,7 @@ const s = StyleSheet.create({
 
   photoWrap: {
     aspectRatio: 3 / 4,
-    borderRadius: radii.card,
+    borderRadius: radii.lg,
     overflow: 'hidden',
     backgroundColor: colors.surfaceDeep,
   },
@@ -259,8 +288,8 @@ const s = StyleSheet.create({
     position: 'absolute',
     left: 0, right: 0, bottom: 0,
     height: 120,
-    borderBottomLeftRadius: radii.card,
-    borderBottomRightRadius: radii.card,
+    borderBottomLeftRadius: radii.lg,
+    borderBottomRightRadius: radii.lg,
   },
 
   reactionsContainer: {
@@ -280,6 +309,18 @@ const s = StyleSheet.create({
   filmstrip: {
     position: 'absolute',
     left: 0, right: 0,
+    height: THUMB_SIZE,
+  },
+  filmstripIndicator: {
+    position: 'absolute',
+    left: (SW - THUMB_SIZE) / 2,
+    top: 0,
+    width: THUMB_SIZE,
+    height: THUMB_SIZE,
+    borderRadius: THUMB_RADIUS,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.5)',
+    zIndex: 1,
   },
   filmstripContent: {
     paddingHorizontal: (SW - THUMB_SIZE) / 2,

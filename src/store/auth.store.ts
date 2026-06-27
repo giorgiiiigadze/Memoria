@@ -59,7 +59,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setProfile: (profile) => {
     set({
       profile,
-      isOnboarded: !!profile?.display_name,
+      isOnboarded: !!(profile?.display_name || profile?.username),
     })
   },
 
