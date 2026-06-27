@@ -89,6 +89,10 @@ function CalendarPage({ loaded, error, groups }: PageProps) {
           <MiniDropGrid drops={group.items} hPad={0} backTitle="Calendar" />
         </View>
       ))}
+
+      {groups.length > 0 && (
+        <Text style={s.footer}>Drops are grouped by their scheduled open date.</Text>
+      )}
     </ScrollView>
   )
 }
@@ -176,7 +180,15 @@ const s = StyleSheet.create({
     fontWeight: fontWeight.strong,
     color: colors.white,
     marginBottom: spacing[3],
-    paddingHorizontal: spacing[5],
+    paddingLeft: spacing[4],
+  },
+  footer: {
+    fontSize: 13,
+    color: colors.textTertiary,
+    textAlign: 'center',
+    paddingHorizontal: spacing[8],
+    paddingTop: spacing[4],
+    paddingBottom: spacing[2],
   },
   skeletonLabel: {
     height: 13,

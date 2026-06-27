@@ -94,7 +94,7 @@ export default function ProfileScreen() {
 
           <View style={s.statsRow}>
             <Stat value={drops.length} label="Drops" />
-            <Stat value={activeCount} label="Active" />
+            <Stat value={activeCount} label="Collecting" />
             <Stat value={readyCount} label="Ready" />
             <Stat value={openCount} label="Open" />
           </View>
@@ -120,7 +120,7 @@ export default function ProfileScreen() {
               )}
               {all.length > 0 && (
                 <View style={s.section}>
-                  {pinned.length > 0 && <Text style={s.sectionLabel}>All Drops</Text>}
+                  <Text style={s.sectionLabel}>All Drops</Text>
                   <MiniDropGrid drops={all} hPad={0} backTitle="Profile" currentUserId={user?.id} onPin={handlePinDrop} />
                 </View>
               )}
@@ -158,7 +158,7 @@ export default function ProfileScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
-  content: { paddingBottom: spacing[12], gap: spacing[6] },
+  content: { paddingBottom: spacing[12], gap: spacing[4] },
 
   topScrim: {
     position: 'absolute',
@@ -194,7 +194,7 @@ const s = StyleSheet.create({
   statLabel: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
 
   section: { gap: spacing[3] },
-  sectionLabel: { fontSize: fontSize.md, fontWeight: fontWeight.strong, color: colors.white, paddingHorizontal: spacing[4] },
+  sectionLabel: { fontSize: fontSize.md, fontWeight: fontWeight.strong, color: colors.white, paddingLeft: spacing[4] },
   emptyDrops: { paddingVertical: spacing[10], alignItems: 'center', paddingHorizontal: spacing[8] },
   emptyTitle: { color: colors.textPrimary, fontSize: 17, fontWeight: '600', marginBottom: spacing[2], textAlign: 'center' },
   emptyText: { color: colors.textPrimary, fontSize: 14, textAlign: 'center', lineHeight: 20 },
