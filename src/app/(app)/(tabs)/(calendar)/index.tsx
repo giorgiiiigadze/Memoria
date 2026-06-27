@@ -5,7 +5,8 @@ import { FULL_MONTHS } from '@/constants/drops'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { selectDropsLoaded, useDropsStore } from '@/store/drops.store'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
-import { useFocusEffect } from 'expo-router'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Stack, useFocusEffect } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
 import {
   Dimensions,
@@ -16,6 +17,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
 
 const { width: SW, height: SH } = Dimensions.get('window')
@@ -53,13 +55,14 @@ type PageProps = {
   loaded: boolean
   error: boolean
   groups: { label: string; items: DropWithParticipants[] }[]
+  topInset: number
 }
 
-function CalendarPage({ loaded, error, groups }: PageProps) {
+function CalendarPage({ loaded, error, groups, topInset }: PageProps) {
   return (
     <ScrollView
       style={s.root}
-      contentContainerStyle={s.content}
+      contentContainerStyle={[s.content, { paddingTop: topInset }]}
       showsVerticalScrollIndicator={false}
     >
       {!loaded && (
@@ -90,14 +93,12 @@ function CalendarPage({ loaded, error, groups }: PageProps) {
         </View>
       ))}
 
-      {groups.length > 0 && (
-        <Text style={s.footer}>Drops are grouped by their scheduled open date.</Text>
-      )}
     </ScrollView>
   )
 }
 
 export default function CalendarScreen() {
+  const insets = useSafeAreaInsets()
   const drops = useDropsStore(useShallow(s => s.drops))
   const storeLoaded = useDropsStore(selectDropsLoaded)
   const user = useAuthStore(selectUser)
@@ -107,6 +108,7 @@ export default function CalendarScreen() {
   const scrollRef = useRef<ScrollView>(null)
 
   const loaded = storeLoaded || drops.length > 0 || apiLoaded
+  const topInset = insets.top + 44 + spacing[2]
 
   useFocusEffect(
     useCallback(() => {
@@ -134,8 +136,9 @@ export default function CalendarScreen() {
   }
 
   return (
-    <>
-      <CalendarHeader activeTab={activeTab} onTabChange={handleTabChange} />
+    <View style={s.screen}>
+      <Stack.Screen options={{ headerShown: false }} />
+
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -146,17 +149,34 @@ export default function CalendarScreen() {
         style={s.pager}
       >
         <View style={s.page}>
-          <CalendarPage loaded={loaded} error={error} groups={allGroups} />
+          <CalendarPage loaded={loaded} error={error} groups={allGroups} topInset={topInset} />
         </View>
         <View style={s.page}>
-          <CalendarPage loaded={loaded} error={error} groups={myGroups} />
+          <CalendarPage loaded={loaded} error={error} groups={myGroups} topInset={topInset} />
         </View>
       </ScrollView>
-    </>
+
+      <LinearGradient
+        colors={['rgba(0,0,0,0.6)', 'transparent']}
+        style={s.topScrim}
+        pointerEvents="none"
+      />
+
+      <CalendarHeader activeTab={activeTab} onTabChange={handleTabChange} />
+    </View>
   )
 }
 
 const s = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
+  topScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 160,
+    zIndex: 5,
+  },
   pager: {
     flex: 1,
   },
@@ -169,15 +189,14 @@ const s = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    paddingTop: spacing[4],
     paddingBottom: spacing[12],
   },
   group: {
-    marginBottom: spacing[2],
+    marginBottom: spacing[5],
   },
   monthLabel: {
     fontSize: fontSize.md,
-    fontWeight: fontWeight.strong,
+    fontWeight: fontWeight.semiBold,
     color: colors.white,
     marginBottom: spacing[3],
     paddingLeft: spacing[4],

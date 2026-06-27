@@ -26,15 +26,17 @@ const STATE_ICON: Record<DropState, { name: string; color: string }> = {
   expired: { name: 'xmark.circle',    color: colors.white },
 }
 
-function MiniDropCard({ drop, hPad = H_PAD, backTitle, isCreator, onPin }: {
+function MiniDropCard({ drop, hPad = H_PAD, backTitle, isCreator, onPin, cols = COLS, borderRadius }: {
   drop: DropWithParticipants
   hPad?: number
   backTitle?: string
   isCreator?: boolean
   onPin?: () => void
+  cols?: number
+  borderRadius?: number
 }) {
   const { width } = useWindowDimensions()
-  const cardWidth = Math.floor((width - hPad - GAP * (COLS - 1)) / COLS)
+  const cardWidth = Math.floor((width - hPad - GAP * (cols - 1)) / cols)
   const cardHeight = Math.floor(cardWidth * (4 / 3))
 
   const navigate = () => router.push({ pathname: '/drop/[id]', params: { id: drop.id, backTitle } } as any)
@@ -59,7 +61,7 @@ function MiniDropCard({ drop, hPad = H_PAD, backTitle, isCreator, onPin }: {
         onPress={navigate}
         activeOpacity={0.82}
       >
-      <View style={[s.thumb, { width: cardWidth, height: cardHeight }]}>
+      <View style={[s.thumb, { width: cardWidth, height: cardHeight }, borderRadius !== undefined && { borderRadius }]}>
         {drop.thumbnail_url ? (
           <Image
             source={{ uri: drop.thumbnail_url }}
@@ -176,12 +178,14 @@ export function MiniPhotoCard({ photo, size, blurred, onPress, showUploader, isO
   )
 }
 
-export function MiniDropGrid({ drops, hPad, backTitle, currentUserId, onPin }: {
+export function MiniDropGrid({ drops, hPad, backTitle, currentUserId, onPin, cols, borderRadius }: {
   drops: DropWithParticipants[]
   hPad?: number
   backTitle?: string
   currentUserId?: string
   onPin?: (drop: DropWithParticipants) => void
+  cols?: number
+  borderRadius?: number
 }) {
   return (
     <View style={s.grid}>
@@ -193,15 +197,17 @@ export function MiniDropGrid({ drops, hPad, backTitle, currentUserId, onPin }: {
           backTitle={backTitle}
           isCreator={!!currentUserId && drop.creator_id === currentUserId}
           onPin={onPin ? () => onPin(drop) : undefined}
+          cols={cols}
+          borderRadius={borderRadius}
         />
       ))}
     </View>
   )
 }
 
-function MiniDropCardSkeleton({ hPad = H_PAD }: { hPad?: number }) {
+function MiniDropCardSkeleton({ hPad = H_PAD, cols = COLS }: { hPad?: number; cols?: number }) {
   const { width } = useWindowDimensions()
-  const cardWidth = Math.floor((width - hPad - GAP * (COLS - 1)) / COLS)
+  const cardWidth = Math.floor((width - hPad - GAP * (cols - 1)) / cols)
   const cardHeight = Math.floor(cardWidth * (4 / 3))
   const opacity = useSharedValue(1)
 
@@ -225,11 +231,11 @@ function MiniDropCardSkeleton({ hPad = H_PAD }: { hPad?: number }) {
   )
 }
 
-export function MiniDropGridSkeleton({ count = 6, hPad }: { count?: number; hPad?: number }) {
+export function MiniDropGridSkeleton({ count = 6, hPad, cols }: { count?: number; hPad?: number; cols?: number }) {
   return (
     <View style={s.grid}>
       {Array.from({ length: count }, (_, i) => (
-        <MiniDropCardSkeleton key={i} hPad={hPad} />
+        <MiniDropCardSkeleton key={i} hPad={hPad} cols={cols} />
       ))}
     </View>
   )

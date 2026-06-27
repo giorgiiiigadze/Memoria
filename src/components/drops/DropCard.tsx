@@ -4,7 +4,7 @@ import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { CARD_RADIUS } from '@/constants/drops'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
-import { colors, fontWeight, fontSize, spacing } from '@/theme'
+import { colors, fontWeight, spacing } from '@/theme'
 import { fmtDropDate } from '@/utils/date'
 import { shareDrop } from '@/utils/share'
 import { Button, Host, Menu } from '@expo/ui/swift-ui'
@@ -169,10 +169,10 @@ const s = StyleSheet.create({
     marginTop: 1,
   },
   date: {
-    fontSize: fontSize.xs,
+    fontSize: 14,
     fontWeight: fontWeight.semiBold,
     color: colors.textTertiary,
-    marginTop: 2,
+    // marginTop: 2,
   },
   photoWrap: {
     aspectRatio: 3 / 4,

@@ -90,8 +90,8 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   plainBtn: {
-    width: 44,
-    height: 44,
+    width: 56,
+    height: 56,
     alignItems: 'center',
     justifyContent: 'center',
   },

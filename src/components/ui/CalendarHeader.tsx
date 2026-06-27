@@ -35,9 +35,14 @@ export default function CalendarHeader({ activeTab, onTabChange }: Props) {
 
 const s = StyleSheet.create({
   container: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     backgroundColor: 'transparent',
     paddingHorizontal: spacing[5],
     justifyContent: 'center',
+    zIndex: 10,
   },
   segmentedWrap: {
     alignSelf: 'flex-start',

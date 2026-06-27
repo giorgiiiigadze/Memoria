@@ -12,7 +12,6 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { CameraIcon } from '@/components/icons/CameraIcon'
-import { SearchIcon } from '@/components/icons/SearchIcon'
 import { Image as ImageIcon } from 'lucide-react-native'
 import { useCallback, useEffect, useState } from 'react'
 import {
@@ -195,12 +194,6 @@ export default function DropDetailScreen() {
         <GlassIconButton onPress={() => router.back()}>
           <SymbolView name="chevron.left" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
         </GlassIconButton>
-
-        <View style={s.headerSpacer} />
-
-        <GlassIconButton>
-          <SearchIcon size={20} color={colors.white} />
-        </GlassIconButton>
       </View>
 
       {canUpload && (
@@ -216,13 +209,13 @@ export default function DropDetailScreen() {
             </TouchableOpacity>
           )}
 
-          <GlassIconButton onPress={handleCapture} disabled={capturing} style={s.glassCaptureBtn}>
+          <TouchableOpacity onPress={handleCapture} disabled={capturing} style={s.glassCaptureBtn} activeOpacity={0.85}>
             {capturing ? (
               <ActivityIndicator color={colors.ink} />
             ) : (
               <CameraIcon size={28} color={colors.ink} />
             )}
-          </GlassIconButton>
+          </TouchableOpacity>
         </View>
       )}
 

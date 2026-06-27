@@ -1,13 +1,10 @@
 import { getMyCreatedDrops, pinDrop, type DropWithParticipants } from '@/api/drops.api'
 import { MiniDropGrid, MiniDropGridSkeleton } from '@/components/drops/MiniDropCard'
-import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
 import { selectDropsLoaded, useDropsStore } from '@/store/drops.store'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router, Stack, useFocusEffect } from 'expo-router'
-import { SymbolView } from 'expo-symbols'
 import { useCallback, useState } from 'react'
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -71,11 +68,35 @@ export default function ProfileScreen() {
   const readyCount = drops.filter(d => d.state === 'ready').length
   const openCount = drops.filter(d => d.state === 'open').length
 
-  const topInset = insets.top + 44 + spacing[2]
+  const topInset = insets.top + 44
 
   return (
     <View style={s.root}>
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{
+        headerShown: true,
+        headerTransparent: true,
+        headerTitle: '',
+        headerShadowVisible: false,
+      }} />
+      <Stack.Toolbar placement="left">
+        <Stack.Toolbar.Button
+          accessibilityLabel="Sign out"
+          tintColor={colors.white}
+          onPress={signOut}
+        >
+          <Stack.Toolbar.Icon sf="gearshape.fill" />
+        </Stack.Toolbar.Button>
+      </Stack.Toolbar>
+
+      <Stack.Toolbar placement="right">
+        <Stack.Toolbar.Button
+          accessibilityLabel="Settings"
+          tintColor={colors.white}
+          onPress={() => router.push('/(app)/(tabs)/(profile)/settings' as any)}
+        >
+          <Stack.Toolbar.Icon sf="gearshape.fill" />
+        </Stack.Toolbar.Button>
+      </Stack.Toolbar>
 
       <ScrollView
         contentContainerStyle={[s.content, { paddingTop: topInset }]}
@@ -135,23 +156,6 @@ export default function ProfileScreen() {
         )}
       </ScrollView>
 
-      <LinearGradient
-        colors={['rgba(0,0,0,0.6)', 'transparent']}
-        style={s.topScrim}
-        pointerEvents="none"
-      />
-
-      <View style={[s.header, { paddingTop: insets.top }]} pointerEvents="box-none">
-        <GlassIconButton onPress={signOut}>
-          <SymbolView name="rectangle.portrait.and.arrow.right" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
-        </GlassIconButton>
-
-        <View style={s.headerSpacer} />
-
-        <GlassIconButton onPress={() => router.push('/(app)/(tabs)/(profile)/settings' as any)}>
-          <SymbolView name="gearshape.fill" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
-        </GlassIconButton>
-      </View>
     </View>
   )
 }
@@ -160,27 +164,6 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   content: { paddingBottom: spacing[12], gap: spacing[4] },
 
-  topScrim: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 160,
-    zIndex: 5,
-  },
-  header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing[2],
-    paddingBottom: spacing[2],
-    gap: spacing[2],
-    zIndex: 10,
-  },
-  headerSpacer: { flex: 1 },
 
   avatarWrap: { alignItems: 'center', marginBottom: spacing[5] },
 
@@ -188,13 +171,13 @@ const s = StyleSheet.create({
   name: { fontSize: 28, fontWeight: fontWeight.semiBold, color: colors.white, letterSpacing: -0.5, textAlign: 'center', marginBottom: spacing[2] },
   metaLine: { fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 20, paddingHorizontal: spacing[2] },
 
-  statsRow: { flexDirection: 'row', alignSelf: 'stretch', marginTop: spacing[6], marginBottom: spacing[8] },
+  statsRow: { flexDirection: 'row', alignSelf: 'stretch', marginTop: spacing[6], marginBottom: spacing[4] },
   stat: { flex: 1, alignItems: 'center' },
   statValue: { fontSize: 20, fontWeight: fontWeight.semiBold, color: colors.white },
   statLabel: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
 
   section: { gap: spacing[3] },
-  sectionLabel: { fontSize: fontSize.md, fontWeight: fontWeight.strong, color: colors.white, paddingLeft: spacing[4] },
+  sectionLabel: { fontSize: fontSize.md, fontWeight: fontWeight.semiBold, color: colors.white, paddingLeft: spacing[4] },
   emptyDrops: { paddingVertical: spacing[10], alignItems: 'center', paddingHorizontal: spacing[8] },
   emptyTitle: { color: colors.textPrimary, fontSize: 17, fontWeight: '600', marginBottom: spacing[2], textAlign: 'center' },
   emptyText: { color: colors.textPrimary, fontSize: 14, textAlign: 'center', lineHeight: 20 },
