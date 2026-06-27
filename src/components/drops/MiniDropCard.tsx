@@ -26,7 +26,13 @@ const STATE_ICON: Record<DropState, { name: string; color: string }> = {
   expired: { name: 'xmark.circle',    color: colors.white },
 }
 
-function MiniDropCard({ drop, hPad = H_PAD, backTitle }: { drop: DropWithParticipants; hPad?: number; backTitle?: string }) {
+function MiniDropCard({ drop, hPad = H_PAD, backTitle, isCreator, onPin }: {
+  drop: DropWithParticipants
+  hPad?: number
+  backTitle?: string
+  isCreator?: boolean
+  onPin?: () => void
+}) {
   const { width } = useWindowDimensions()
   const cardWidth = Math.floor((width - hPad - GAP * (COLS - 1)) / COLS)
   const cardHeight = Math.floor(cardWidth * (4 / 3))
@@ -38,12 +44,14 @@ function MiniDropCard({ drop, hPad = H_PAD, backTitle }: { drop: DropWithPartici
       shouldOpenOnLongPress
       style={{ width: cardWidth }}
       actions={[
-        { id: 'open', title: 'View Drop', image: 'eye' },
-        { id: 'share', title: 'Share', image: 'square.and.arrow.up' },
+        { id: 'open', title: 'View Drop', image: 'eye' as const },
+        { id: 'share', title: 'Share', image: 'square.and.arrow.up' as const },
+        ...(onPin ? [{ id: 'pin', title: drop.is_pinned ? 'Unpin Drop' : 'Pin Drop', image: drop.is_pinned ? 'pin.slash' as const : 'pin' as const }] : []),
       ]}
       onPressAction={({ nativeEvent }) => {
         if (nativeEvent.event === 'open') navigate()
         if (nativeEvent.event === 'share') shareDrop(drop.title, drop.id)
+        if (nativeEvent.event === 'pin') onPin?.()
       }}
     >
       <TouchableOpacity
@@ -62,15 +70,6 @@ function MiniDropCard({ drop, hPad = H_PAD, backTitle }: { drop: DropWithPartici
           <View style={[StyleSheet.absoluteFill, s.placeholder]} />
         )}
 
-        <View style={s.stateIcon}>
-          <SymbolView
-            name={STATE_ICON[drop.state].name as any}
-            size={11}
-            tintColor={STATE_ICON[drop.state].color}
-            resizeMode="scaleAspectFit"
-          />
-        </View>
-
         <LinearGradient
           colors={['transparent', 'rgba(0,0,0,0.75)']}
           style={s.gradient}
@@ -79,6 +78,12 @@ function MiniDropCard({ drop, hPad = H_PAD, backTitle }: { drop: DropWithPartici
           <Text style={s.title} numberOfLines={1}>{drop.title}</Text>
           <Text style={s.date} numberOfLines={1}>{fmtDropDate(drop.state, drop.open_date)}</Text>
         </LinearGradient>
+
+        {drop.is_pinned && (
+          <View style={s.dropPinBadge} pointerEvents="none">
+            <SymbolView name="pin.fill" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+          </View>
+        )}
       </View>
       </TouchableOpacity>
     </MenuView>
@@ -132,7 +137,7 @@ export function MiniPhotoCard({ photo, size, blurred, onPress, showUploader, isO
       </LinearGradient>
       {photo.is_pinned && (
         <View style={s.pinBadge} pointerEvents="none">
-          <SymbolView name="pin.fill" size={15} tintColor={colors.white} resizeMode="scaleAspectFit" />
+          <SymbolView name="pin.fill" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
         </View>
       )}
     </View>
@@ -171,11 +176,24 @@ export function MiniPhotoCard({ photo, size, blurred, onPress, showUploader, isO
   )
 }
 
-export function MiniDropGrid({ drops, hPad, backTitle }: { drops: DropWithParticipants[]; hPad?: number; backTitle?: string }) {
+export function MiniDropGrid({ drops, hPad, backTitle, currentUserId, onPin }: {
+  drops: DropWithParticipants[]
+  hPad?: number
+  backTitle?: string
+  currentUserId?: string
+  onPin?: (drop: DropWithParticipants) => void
+}) {
   return (
     <View style={s.grid}>
       {drops.map(drop => (
-        <MiniDropCard key={drop.id} drop={drop} hPad={hPad} backTitle={backTitle} />
+        <MiniDropCard
+          key={drop.id}
+          drop={drop}
+          hPad={hPad}
+          backTitle={backTitle}
+          isCreator={!!currentUserId && drop.creator_id === currentUserId}
+          onPin={onPin ? () => onPin(drop) : undefined}
+        />
       ))}
     </View>
   )
@@ -272,6 +290,11 @@ const s = StyleSheet.create({
     color: colors.textOverlay,
   },
   pinBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+  },
+  dropPinBadge: {
     position: 'absolute',
     top: 6,
     right: 6,

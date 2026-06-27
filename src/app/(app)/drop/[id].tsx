@@ -2,25 +2,26 @@ import { getDrop, type DropWithParticipants } from '@/api/drops.api'
 import { deleteDropPhoto, getDropPhotos, pinPhoto, primeStoryCache, uploadDropPhoto, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
 import { PhotosByUploader, PhotosByUploaderSkeleton } from '@/components/drops/PhotosByUploader'
+import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { colors, spacing } from '@/theme'
-import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import * as Haptics from 'expo-haptics'
 import * as ImagePicker from 'expo-image-picker'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
+import { CameraIcon } from '@/components/icons/CameraIcon'
+import { SearchIcon } from '@/components/icons/SearchIcon'
 import { Image as ImageIcon } from 'lucide-react-native'
 import { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
-  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -196,6 +197,10 @@ export default function DropDetailScreen() {
         </GlassIconButton>
 
         <View style={s.headerSpacer} />
+
+        <GlassIconButton>
+          <SearchIcon size={20} color={colors.white} />
+        </GlassIconButton>
       </View>
 
       {canUpload && (
@@ -215,7 +220,7 @@ export default function DropDetailScreen() {
             {capturing ? (
               <ActivityIndicator color={colors.ink} />
             ) : (
-              <SymbolView name="camera.fill" size={30} tintColor={colors.ink} resizeMode="scaleAspectFit" />
+              <CameraIcon size={28} color={colors.ink} />
             )}
           </GlassIconButton>
         </View>
@@ -291,6 +296,6 @@ const s = StyleSheet.create({
     borderRadius: 27,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(242,238,230,0.85)',
+    backgroundColor: colors.white,
   },
 })

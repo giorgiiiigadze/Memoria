@@ -78,6 +78,11 @@ export async function updateDropThumbnail(dropId: string, uri: string): Promise<
   }
 }
 
+export async function pinDrop(dropId: string, pinned: boolean): Promise<void> {
+  const { error } = await supabase.from('drops').update({ is_pinned: pinned }).eq('id', dropId)
+  if (error) throw error
+}
+
 export async function deleteDrop(dropId: string): Promise<void> {
   const { error } = await supabase.from('drops').delete().eq('id', dropId)
   if (error) throw error

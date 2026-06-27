@@ -1,13 +1,16 @@
-import { getMyCreatedDrops } from '@/api/drops.api'
+import { getMyCreatedDrops, pinDrop, type DropWithParticipants } from '@/api/drops.api'
 import { MiniDropGrid, MiniDropGridSkeleton } from '@/components/drops/MiniDropCard'
+import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
 import { selectDropsLoaded, useDropsStore } from '@/store/drops.store'
-import { colors, fontWeight, spacing } from '@/theme'
+import { colors, fontSize, fontWeight, spacing } from '@/theme'
+import { LinearGradient } from 'expo-linear-gradient'
 import { router, Stack, useFocusEffect } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { useCallback, useState } from 'react'
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
 
 function Stat({ value, label }: { value: number | string; label: string }) {
@@ -20,6 +23,7 @@ function Stat({ value, label }: { value: number | string; label: string }) {
 }
 
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets()
   const user = useAuthStore(selectUser)
   const profile = useAuthStore(selectProfile)
   const signOut = useAuthStore(s => s.signOut)
@@ -45,6 +49,21 @@ export default function ProfileScreen() {
     }, [])
   )
 
+  async function handlePinDrop(drop: DropWithParticipants) {
+    const next = !drop.is_pinned
+    useDropsStore.getState().setDrops(
+      useDropsStore.getState().drops.map(d => d.id === drop.id ? { ...d, is_pinned: next } : d)
+    )
+    try {
+      await pinDrop(drop.id, next)
+    } catch {
+      useDropsStore.getState().setDrops(
+        useDropsStore.getState().drops.map(d => d.id === drop.id ? { ...d, is_pinned: !next } : d)
+      )
+      Alert.alert('Error', 'Could not update pin.')
+    }
+  }
+
   const displayedName = profile?.display_name ?? profile?.username ?? ''
   const avatarUrl = profile?.avatar_url ?? null
 
@@ -52,26 +71,16 @@ export default function ProfileScreen() {
   const readyCount = drops.filter(d => d.state === 'ready').length
   const openCount = drops.filter(d => d.state === 'open').length
 
+  const topInset = insets.top + 44 + spacing[2]
+
   return (
     <View style={s.root}>
-      <Stack.Screen options={{
-        headerShown: true,
-        headerTitle: '',
-        headerStyle: { backgroundColor: colors.background },
-        headerShadowVisible: false,
-        headerLeft: () => (
-          <TouchableOpacity onPress={signOut} activeOpacity={0.7}>
-            <Text style={s.headerBtnMuted}>Sign out</Text>
-          </TouchableOpacity>
-        ),
-        headerRight: () => (
-          <TouchableOpacity onPress={() => router.push('/(app)/(tabs)/(profile)/settings' as any)} activeOpacity={0.7}>
-            <SymbolView name="gearshape.fill" size={20} tintColor={colors.white} resizeMode="scaleAspectFit" />
-          </TouchableOpacity>
-        ),
-      }} />
-      <ScrollView contentContainerStyle={s.content}>
+      <Stack.Screen options={{ headerShown: false }} />
 
+      <ScrollView
+        contentContainerStyle={[s.content, { paddingTop: topInset }]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={s.avatarWrap}>
           <InitialAvatar name={displayedName || '?'} avatarUrl={avatarUrl} size={88} />
         </View>
@@ -98,26 +107,80 @@ export default function ProfileScreen() {
             <Text style={s.emptyTitle}>No drops yet</Text>
             <Text style={s.emptyText}>Tap + to create your first drop.</Text>
           </View>
-        ) : (
-          <MiniDropGrid drops={drops} hPad={0} backTitle="Profile" />
-        )}
+        ) : (() => {
+          const pinned = drops.filter(d => d.is_pinned)
+          const all    = drops.filter(d => !d.is_pinned)
+          return (
+            <>
+              {pinned.length > 0 && (
+                <View style={s.section}>
+                  <Text style={s.sectionLabel}>Pinned</Text>
+                  <MiniDropGrid drops={pinned} hPad={0} backTitle="Profile" currentUserId={user?.id} onPin={handlePinDrop} />
+                </View>
+              )}
+              {all.length > 0 && (
+                <View style={s.section}>
+                  {pinned.length > 0 && <Text style={s.sectionLabel}>All Drops</Text>}
+                  <MiniDropGrid drops={all} hPad={0} backTitle="Profile" currentUserId={user?.id} onPin={handlePinDrop} />
+                </View>
+              )}
+            </>
+          )
+        })()}
 
         {__DEV__ && (
           <TouchableOpacity style={s.devBtn} onPress={() => router.replace('/(onboarding)' as any)}>
             <Text style={s.devBtnLabel}>Dev: back to onboarding</Text>
           </TouchableOpacity>
         )}
-
       </ScrollView>
+
+      <LinearGradient
+        colors={['rgba(0,0,0,0.6)', 'transparent']}
+        style={s.topScrim}
+        pointerEvents="none"
+      />
+
+      <View style={[s.header, { paddingTop: insets.top }]} pointerEvents="box-none">
+        <GlassIconButton onPress={signOut}>
+          <SymbolView name="rectangle.portrait.and.arrow.right" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+        </GlassIconButton>
+
+        <View style={s.headerSpacer} />
+
+        <GlassIconButton onPress={() => router.push('/(app)/(tabs)/(profile)/settings' as any)}>
+          <SymbolView name="gearshape.fill" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+        </GlassIconButton>
+      </View>
     </View>
   )
 }
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
-  content: { paddingTop: spacing[6], paddingBottom: spacing[12] },
+  content: { paddingBottom: spacing[12], gap: spacing[6] },
 
-  headerBtnMuted: { fontSize: 14, color: colors.textTertiary },
+  topScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 160,
+    zIndex: 5,
+  },
+  header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing[2],
+    paddingBottom: spacing[2],
+    gap: spacing[2],
+    zIndex: 10,
+  },
+  headerSpacer: { flex: 1 },
 
   avatarWrap: { alignItems: 'center', marginBottom: spacing[5] },
 
@@ -130,6 +193,8 @@ const s = StyleSheet.create({
   statValue: { fontSize: 20, fontWeight: fontWeight.semiBold, color: colors.white },
   statLabel: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
 
+  section: { gap: spacing[3] },
+  sectionLabel: { fontSize: fontSize.md, fontWeight: fontWeight.strong, color: colors.white, paddingHorizontal: spacing[4] },
   emptyDrops: { paddingVertical: spacing[10], alignItems: 'center', paddingHorizontal: spacing[8] },
   emptyTitle: { color: colors.textPrimary, fontSize: 17, fontWeight: '600', marginBottom: spacing[2], textAlign: 'center' },
   emptyText: { color: colors.textPrimary, fontSize: 14, textAlign: 'center', lineHeight: 20 },

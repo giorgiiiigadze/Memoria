@@ -65,6 +65,7 @@ export interface Database {
           open_date: string | null
           opened_at: string | null
           is_private: boolean
+          is_pinned: boolean
           created_at: string
           updated_at: string
         }
@@ -77,6 +78,7 @@ export interface Database {
           open_date?: string | null
           opened_at?: string | null
           is_private?: boolean
+          is_pinned?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -87,6 +89,7 @@ export interface Database {
           open_date?: string | null
           opened_at?: string | null
           is_private?: boolean
+          is_pinned?: boolean
           updated_at?: string
         }
         Relationships: []

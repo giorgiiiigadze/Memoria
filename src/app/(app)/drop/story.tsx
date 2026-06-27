@@ -1,9 +1,8 @@
-import { consumeStoryCache, getDropPhotos, type PhotoWithUploader } from '@/api/photos.api'
+import { consumeStoryCache, getDropPhotos, pinPhoto, type PhotoWithUploader } from '@/api/photos.api'
 import { DropHeaderMenu } from '@/components/drops/DropHeaderMenu'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { colors, fontWeight, radii, spacing } from '@/theme'
 import { timeAgo } from '@/utils/date'
-import { MenuView } from '@expo/ui/community/menu'
 import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -122,6 +121,23 @@ export default function StoryScreen() {
   }))
 
   const photo = photos[index]
+
+  async function handlePin() {
+    if (!photo) return
+    const next = !photo.is_pinned
+    setPhotos(prev => sortPhotos(prev.map(p => p.id === photo.id ? { ...p, is_pinned: next } : p)))
+    try {
+      await pinPhoto(photo.id, next)
+    } catch {
+      setPhotos(prev => sortPhotos(prev.map(p => p.id === photo.id ? { ...p, is_pinned: !next } : p)))
+      Alert.alert('Error', 'Could not update pin.')
+    }
+  }
+
+  function handleSave() {
+    Alert.alert('Coming soon', 'Photo saving will be available in a future update.')
+  }
+
   if (!photo) return (
     <View style={[s.root, s.loadingCenter]}>
       <ActivityIndicator color={colors.white} size="large" />
@@ -168,16 +184,6 @@ export default function StoryScreen() {
                 style={s.bottomGradient}
                 pointerEvents="none"
               />
-              <MenuView
-                shouldOpenOnLongPress
-                style={StyleSheet.absoluteFill}
-                actions={[
-                  { id: 'save', title: 'Save to Camera Roll', image: 'photo.badge.arrow.down' as const },
-                ]}
-                onPressAction={() => Alert.alert('Coming soon', 'Photo saving will be available in a future update.')}
-              >
-                <View style={StyleSheet.absoluteFill} />
-              </MenuView>
             </View>
 
             <View style={s.reactionsContainer}>
@@ -198,7 +204,7 @@ export default function StoryScreen() {
 
           <Text style={s.headerTitle} numberOfLines={1}>{timeAgo(photo.uploaded_at)}</Text>
 
-          <DropHeaderMenu id={dropId ?? ''} />
+          <DropHeaderMenu id={dropId ?? ''} photo={photo} onPin={handlePin} onSave={handleSave} />
         </View>
       </Reanimated.View>
 

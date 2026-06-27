@@ -1,3 +1,4 @@
+import { SearchIcon } from '@/components/icons/SearchIcon'
 import { colors, fontSize } from '@/theme'
 import { GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
 import { SymbolView } from 'expo-symbols'
@@ -18,7 +19,7 @@ export function FriendSearchBar({
 }: FriendSearchBarProps) {
   const content = (
     <>
-      <SymbolView name="magnifyingglass" size={20} tintColor={colors.textTertiary} />
+      <SearchIcon size={18} color={colors.textTertiary} />
       <TextInput
         style={s.input}
         value={value}
