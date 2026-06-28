@@ -47,13 +47,16 @@ export default function CreateScreen() {
   const [opening, setOpening] = useState(false)
 
   async function handleNext() {
-    if (__DEV__) {
-      router.push('/create/confirm' as any)
-      return
-    }
     if (opening) return
     setOpening(true)
     try {
+      if (__DEV__) {
+        const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.8 })
+        if (result.canceled) return
+        setDraftThumbnailUri(result.assets[0].uri)
+        router.push('/create/confirm' as any)
+        return
+      }
       const perm = await ImagePicker.requestCameraPermissionsAsync()
       if (!perm.granted) {
         Alert.alert('Camera access needed', 'Enable camera access in Settings to add a cover photo.')

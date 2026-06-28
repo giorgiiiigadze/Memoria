@@ -46,8 +46,8 @@ const s = StyleSheet.create({
   },
   participantAvatar: {
     borderRadius: 999,
-    borderWidth: 2,
-    borderColor: '#000',
+    borderWidth: 1,
+    borderColor: colors.charcoal,
   },
   extraBubble: {
     width: PARTICIPANT_AVATAR_SIZE,

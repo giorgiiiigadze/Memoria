@@ -49,16 +49,10 @@ export default function RootLayout() {
         AsyncStorage.getItem(ONBOARDING_KEY),
       ])
 
-      // First launch — show the app tutorial before anything else
-      if (!tutorialDone) {
-        setHydrated()
-        router.replace('/(onboarding)')
-        return
-      }
-
+      // No session — show tutorial on first launch, otherwise sign-in
       if (!session) {
         setHydrated()
-        router.replace('/(auth)')
+        router.replace(!tutorialDone ? '/(onboarding)' : '/(auth)')
         return
       }
 
@@ -80,11 +74,17 @@ export default function RootLayout() {
         subscribeToNotifications(session.user.id),
       ]
 
-      if (!profile?.display_name && !profile?.username) {
+      // Profile setup incomplete — always route back to finish it
+      if (!profile?.display_name) {
         router.replace('/(auth)/onboarding')
-      } else {
-        router.replace('/(app)/(tabs)/(home)')
+        return
       }
+
+      // Has profile — skip tutorial for existing users, go straight to app
+      if (!tutorialDone) {
+        await AsyncStorage.setItem(ONBOARDING_KEY, 'true')
+      }
+      router.replace('/(app)/(tabs)/(home)')
 
     } catch (e) {
       console.error('[_layout] Boot hydration failed:', e)

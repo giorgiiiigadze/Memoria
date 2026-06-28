@@ -1,115 +1,24 @@
 import { supabase } from '@/api/client'
-import { SocialButton } from '@/components/ui/SocialButton'
+import { AuthButton } from '@/components/ui/AuthButton'
 import { useAuthStore } from '@/store/auth.store'
 import { colors, fontWeight, radii, spacing } from '@/theme'
-import { router } from 'expo-router'
+import { router, Stack } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { useState } from 'react'
-import { Dimensions, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-
-import Animated, {
-  Extrapolation,
-  interpolate,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue,
-  type SharedValue,
-} from 'react-native-reanimated'
-
-const { width: SW, height: SH } = Dimensions.get('window')
-
-type Segment = { text: string; color: string }
-
-const SLIDES: { headline: Segment[] }[] = [
-  {
-    headline: [
-      { text: 'capture', color: colors.lime },
-      { text: ' and\nrelive ', color: colors.textPrimary },
-      { text: 'together', color: colors.lime },
-    ],
-  },
-  {
-    headline: [
-      { text: 'share ', color: colors.textPrimary },
-      { text: 'moments', color: colors.lime },
-      { text: '\nthat matter', color: colors.textPrimary },
-    ],
-  },
-  {
-    headline: [
-      { text: 'unlock', color: colors.lime },
-      { text: ' drops\ntogether', color: colors.textPrimary },
-    ],
-  },
-]
-
-function Slide({ index, scrollX, children }: {
-  index: number
-  scrollX: SharedValue<number>
-  children?: React.ReactNode
-}) {
-  const animStyle = useAnimatedStyle(() => {
-    const inputRange = [(index - 1) * SW, index * SW, (index + 1) * SW]
-    const scale = interpolate(scrollX.value, inputRange, [0.82, 1, 0.82], Extrapolation.CLAMP)
-    const opacity = interpolate(scrollX.value, inputRange, [0.3, 1, 0.3], Extrapolation.CLAMP)
-    return { transform: [{ scale }], opacity }
-  })
-  return (
-    <View style={s.slide}>
-      <Animated.View style={[s.slideInner, animStyle]}>
-        {children}
-      </Animated.View>
-    </View>
-  )
-}
-
-function HeadlineLayer({ index, scrollX }: {
-  index: number
-  scrollX: SharedValue<number>
-}) {
-  const animStyle = useAnimatedStyle(() => {
-    const inputRange = [(index - 1) * SW, index * SW, (index + 1) * SW]
-    const opacity = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP)
-    const translateY = interpolate(scrollX.value, inputRange, [12, 0, 12], Extrapolation.CLAMP)
-    return { opacity, transform: [{ translateY }] }
-  })
-
-  return (
-    <Animated.Text style={[s.headline, s.headlineAbs, animStyle]}>
-      {SLIDES[index].headline.map((seg, i) => (
-        <Text key={i} style={{ color: seg.color }}>
-          {seg.text}
-        </Text>
-      ))}
-    </Animated.Text>
-  )
-}
-
-
-function Dot({ index, scrollX }: {
-  index: number
-  scrollX: SharedValue<number>
-}) {
-  const animStyle = useAnimatedStyle(() => {
-    const inputRange = [(index - 1) * SW, index * SW, (index + 1) * SW]
-    const width = interpolate(scrollX.value, inputRange, [6, 22, 6], Extrapolation.CLAMP)
-    const opacity = interpolate(scrollX.value, inputRange, [0.35, 1, 0.35], Extrapolation.CLAMP)
-    return { width, opacity }
-  })
-  return <Animated.View style={[s.dot, animStyle]} />
-}
+import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 export default function LandingScreen() {
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [agreed, setAgreed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const scrollX = useSharedValue(0)
 
-  const scrollHandler = useAnimatedScrollHandler((e) => {
-    scrollX.value = e.contentOffset.x
-  })
+  function switchMode(next: 'signin' | 'signup') {
+    setMode(next)
+    setError(null)
+  }
 
   async function handleSignIn() {
     if (!agreed) { setError('Please agree to the terms to continue.'); return }
@@ -137,40 +46,57 @@ export default function LandingScreen() {
     }
   }
 
+  async function handleSignUp() {
+    if (!agreed) { setError('Please agree to the terms to continue.'); return }
+    if (!email.trim() || !password) { setError('Enter your email and password.'); return }
+    if (password.length < 6) { setError('Password must be at least 6 characters.'); return }
+    try {
+      setLoading(true)
+      setError(null)
+      const { data, error: e } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+      })
+      if (e) { setError(e.message); return }
+      if (data.session) {
+        useAuthStore.getState().setSession(data.session)
+        router.replace('/(auth)/onboarding')
+      } else {
+        setError('Check your email to confirm your account.')
+      }
+    } catch {
+      setError('Sign-up failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const isSignIn = mode === 'signin'
+
   return (
+    <>
+      <Stack.Screen options={{ animation: 'fade' }} />
     <KeyboardAvoidingView
       style={s.root}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <Animated.ScrollView
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        decelerationRate="fast"
-        style={s.pager}
-      >
-        {SLIDES.map((_, i) => (
-          <Slide key={i} index={i} scrollX={scrollX}>
-            {/* swap with your illustration per slide */}
-          </Slide>
-        ))}
-      </Animated.ScrollView>
-
       <View style={s.content}>
 
-        {/* crossfading headlines stacked on top of each other */}
-        <View style={s.headlineStack}>
-          {SLIDES.map((_, i) => (
-            <HeadlineLayer key={i} index={i} scrollX={scrollX} />
-          ))}
-        </View>
-
-        <View style={s.dots}>
-          {SLIDES.map((_, i) => (
-            <Dot key={i} index={i} scrollX={scrollX} />
-          ))}
+        <View style={s.toggle}>
+          <TouchableOpacity
+            style={[s.toggleBtn, isSignIn && s.toggleBtnActive]}
+            onPress={() => switchMode('signin')}
+            activeOpacity={0.7}
+          >
+            <Text style={[s.toggleLabel, isSignIn && s.toggleLabelActive]}>Sign In</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[s.toggleBtn, !isSignIn && s.toggleBtnActive]}
+            onPress={() => switchMode('signup')}
+            activeOpacity={0.7}
+          >
+            <Text style={[s.toggleLabel, !isSignIn && s.toggleLabelActive]}>Sign Up</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={s.form}>
@@ -194,7 +120,7 @@ export default function LandingScreen() {
             placeholderTextColor={colors.textTertiary}
             secureTextEntry
             returnKeyType="done"
-            onSubmitEditing={handleSignIn}
+            onSubmitEditing={isSignIn ? handleSignIn : handleSignUp}
             editable={!loading}
           />
         </View>
@@ -224,15 +150,16 @@ export default function LandingScreen() {
 
         {error ? <Text style={s.error}>{error}</Text> : null}
 
-        <SocialButton
-          label={loading ? 'Signing in…' : 'Sign In'}
-          onPress={handleSignIn}
+        <AuthButton
+          label={loading ? (isSignIn ? 'Signing in…' : 'Signing up…') : (isSignIn ? 'Sign In' : 'Sign Up')}
+          onPress={isSignIn ? handleSignIn : handleSignUp}
           disabled={!agreed || loading}
           loading={loading}
           style={s.fullWidth}
         />
       </View>
     </KeyboardAvoidingView>
+    </>
   )
 }
 
@@ -241,25 +168,6 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-
-  pager: {
-    flexGrow: 0,
-    height: SH * 0.35,
-  },
-  slide: {
-    width: SW,
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surface,
-  },
-  slideInner: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
   content: {
     flex: 1,
     paddingHorizontal: spacing[5],
@@ -269,34 +177,29 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
-
-  headlineStack: {
-    height: 72,
-    alignSelf: 'stretch',
-    justifyContent: 'center',
-  },
-  headline: {
-    fontSize: 30,
-    textAlign: 'center',
-    fontWeight: fontWeight.regular,
-  },
-  headlineAbs: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-  },
-
-  dots: {
+  toggle: {
     flexDirection: 'row',
-    gap: 6,
-    height: 6,
-    alignItems: 'center',
+    alignSelf: 'stretch',
+    backgroundColor: colors.surface,
+    borderRadius: radii.sm,
+    padding: 3,
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 10,
-    backgroundColor: colors.textPrimary,
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: spacing[2],
+    alignItems: 'center',
+    borderRadius: radii.sm - 2,
+  },
+  toggleBtnActive: {
+    backgroundColor: colors.surfaceRaised,
+  },
+  toggleLabel: {
+    fontSize: 14,
+    fontWeight: fontWeight.medium,
+    color: colors.textTertiary,
+  },
+  toggleLabelActive: {
+    color: colors.white,
   },
   form: {
     gap: spacing[3],

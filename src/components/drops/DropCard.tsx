@@ -158,21 +158,20 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   name: {
-    fontSize: 14,
-    fontWeight: fontWeight.semiBold,
+    fontSize: 15,
+    fontWeight: fontWeight.medium,
     color: colors.white,
   },
   subtitle: {
     fontSize: 14,
-    fontWeight: fontWeight.semiBold,
+    fontWeight: fontWeight.regular,
     color: colors.textMuted,
     marginTop: 1,
   },
   date: {
-    fontSize: 14,
-    fontWeight: fontWeight.semiBold,
+    fontSize: 12,
+    fontWeight: fontWeight.regular,
     color: colors.textTertiary,
-    // marginTop: 2,
   },
   photoWrap: {
     aspectRatio: 3 / 4,

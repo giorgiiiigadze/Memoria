@@ -9,6 +9,7 @@ export const fontWeight = {
 export const fontSize = {
   xs: 12,
   sm: 14,
+  body: 15,
   md: 16,
   lg: 18,
   xl: 22,

@@ -13,6 +13,8 @@ interface AuthState {
 
   // Transient onboarding inputs (not persisted to DB until complete screen)
   onboardingName: string
+  onboardingUsername: string
+  onboardingAvatarUrl: string | null
   onboardingBirthday: string | null
 
   // Status flags
@@ -25,6 +27,8 @@ interface AuthState {
   setProfile: (profile: Profile | null) => void
   setHydrated: () => void
   setOnboardingName: (name: string) => void
+  setOnboardingUsername: (username: string) => void
+  setOnboardingAvatarUrl: (url: string | null) => void
   setOnboardingBirthday: (birthday: string | null) => void
   signOut: () => Promise<void>
 }
@@ -35,6 +39,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   profile: null,
   onboardingName: '',
+  onboardingUsername: '',
+  onboardingAvatarUrl: null,
   onboardingBirthday: null,
   isAuthenticated: false,
   isOnboarded: false,
@@ -75,6 +81,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setOnboardingName: (name) => set({ onboardingName: name }),
 
+  setOnboardingUsername: (username) => set({ onboardingUsername: username }),
+
+  setOnboardingAvatarUrl: (url) => set({ onboardingAvatarUrl: url }),
+
   setOnboardingBirthday: (birthday) => set({ onboardingBirthday: birthday }),
 
   /**
@@ -103,4 +113,5 @@ export const selectIsAuthenticated = (s: AuthState) => s.isAuthenticated
 export const selectIsOnboarded = (s: AuthState) => s.isOnboarded
 export const selectIsHydrated = (s: AuthState) => s.isHydrated
 export const selectOnboardingName = (s: AuthState) => s.onboardingName
+export const selectOnboardingUsername = (s: AuthState) => s.onboardingUsername
 export const selectOnboardingBirthday = (s: AuthState) => s.onboardingBirthday

@@ -8,7 +8,6 @@ import { useDropsStore } from '@/store/drops.store'
 import { colors, spacing } from '@/theme'
 import * as Haptics from 'expo-haptics'
 import * as ImagePicker from 'expo-image-picker'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { CameraIcon } from '@/components/icons/CameraIcon'
@@ -172,22 +171,18 @@ export default function DropDetailScreen() {
       ) : (
         <PhotosByUploader
           photos={photos}
+          thumbnailUrl={drop?.thumbnail_url}
+          creatorName={drop?.creator?.display_name ?? drop?.creator?.username}
+          creatorAvatarUrl={drop?.creator?.avatar_url}
+          createdAt={drop?.created_at}
           onSelect={handlePhotoSelect}
           onDelete={handleDeletePhoto}
           onPin={handlePinPhoto}
-          topInset={topInset}
           bottomPad={bottomPad}
           isLocked={isLocked}
           currentUserId={user?.id}
         />
       )}
-
-      {/* Gradient scrim behind custom header */}
-      <LinearGradient
-        colors={['rgba(0,0,0,0.8)', 'transparent']}
-        style={s.topScrim}
-        pointerEvents="none"
-      />
 
       {/* Custom header */}
       <View style={[s.header, { paddingTop: insets.top }]} pointerEvents="box-none">
@@ -226,14 +221,6 @@ export default function DropDetailScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
 
-  topScrim: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 160,
-    zIndex: 5,
-  },
   header: {
     position: 'absolute',
     top: 0,

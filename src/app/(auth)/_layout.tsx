@@ -1,4 +1,3 @@
-import { colors } from '@/theme'
 import { Stack } from 'expo-router'
 
 export default function AuthLayout() {
@@ -6,7 +5,6 @@ export default function AuthLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: colors.background },
       }}
     />
   )

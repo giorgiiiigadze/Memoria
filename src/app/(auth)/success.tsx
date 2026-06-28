@@ -1,4 +1,4 @@
-import { SocialButton } from '@/components/ui/SocialButton'
+import { AuthButton } from '@/components/ui/AuthButton'
 import { colors, fontWeight, spacing } from '@/theme'
 import { router } from 'expo-router'
 import { StyleSheet, Text, View } from 'react-native'
@@ -13,7 +13,7 @@ export default function SuccessScreen() {
         <Text style={s.preText}>congrats you are</Text>
         <Text style={s.inText}>in</Text>
 
-        <SocialButton
+        <AuthButton
           variant="outline"
           label="let's set up your profile →"
           onPress={() => router.replace('/(auth)/onboarding')}

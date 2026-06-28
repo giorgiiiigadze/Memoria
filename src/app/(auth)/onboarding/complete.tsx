@@ -1,5 +1,5 @@
 import { supabase } from '@/api/client'
-import { SocialButton } from '@/components/ui/SocialButton'
+import { AuthButton } from '@/components/ui/AuthButton'
 import { useAuthStore } from '@/store/auth.store'
 import { colors, fontWeight, spacing } from '@/theme'
 import { router } from 'expo-router'
@@ -30,6 +30,8 @@ export default function CompleteScreen() {
   const user = useAuthStore(s => s.user)
   const existingProfile = useAuthStore(s => s.profile)
   const onboardingName = useAuthStore(s => s.onboardingName)
+  const onboardingUsername = useAuthStore(s => s.onboardingUsername)
+  const onboardingAvatarUrl = useAuthStore(s => s.onboardingAvatarUrl)
   const onboardingBirthday = useAuthStore(s => s.onboardingBirthday)
   const setProfile = useAuthStore(s => s.setProfile)
   const insets = useSafeAreaInsets()
@@ -43,12 +45,14 @@ export default function CompleteScreen() {
 
     try {
       const displayName = onboardingName.trim() || existingProfile?.display_name || 'You'
-      const username = existingProfile?.username ?? await generateUsername(displayName, user.id)
+      const username = onboardingUsername.trim() || existingProfile?.username || await generateUsername(displayName, user.id)
 
       const payload = {
         id: user.id,
         username,
         display_name: displayName,
+        ...(user.phone ? { phone: user.phone } : {}),
+        ...(onboardingAvatarUrl ? { avatar_url: onboardingAvatarUrl } : {}),
         ...(onboardingBirthday ? { birthday: onboardingBirthday } : {}),
       }
 
@@ -102,7 +106,7 @@ export default function CompleteScreen() {
 
       <View style={s.bottom}>
         {error ? <Text style={s.error}>{error}</Text> : null}
-        <SocialButton
+        <AuthButton
           label="let's go"
           onPress={handleLetsGo}
           loading={loading}

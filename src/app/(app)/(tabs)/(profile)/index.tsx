@@ -78,16 +78,6 @@ export default function ProfileScreen() {
         headerTitle: '',
         headerShadowVisible: false,
       }} />
-      <Stack.Toolbar placement="left">
-        <Stack.Toolbar.Button
-          accessibilityLabel="Sign out"
-          tintColor={colors.white}
-          onPress={signOut}
-        >
-          <Stack.Toolbar.Icon sf="gearshape.fill" />
-        </Stack.Toolbar.Button>
-      </Stack.Toolbar>
-
       <Stack.Toolbar placement="right">
         <Stack.Toolbar.Button
           accessibilityLabel="Settings"
@@ -149,11 +139,6 @@ export default function ProfileScreen() {
           )
         })()}
 
-        {__DEV__ && (
-          <TouchableOpacity style={s.devBtn} onPress={() => router.replace('/(onboarding)' as any)}>
-            <Text style={s.devBtnLabel}>Dev: back to onboarding</Text>
-          </TouchableOpacity>
-        )}
       </ScrollView>
 
     </View>
@@ -182,6 +167,4 @@ const s = StyleSheet.create({
   emptyTitle: { color: colors.textPrimary, fontSize: 17, fontWeight: '600', marginBottom: spacing[2], textAlign: 'center' },
   emptyText: { color: colors.textPrimary, fontSize: 14, textAlign: 'center', lineHeight: 20 },
 
-  devBtn: { marginTop: spacing[10], alignItems: 'center' },
-  devBtnLabel: { fontSize: 12, color: colors.textTertiary },
 })

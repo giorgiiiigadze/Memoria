@@ -2,8 +2,12 @@ export const colors = {
   // Base
   ink: '#000',
   bone: '#F2EEE6',
-  lime: '#E9FF9B',
   white: '#FFFFFF',
+  charcoal: '#1B1B1B',
+
+  // Light theme
+  lightBackground: '#F6F6F6',
+  lightDisabled: '#D4D4D4',
 
   // App backgrounds
   background: '#000000',

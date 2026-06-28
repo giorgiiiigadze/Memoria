@@ -1,3 +1,4 @@
+import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import { colors, fontWeight, spacing } from '@/theme'
 import { SymbolView } from 'expo-symbols'
 import { useEffect, useRef } from 'react'
@@ -9,9 +10,12 @@ interface Props {
   total: number
   onBack?: () => void
   onSkip?: () => void
+  tint?: string
+  trackBg?: string
+  glassScheme?: 'light' | 'dark'
 }
 
-export function OnboardingStepHeader({ step, total, onBack, onSkip }: Props) {
+export function OnboardingStepHeader({ step, total, onBack, onSkip, tint = colors.white, trackBg = colors.borderDefault, glassScheme = 'dark' }: Props) {
   const insets = useSafeAreaInsets()
   const animFill = useRef(new Animated.Value(step / total)).current
 
@@ -33,22 +37,20 @@ export function OnboardingStepHeader({ step, total, onBack, onSkip }: Props) {
     <View style={[s.root, { paddingTop: insets.top + spacing[4] }]}>
       <View style={s.row}>
         <View style={[s.backSlot, !onBack && s.hidden]}>
-          <TouchableOpacity onPress={onBack ?? (() => {})} hitSlop={12} activeOpacity={0.7}>
-            <SymbolView name="chevron.left" size={22} tintColor={colors.white} />
-          </TouchableOpacity>
+          <GlassIconButton onPress={onBack ?? (() => {})} colorScheme={glassScheme}>
+            <SymbolView name="chevron.left" size={18} tintColor={tint} resizeMode="scaleAspectFit" />
+          </GlassIconButton>
         </View>
 
         <View style={s.trackWrap}>
-          <View style={s.track}>
-            <Animated.View style={[s.fill, { width: fillWidth }]} />
+          <View style={[s.track, { backgroundColor: trackBg }]}>
+            <Animated.View style={[s.fill, { width: fillWidth, backgroundColor: tint }]} />
           </View>
         </View>
 
-        <Text style={s.stepLabel}>{step}/{total}</Text>
-
-        {onSkip ? (
+{onSkip ? (
           <TouchableOpacity onPress={onSkip} hitSlop={12} activeOpacity={0.7}>
-            <Text style={s.skip}>Skip</Text>
+            <Text style={[s.skip, { color: tint }]}>Skip</Text>
           </TouchableOpacity>
         ) : (
           <View style={s.skipPlaceholder} />
@@ -69,7 +71,7 @@ const s = StyleSheet.create({
     gap: spacing[4],
   },
   backSlot: {
-    width: 40,
+    width: 44,
     alignItems: 'center',
   },
   hidden: {
@@ -89,13 +91,6 @@ const s = StyleSheet.create({
     height: 6,
     backgroundColor: colors.white,
     borderRadius: 100,
-  },
-  stepLabel: {
-    fontSize: 14,
-    color: colors.textTertiary,
-    fontWeight: fontWeight.medium,
-    minWidth: 28,
-    textAlign: 'right',
   },
   skip: {
     fontSize: 13,

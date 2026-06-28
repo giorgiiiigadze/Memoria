@@ -1,4 +1,4 @@
-import { colors, fontWeight, radii } from '@/theme'
+import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
 import {
   ActivityIndicator,
   StyleSheet,
@@ -13,29 +13,41 @@ type Props = {
   label: string
   onPress: () => void
   variant?: 'primary' | 'outline'
+  scheme?: 'dark' | 'light'
   disabled?: boolean
   loading?: boolean
   icon?: React.ReactNode
   style?: StyleProp<ViewStyle>
 }
 
-export function SocialButton({
+export function AuthButton({
   label,
   onPress,
   variant = 'primary',
+  scheme = 'dark',
   disabled = false,
   loading = false,
   icon,
   style,
 }: Props) {
   const isInactive = disabled || loading
+  const isLight = scheme === 'light'
+
+  const primaryBg = isInactive && isLight
+    ? colors.lightDisabled
+    : isLight ? colors.charcoal : colors.white
+  const primaryText = isLight ? colors.white : colors.ink
+  const outlineBorder = isLight ? `${colors.charcoal}40` : colors.borderDefault
+  const outlineText = isLight ? colors.charcoal : colors.textSecondary
 
   return (
     <TouchableOpacity
       style={[
         s.base,
-        variant === 'primary' ? s.primary : s.outline,
-        isInactive && s.inactive,
+        variant === 'primary'
+          ? [s.primary, { backgroundColor: primaryBg }]
+          : [s.outline, { borderColor: outlineBorder }],
+        isInactive && !isLight && s.inactive,
         style,
       ]}
       onPress={onPress}
@@ -43,11 +55,11 @@ export function SocialButton({
       activeOpacity={0.88}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? colors.ink : colors.textSecondary} size="small" />
+        <ActivityIndicator color={variant === 'primary' ? primaryText : outlineText} size="small" />
       ) : (
         <View style={s.inner}>
           {icon}
-          <Text style={[s.label, variant === 'primary' ? s.labelPrimary : s.labelOutline, isInactive && s.labelInactive]}>
+          <Text style={[s.label, { color: variant === 'primary' ? primaryText : outlineText }, isInactive && s.labelInactive]}>
             {label}
           </Text>
         </View>
@@ -58,15 +70,15 @@ export function SocialButton({
 
 const s = StyleSheet.create({
   base: {
-    borderRadius: radii.full,
-    paddingVertical: 17,
+    borderRadius: radii.lg,
+    paddingVertical: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
   inner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing[2],
   },
   primary: {
     backgroundColor: colors.white,
@@ -79,7 +91,7 @@ const s = StyleSheet.create({
     opacity: 0.4,
   },
   label: {
-    fontSize: 15,
+    fontSize: fontSize.body,
     fontWeight: fontWeight.strong,
   },
   labelPrimary: {
