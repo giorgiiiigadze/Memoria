@@ -33,6 +33,7 @@ export default function CompleteScreen() {
   const onboardingUsername = useAuthStore(s => s.onboardingUsername)
   const onboardingAvatarUrl = useAuthStore(s => s.onboardingAvatarUrl)
   const onboardingBirthday = useAuthStore(s => s.onboardingBirthday)
+  const onboardingPhone = useAuthStore(s => s.onboardingPhone)
   const setProfile = useAuthStore(s => s.setProfile)
   const insets = useSafeAreaInsets()
   const [loading, setLoading] = useState(false)
@@ -51,7 +52,7 @@ export default function CompleteScreen() {
         id: user.id,
         username,
         display_name: displayName,
-        ...(user.phone ? { phone: user.phone } : {}),
+        ...(onboardingPhone ? { phone: onboardingPhone } : user.phone ? { phone: user.phone } : {}),
         ...(onboardingAvatarUrl ? { avatar_url: onboardingAvatarUrl } : {}),
         ...(onboardingBirthday ? { birthday: onboardingBirthday } : {}),
       }

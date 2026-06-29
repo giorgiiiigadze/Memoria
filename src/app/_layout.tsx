@@ -12,7 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Slot, router } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useRef } from 'react'
-import { LogBox, StyleSheet } from 'react-native'
+import { AppState, LogBox, StyleSheet } from 'react-native'
 
 LogBox.ignoreLogs(['Sending `websocketMessage` with no listeners registered.'])
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
@@ -30,8 +30,16 @@ export default function RootLayout() {
   useEffect(() => {
     bootHydrate()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange)
+    const appStateSub = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        supabase.auth.startAutoRefresh()
+      } else {
+        supabase.auth.stopAutoRefresh()
+      }
+    })
     return () => {
       subscription.unsubscribe()
+      appStateSub.remove()
       realtimeCleanup.current.forEach(fn => fn())
       realtimeCleanup.current = []
     }

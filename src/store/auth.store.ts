@@ -16,6 +16,7 @@ interface AuthState {
   onboardingUsername: string
   onboardingAvatarUrl: string | null
   onboardingBirthday: string | null
+  onboardingPhone: string | null
 
   // Status flags
   isAuthenticated: boolean
@@ -30,6 +31,7 @@ interface AuthState {
   setOnboardingUsername: (username: string) => void
   setOnboardingAvatarUrl: (url: string | null) => void
   setOnboardingBirthday: (birthday: string | null) => void
+  setOnboardingPhone: (phone: string | null) => void
   signOut: () => Promise<void>
 }
 
@@ -42,6 +44,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   onboardingUsername: '',
   onboardingAvatarUrl: null,
   onboardingBirthday: null,
+  onboardingPhone: null,
   isAuthenticated: false,
   isOnboarded: false,
   isHydrated: false,
@@ -87,6 +90,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setOnboardingBirthday: (birthday) => set({ onboardingBirthday: birthday }),
 
+  setOnboardingPhone: (phone) => set({ onboardingPhone: phone }),
+
   /**
    * Signs the user out fully:
    * 1. Calls Supabase to invalidate the server session
@@ -115,3 +120,4 @@ export const selectIsHydrated = (s: AuthState) => s.isHydrated
 export const selectOnboardingName = (s: AuthState) => s.onboardingName
 export const selectOnboardingUsername = (s: AuthState) => s.onboardingUsername
 export const selectOnboardingBirthday = (s: AuthState) => s.onboardingBirthday
+export const selectOnboardingPhone = (s: AuthState) => s.onboardingPhone

@@ -94,3 +94,17 @@ export async function cancelRequest(friendshipId: string): Promise<void> {
     .eq('id', friendshipId)
   if (error) throw error
 }
+
+export async function findProfilesByPhones(
+  phones: string[],
+  myId: string,
+): Promise<Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url' | 'phone'>[]> {
+  if (!phones.length) return []
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, username, display_name, avatar_url, phone')
+    .in('phone', phones)
+    .neq('id', myId)
+  if (error) throw error
+  return (data ?? []) as unknown as Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url' | 'phone'>[]
+}

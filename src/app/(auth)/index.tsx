@@ -119,6 +119,9 @@ export default function LandingScreen() {
             placeholder="Password"
             placeholderTextColor={colors.textTertiary}
             secureTextEntry
+            autoCapitalize="none"
+            autoCorrect={false}
+            textContentType={isSignIn ? 'password' : 'newPassword'}
             returnKeyType="done"
             onSubmitEditing={isSignIn ? handleSignIn : handleSignUp}
             editable={!loading}

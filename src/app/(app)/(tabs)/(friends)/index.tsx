@@ -4,7 +4,7 @@ import { UserRow, UserRowSkeleton } from '@/components/friends/UserRow'
 import { useFriends } from '@/hooks/useFriends'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import type { Profile } from '@/types/database.types'
-import { useFocusEffect } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ScrollView,
@@ -59,6 +59,14 @@ export default function FriendsScreen() {
           onChangeText={setQuery}
           placeholder="Search by username..."
         />
+        <TouchableOpacity
+          style={s.contactsRow}
+          onPress={() => router.push('/(app)/(tabs)/(friends)/contacts')}
+          activeOpacity={0.7}
+        >
+          <Text style={s.contactsLabel}>Find from contacts</Text>
+          <Text style={s.contactsArrow}>›</Text>
+        </TouchableOpacity>
       </View>
 
       {isSearchMode && (
@@ -158,7 +166,18 @@ export default function FriendsScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   content: { paddingBottom: spacing[10], paddingTop: spacing[5], paddingHorizontal: spacing[2.5] },
-  searchWrap: { marginBottom: spacing[6] },
+  searchWrap: { marginBottom: spacing[6], gap: spacing[3] },
+  contactsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+  },
+  contactsLabel: { fontSize: fontSize.sm, color: colors.textSecondary },
+  contactsArrow: { fontSize: 18, color: colors.textTertiary, lineHeight: 22 },
   section: { marginBottom: spacing[8] },
   sectionLabel: {
     fontSize: fontSize.md,

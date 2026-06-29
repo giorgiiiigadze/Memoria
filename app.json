@@ -8,7 +8,7 @@
     "scheme": "memoria",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/images/icon.png",
       "bundleIdentifier": "com.giorgigiorgadzegood.Memoria",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -41,17 +41,21 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#000000",
-          "android": {
-            "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
-          }
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 76
         }
       ],
       "expo-secure-store",
       "expo-web-browser",
       "expo-apple-authentication",
       "expo-image",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow Memoria to access your contacts to find friends on the app."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

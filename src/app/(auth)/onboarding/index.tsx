@@ -41,7 +41,7 @@ const YEARS = Array.from({ length: MAX_YEAR - 1919 }, (_, i) => String(MAX_YEAR 
 
 const USERNAME_RE = /^[a-z0-9_]{3,30}$/
 
-type Step = 1 | 2 | 3 | 4 | 5
+type Step = 1 | 2 | 3 | 4 | 5 | 6
 type Segment = { text: string; color: string }
 
 function Headline({ segments }: { segments: Segment[] }) {
@@ -61,6 +61,7 @@ export default function OnboardingFlow() {
   const setOnboardingUsername = useAuthStore(s => s.setOnboardingUsername)
   const setOnboardingAvatarUrl = useAuthStore(s => s.setOnboardingAvatarUrl)
   const setOnboardingBirthday = useAuthStore(s => s.setOnboardingBirthday)
+  const setOnboardingPhone = useAuthStore(s => s.setOnboardingPhone)
   const onboardingName = useAuthStore(s => s.onboardingName)
   const insets = useSafeAreaInsets()
 
@@ -111,46 +112,9 @@ export default function OnboardingFlow() {
   const [avatarUploading, setAvatarUploading] = useState(false)
 
   const [phone, setPhone] = useState('')
-  const [phoneOtp, setPhoneOtp] = useState('')
-  const [phoneSubStep, setPhoneSubStep] = useState<'number' | 'otp'>('number')
-  const [phoneLoading, setPhoneLoading] = useState(false)
-  const [phoneError, setPhoneError] = useState<string | null>(null)
   const phoneRef = useRef<TextInput>(null)
-  const otpRef = useRef<TextInput>(null)
-
   const phoneDigits = phone.replace(/\D/g, '')
   const phoneValid = phoneDigits.length >= 7 && phoneDigits.length <= 15
-  const otpValid = phoneOtp.length === 6
-
-  async function handleSendOtp() {
-    setPhoneLoading(true)
-    setPhoneError(null)
-    try {
-      const e164 = `+${phoneDigits}`
-      const { error } = await supabase.auth.updateUser({ phone: e164 })
-      if (error) { setPhoneError(error.message); return }
-      setPhoneSubStep('otp')
-    } catch {
-      setPhoneError('Something went wrong. Try again.')
-    } finally {
-      setPhoneLoading(false)
-    }
-  }
-
-  async function handleVerifyOtp() {
-    setPhoneLoading(true)
-    setPhoneError(null)
-    try {
-      const e164 = `+${phoneDigits}`
-      const { error } = await supabase.auth.verifyOtp({ phone: e164, token: phoneOtp, type: 'phone_change' })
-      if (error) { setPhoneError('Invalid code. Try again.'); return }
-      goToStep(5)
-    } catch {
-      setPhoneError('Something went wrong. Try again.')
-    } finally {
-      setPhoneLoading(false)
-    }
-  }
 
   async function handlePickPhoto() {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -206,9 +170,6 @@ export default function OnboardingFlow() {
 
   function goToStep(next: Step) {
     Keyboard.dismiss()
-    setPhoneSubStep('number')
-    setPhoneOtp('')
-    setPhoneError(null)
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 160,
@@ -259,6 +220,19 @@ export default function OnboardingFlow() {
     goToStep(5)
   }
 
+  function handlePhoneNext() {
+    const digits = phone.replace(/\D/g, '')
+    if (digits.length >= 7) {
+      setOnboardingPhone(`+${digits}`)
+    }
+    goToStep(6)
+  }
+
+  function handlePhoneSkip() {
+    setOnboardingPhone(null)
+    goToStep(6)
+  }
+
   async function handleEnableNotifications() {
     await Notifications.requestPermissionsAsync()
     router.replace('/(auth)/onboarding/complete')
@@ -283,7 +257,7 @@ export default function OnboardingFlow() {
     { text: 'add a profile photo.', color: INK },
   ]
 
-  const step5Headline: Segment[] = [
+  const step6Headline: Segment[] = [
     { text: 'never miss\nthe moment\n', color: INK },
     { text: 'drops unlock.', color: INK },
   ]
@@ -292,11 +266,12 @@ export default function OnboardingFlow() {
     <View style={s.root}>
       <OnboardingStepHeader
         step={step}
-        total={5}
+        total={6}
         onBack={step > 1 ? () => goToStep((step - 1) as Step) : () => router.replace('/(auth)')}
         onSkip={
           step === 3 ? () => goToStep(4) :
           step === 4 ? handleBirthdaySkip :
+          step === 5 ? handlePhoneSkip :
           undefined
         }
         tint={INK}
@@ -422,49 +397,6 @@ export default function OnboardingFlow() {
             </View>
           )}
 
-          {/* PHONE STEP — disabled until SMS provider is configured
-          {step === 5 && (
-            <View style={s.stepContainer}>
-              <View style={s.body1}>
-                {phoneSubStep === 'number' ? (
-                  <>
-                    <Headline segments={[{ text: "what's your\nnumber?", color: INK }]} />
-                    <Text style={s.step1Sub}>We'll use it to help friends find you.</Text>
-                    <TouchableOpacity style={s.inputWrap} onPress={() => phoneRef.current?.focus()} activeOpacity={1}>
-                      <Text style={s.atSign}>+</Text>
-                      <TextInput ref={phoneRef} style={s.input} value={phone}
-                        onChangeText={v => setPhone(v.replace(/[^\d\s\-().+]/g, ''))}
-                        placeholder="1 234 567 8900" placeholderTextColor={`${colors.charcoal}55`}
-                        keyboardType="phone-pad" returnKeyType="done" selectionColor={INK}
-                        onSubmitEditing={phoneValid ? handleSendOtp : undefined} autoFocus maxLength={20} />
-                      {phoneError ? <Text style={s.usernameHint}>{phoneError}</Text> : null}
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  <>
-                    <Headline segments={[{ text: 'enter the\ncode.', color: INK }]} />
-                    <Text style={s.step1Sub}>Sent to +{phoneDigits}</Text>
-                    <TouchableOpacity style={s.inputWrap} onPress={() => otpRef.current?.focus()} activeOpacity={1}>
-                      <TextInput ref={otpRef} style={s.input} value={phoneOtp}
-                        onChangeText={v => setPhoneOtp(v.replace(/\D/g, '').slice(0, 6))}
-                        placeholder="000000" placeholderTextColor={`${colors.charcoal}55`}
-                        keyboardType="number-pad" returnKeyType="done" selectionColor={INK}
-                        onSubmitEditing={otpValid ? handleVerifyOtp : undefined} autoFocus maxLength={6} />
-                      {phoneError ? <Text style={[s.usernameHint, s.usernameHintError]}>{phoneError}</Text> : null}
-                    </TouchableOpacity>
-                  </>
-                )}
-              </View>
-              <AuthButton scheme="light"
-                label={phoneLoading ? (phoneSubStep === 'number' ? 'Sending…' : 'Verifying…') : 'Continue'}
-                onPress={phoneSubStep === 'number' ? handleSendOtp : handleVerifyOtp}
-                disabled={phoneLoading || (phoneSubStep === 'number' ? !phoneValid : !otpValid)}
-                style={[s.nextBtn, { marginBottom: keyboardVisible ? spacing[3] : insets.bottom }]}
-              />
-            </View>
-          )}
-          */}
-
           {step === 4 && (
             <View style={s.stepContainer}>
               <View style={s.body2}>
@@ -543,6 +475,39 @@ export default function OnboardingFlow() {
 
           {step === 5 && (
             <View style={s.stepContainer}>
+              <View style={s.body1}>
+                <Headline segments={[{ text: "what's your\nnumber?", color: INK }]} />
+                <Text style={s.step1Sub}>Help friends find you on Memoria.</Text>
+                <TouchableOpacity style={s.inputWrap} onPress={() => phoneRef.current?.focus()} activeOpacity={1}>
+                  <Text style={s.atSign}>include country code, e.g. +1 555 123 4567</Text>
+                  <TextInput
+                    ref={phoneRef}
+                    style={s.input}
+                    value={phone}
+                    onChangeText={v => setPhone(v.replace(/[^\d\s\-().+]/g, ''))}
+                    placeholder="+1 555 123 4567"
+                    placeholderTextColor={`${colors.charcoal}55`}
+                    keyboardType="phone-pad"
+                    returnKeyType="done"
+                    selectionColor={INK}
+                    onSubmitEditing={phoneValid ? handlePhoneNext : undefined}
+                    autoFocus
+                    maxLength={20}
+                  />
+                </TouchableOpacity>
+              </View>
+              <AuthButton
+                scheme="light"
+                label="Continue"
+                onPress={handlePhoneNext}
+                disabled={!phoneValid}
+                style={[s.nextBtn, { marginBottom: keyboardVisible ? spacing[3] : insets.bottom }]}
+              />
+            </View>
+          )}
+
+          {step === 6 && (
+            <View style={s.stepContainer}>
               <View style={s.body3}>
                 <View style={s.visual}>
                   <View style={s.ring3}>
@@ -553,7 +518,7 @@ export default function OnboardingFlow() {
                     </View>
                   </View>
                 </View>
-                <Headline segments={step5Headline} />
+                <Headline segments={step6Headline} />
                 <Text style={s.sub}>
                   Get notified when a drop is ready to open or when friends add to yours.
                 </Text>
