@@ -24,7 +24,6 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
 
   const showIdentity = showCreator && !!creatorName
   const primary = showIdentity ? creatorName : drop.title
-  const secondary = showIdentity ? drop.title : null
 
   const dateLabel = dropTimeLabel(drop.state, drop.open_date)
   const showAvatar = !!(creatorAvatar || creatorName)
@@ -72,9 +71,6 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
           activeOpacity={0.9}
         >
           <Text style={s.name} numberOfLines={1}>{primary}</Text>
-          {secondary && (
-            <Text style={s.subtitle} numberOfLines={1}>{secondary}</Text>
-          )}
           {dateLabel && (
             <Text style={s.date} numberOfLines={1}>{dateLabel}</Text>
           )}
@@ -162,14 +158,8 @@ const s = StyleSheet.create({
     fontWeight: fontWeight.medium,
     color: colors.white,
   },
-  subtitle: {
-    fontSize: 15,
-    fontWeight: fontWeight.regular,
-    color: colors.textMuted,
-    marginTop: 1,
-  },
   date: {
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: fontWeight.regular,
     color: colors.textTertiary,
   },
