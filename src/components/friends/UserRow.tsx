@@ -11,7 +11,7 @@ export function UserRow({ profile, right }: { profile: Profile; right?: ReactNod
   return (
     <View style={s.row}>
       <View style={s.avatarWrap}>
-        <InitialAvatar name={name} avatarUrl={profile.avatar_url} size={54} />
+        <InitialAvatar name={name} avatarUrl={profile.avatar_url} size={62} />
       </View>
       <View style={s.rowInfo}>
         <Text style={s.rowName}>{profile.display_name ?? profile.username}</Text>
@@ -51,9 +51,9 @@ export function UserRowSkeleton() {
 
 const s = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
-  avatarWrap: { marginRight: spacing[3] },
+  avatarWrap: { marginRight: spacing[2] },
   rowInfo: { flex: 1 },
-  rowName: { fontSize: 15, fontWeight: fontWeight.regular, color: colors.white },
+  rowName: { fontSize: 17, fontWeight: fontWeight.semiBold, color: colors.white },
   rowHandle: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: 1 },
   rowRight: { marginLeft: spacing[3] },
   skeletonAvatar: {

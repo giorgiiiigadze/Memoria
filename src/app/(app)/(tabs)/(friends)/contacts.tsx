@@ -219,7 +219,7 @@ export default function ContactsScreen() {
                   <InitialAvatar
                     name={item.name}
                     avatarUrl={item.profile.avatar_url}
-                    size={48}
+                    size={62}
                   />
                   <View style={s.rowInfo}>
                     <Text style={s.rowName}>{item.name}</Text>
@@ -279,22 +279,20 @@ const s = StyleSheet.create({
   content: { padding: spacing[4] },
   listContent: { paddingHorizontal: spacing[4], paddingBottom: spacing[10] },
   sectionLabel: {
-    fontSize: fontSize.xs,
+    fontSize: fontSize.md,
     fontWeight: fontWeight.semiBold,
-    color: colors.textTertiary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    color: colors.white,
     marginTop: spacing[6],
-    marginBottom: spacing[2],
+    marginBottom: spacing[3],
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
-    gap: spacing[3],
+    gap: spacing[2],
   },
   rowInfo: { flex: 1 },
-  rowName: { fontSize: 15, fontWeight: fontWeight.regular, color: colors.white },
+  rowName: { fontSize: 17, fontWeight: fontWeight.semiBold, color: colors.white },
   rowHandle: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: 1 },
   permTitle: {
     fontSize: fontSize.lg,
@@ -319,10 +317,11 @@ const s = StyleSheet.create({
   },
   openSettingsText: { fontSize: fontSize.sm, fontWeight: fontWeight.medium, color: colors.textPrimary },
   emptyTitle: {
-    fontSize: fontSize.md,
+    fontSize: 17,
     fontWeight: fontWeight.semiBold,
     color: colors.textPrimary,
     marginBottom: spacing[2],
+    textAlign: 'center',
   },
-  emptySub: { fontSize: fontSize.sm, color: colors.textTertiary, textAlign: 'center' },
+  emptySub: { fontSize: 14, color: colors.textPrimary, textAlign: 'center', lineHeight: 20 },
 })

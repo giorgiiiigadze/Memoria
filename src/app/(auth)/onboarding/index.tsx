@@ -1,21 +1,23 @@
 import { supabase } from '@/api/client'
+import { findProfilesByPhones, sendRequest } from '@/api/friends.api'
 import { OnboardingStepHeader } from '@/components/onboarding/OnboardingStepHeader'
 import { AuthButton } from '@/components/ui/AuthButton'
+import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { useAuthStore } from '@/store/auth.store'
 import { colors, fontWeight, spacing } from '@/theme'
+import type { Profile } from '@/types/database.types'
+import { Contact, ContactField, getPermissionsAsync, requestPermissionsAsync } from 'expo-contacts'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
-import { LinearGradient } from 'expo-linear-gradient'
 import * as Notifications from 'expo-notifications'
 import { router } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { useEffect, useRef, useState } from 'react'
 import {
+  ActivityIndicator,
   Animated,
   Keyboard,
   KeyboardAvoidingView,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Platform,
   ScrollView,
   StyleSheet,
@@ -29,19 +31,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 const BG  = colors.lightBackground
 const INK = colors.charcoal
 
-const ITEM_H = 48
-const VISIBLE = 5
-const DRUM_H = ITEM_H * VISIBLE
-const PAD = Math.floor(VISIBLE / 2) * ITEM_H
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1))
-const NOW = new Date()
-const MAX_YEAR = NOW.getFullYear() - 13
-const YEARS = Array.from({ length: MAX_YEAR - 1919 }, (_, i) => String(MAX_YEAR - i))
-
 const USERNAME_RE = /^[a-z0-9_]{3,30}$/
 
-type Step = 1 | 2 | 3 | 4 | 5 | 6
+type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7
+
+type SuggestedProfile = Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url' | 'phone'> & { contactName: string }
+type UnmatchedContact = { name: string; phone: string }
+
+function normalizePhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '')
+  if (raw.trim().startsWith('+')) return `+${digits}`
+  if (digits.length === 10) return `+1${digits}`
+  return `+${digits}`
+}
 type Segment = { text: string; color: string }
 
 function Headline({ segments }: { segments: Segment[] }) {
@@ -60,7 +62,7 @@ export default function OnboardingFlow() {
   const setOnboardingName = useAuthStore(s => s.setOnboardingName)
   const setOnboardingUsername = useAuthStore(s => s.setOnboardingUsername)
   const setOnboardingAvatarUrl = useAuthStore(s => s.setOnboardingAvatarUrl)
-  const setOnboardingBirthday = useAuthStore(s => s.setOnboardingBirthday)
+  const setOnboardingAge = useAuthStore(s => s.setOnboardingAge)
   const setOnboardingPhone = useAuthStore(s => s.setOnboardingPhone)
   const onboardingName = useAuthStore(s => s.onboardingName)
   const insets = useSafeAreaInsets()
@@ -116,6 +118,77 @@ export default function OnboardingFlow() {
   const phoneDigits = phone.replace(/\D/g, '')
   const phoneValid = phoneDigits.length >= 7 && phoneDigits.length <= 15
 
+  const [contactsLoading, setContactsLoading] = useState(false)
+  const [contactSuggestions, setContactSuggestions] = useState<SuggestedProfile[]>([])
+  const [unmatchedContacts, setUnmatchedContacts] = useState<UnmatchedContact[]>([])
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
+  const [addingId, setAddingId] = useState<string | null>(null)
+  const contactsLoadedRef = useRef(false)
+
+  async function loadContactSuggestions() {
+    if (contactsLoadedRef.current) return
+    contactsLoadedRef.current = true
+    const user = useAuthStore.getState().user
+    if (!user) return
+    setContactsLoading(true)
+    try {
+      let status = (await getPermissionsAsync()).status
+      if (status !== 'granted') {
+        status = (await requestPermissionsAsync()).status
+      }
+      if (status !== 'granted') return
+      const contacts = await Contact.getAllDetails([ContactField.FULL_NAME, ContactField.PHONES])
+      const phoneToName = new Map<string, string>()
+      for (const c of contacts) {
+        if (!c.phones?.length) continue
+        const name = c.fullName ?? 'Unknown'
+        for (const pn of c.phones) {
+          if (!pn.number) continue
+          const normalized = normalizePhone(pn.number)
+          if (normalized.length >= 8) phoneToName.set(normalized, name)
+        }
+      }
+      const allPhones = Array.from(phoneToName.keys())
+      const profiles = await findProfilesByPhones(allPhones, user.id)
+      const matchedPhones = new Set(profiles.map(p => p.phone).filter(Boolean))
+      const matched: SuggestedProfile[] = []
+      const unmatched: UnmatchedContact[] = []
+      const seenIds = new Set<string>()
+      const seenPhones = new Set<string>()
+      for (const p of profiles) {
+        if (seenIds.has(p.id)) continue
+        seenIds.add(p.id)
+        const contactName = p.phone ? (phoneToName.get(p.phone) ?? p.display_name ?? p.username ?? '') : ''
+        matched.push({ ...p, contactName })
+      }
+      for (const [phone, name] of phoneToName.entries()) {
+        if (matchedPhones.has(phone) || seenPhones.has(phone)) continue
+        seenPhones.add(phone)
+        unmatched.push({ name, phone })
+      }
+      setContactSuggestions(matched)
+      setUnmatchedContacts(unmatched)
+    } catch {
+      // fail silently
+    } finally {
+      setContactsLoading(false)
+    }
+  }
+
+  async function handleAddContact(profileId: string) {
+    const user = useAuthStore.getState().user
+    if (!user || addingId) return
+    setAddingId(profileId)
+    try {
+      await sendRequest(user.id, profileId)
+      setAddedIds(prev => new Set(prev).add(profileId))
+    } catch {
+      // fail silently
+    } finally {
+      setAddingId(null)
+    }
+  }
+
   async function handlePickPhoto() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
@@ -149,24 +222,10 @@ export default function OnboardingFlow() {
     }
   }
 
-  const defaultMonth = NOW.getMonth()
-  const defaultDay = NOW.getDate() - 1
-  const [monthIdx, setMonthIdx] = useState(defaultMonth)
-  const [dayIdx, setDayIdx] = useState(defaultDay)
-  const [yearIdx, setYearIdx] = useState(0)
-  const monthRef = useRef<ScrollView>(null)
-  const dayRef = useRef<ScrollView>(null)
-  const yearRef = useRef<ScrollView>(null)
-
-  useEffect(() => {
-    if (step !== 4) return
-    const t = setTimeout(() => {
-      monthRef.current?.scrollTo({ y: defaultMonth * ITEM_H, animated: false })
-      dayRef.current?.scrollTo({ y: defaultDay * ITEM_H, animated: false })
-      yearRef.current?.scrollTo({ y: 0, animated: false })
-    }, 80)
-    return () => clearTimeout(t)
-  }, [step])
+  const [age, setAge] = useState('')
+  const ageRef = useRef<TextInput>(null)
+  const ageNum = parseInt(age, 10)
+  const ageValid = !isNaN(ageNum) && ageNum >= 1 && ageNum <= 120
 
   function goToStep(next: Step) {
     Keyboard.dismiss()
@@ -198,25 +257,13 @@ export default function OnboardingFlow() {
     goToStep(3)
   }
 
-  function onScrollEnd(
-    e: NativeSyntheticEvent<NativeScrollEvent>,
-    items: string[],
-    setter: (i: number) => void,
-  ) {
-    const raw = Math.round(e.nativeEvent.contentOffset.y / ITEM_H)
-    setter(Math.max(0, Math.min(items.length - 1, raw)))
-  }
-
   function handleBirthdayNext() {
-    const mm = String(monthIdx + 1).padStart(2, '0')
-    const dd = DAYS[dayIdx].padStart(2, '0')
-    const yyyy = YEARS[yearIdx]
-    setOnboardingBirthday(`${yyyy}-${mm}-${dd}`)
+    setOnboardingAge(ageValid ? ageNum : null)
     goToStep(5)
   }
 
   function handleBirthdaySkip() {
-    setOnboardingBirthday(null)
+    setOnboardingAge(null)
     goToStep(5)
   }
 
@@ -225,12 +272,18 @@ export default function OnboardingFlow() {
     if (digits.length >= 7) {
       setOnboardingPhone(`+${digits}`)
     }
+    loadContactSuggestions()
     goToStep(6)
   }
 
   function handlePhoneSkip() {
     setOnboardingPhone(null)
+    loadContactSuggestions()
     goToStep(6)
+  }
+
+  function handleContactsNext() {
+    goToStep(7)
   }
 
   async function handleEnableNotifications() {
@@ -245,33 +298,30 @@ export default function OnboardingFlow() {
   const firstName = onboardingName.split(' ')[0] || 'you'
 
   const step1Headline: Segment[] = [
-    { text: 'Lets get you set up', color: INK },
+    { text: "Let's get you set up", color: INK },
   ]
 
   const step2Headline: Segment[] = [
     { text: `Hey ${firstName},\n`, color: INK },
-    { text: 'pick a username.', color: INK },
+    { text: 'Pick a username.', color: INK },
   ]
 
-  const step3Headline: Segment[] = [
-    { text: 'add a profile photo.', color: INK },
-  ]
-
-  const step6Headline: Segment[] = [
-    { text: 'never miss\nthe moment\n', color: INK },
-    { text: 'drops unlock.', color: INK },
+const step6Headline: Segment[] = [
+    { text: 'Never miss\nthe moment\n', color: INK },
+    { text: 'Drops unlock.', color: INK },
   ]
 
   return (
     <View style={s.root}>
       <OnboardingStepHeader
         step={step}
-        total={6}
+        total={7}
         onBack={step > 1 ? () => goToStep((step - 1) as Step) : () => router.replace('/(auth)')}
         onSkip={
           step === 3 ? () => goToStep(4) :
           step === 4 ? handleBirthdaySkip :
           step === 5 ? handlePhoneSkip :
+          step === 6 ? handleContactsNext :
           undefined
         }
         tint={INK}
@@ -337,7 +387,7 @@ export default function OnboardingFlow() {
                     style={s.input}
                     value={username}
                     onChangeText={v => setUsername(v.toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, ''))}
-                    placeholder="Username"
+                    placeholder="username"
                     placeholderTextColor={`${colors.charcoal}55`}
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -399,75 +449,33 @@ export default function OnboardingFlow() {
 
           {step === 4 && (
             <View style={s.stepContainer}>
-              <View style={s.body2}>
-                <Headline segments={[{ text: `Hey ${firstName}, when were you born?`, color: INK }]} />
-                <View style={s.drumWrap}>
-                  <View style={[s.selectionBar, { pointerEvents: 'none' }]} />
-                  <View style={s.drumsRow}>
-                    <ScrollView
-                      ref={monthRef}
-                      style={s.drum}
-                      contentContainerStyle={s.drumContent}
-                      showsVerticalScrollIndicator={false}
-                      snapToInterval={ITEM_H}
-                      decelerationRate="fast"
-                      onScrollEndDrag={e => onScrollEnd(e, MONTHS, setMonthIdx)}
-                      onMomentumScrollEnd={e => onScrollEnd(e, MONTHS, setMonthIdx)}
-                    >
-                      {MONTHS.map((m, i) => (
-                        <View key={m} style={s.drumItem}>
-                          <Text style={[s.drumLabel, i === monthIdx && s.drumLabelSelected]}>{m}</Text>
-                        </View>
-                      ))}
-                    </ScrollView>
-                    <ScrollView
-                      ref={dayRef}
-                      style={s.drum}
-                      contentContainerStyle={s.drumContent}
-                      showsVerticalScrollIndicator={false}
-                      snapToInterval={ITEM_H}
-                      decelerationRate="fast"
-                      onScrollEndDrag={e => onScrollEnd(e, DAYS, setDayIdx)}
-                      onMomentumScrollEnd={e => onScrollEnd(e, DAYS, setDayIdx)}
-                    >
-                      {DAYS.map((d, i) => (
-                        <View key={d} style={s.drumItem}>
-                          <Text style={[s.drumLabel, i === dayIdx && s.drumLabelSelected]}>{d}</Text>
-                        </View>
-                      ))}
-                    </ScrollView>
-                    <ScrollView
-                      ref={yearRef}
-                      style={s.drum}
-                      contentContainerStyle={s.drumContent}
-                      showsVerticalScrollIndicator={false}
-                      snapToInterval={ITEM_H}
-                      decelerationRate="fast"
-                      onScrollEndDrag={e => onScrollEnd(e, YEARS, setYearIdx)}
-                      onMomentumScrollEnd={e => onScrollEnd(e, YEARS, setYearIdx)}
-                    >
-                      {YEARS.map((y, i) => (
-                        <View key={y} style={s.drumItem}>
-                          <Text style={[s.drumLabel, i === yearIdx && s.drumLabelSelected]}>{y}</Text>
-                        </View>
-                      ))}
-                    </ScrollView>
-                  </View>
-                  <LinearGradient
-                    colors={[BG, 'transparent']}
-                    style={s.fadeTop}
-                    pointerEvents="none"
+              <View style={s.body1}>
+                <Headline segments={[{ text: `How old are\nyou, ${firstName}?`, color: INK }]} />
+                <TouchableOpacity
+                  style={s.inputWrap}
+                  onPress={() => ageRef.current?.focus()}
+                  activeOpacity={1}
+                >
+                  <TextInput
+                    ref={ageRef}
+                    style={[s.input, { fontSize: 72 }]}
+                    value={age}
+                    onChangeText={v => setAge(v.replace(/[^0-9]/g, ''))}
+                    placeholder="20"
+                    placeholderTextColor={`${colors.charcoal}55`}
+                    keyboardType="number-pad"
+                    returnKeyType="done"
+                    selectionColor={INK}
+                    onSubmitEditing={ageValid ? handleBirthdayNext : undefined}
+                    autoFocus
+                    maxLength={3}
                   />
-                  <LinearGradient
-                    colors={['transparent', BG]}
-                    style={s.fadeBottom}
-                    pointerEvents="none"
-                  />
-                </View>
+                </TouchableOpacity>
               </View>
               <AuthButton scheme="light"
                 label="Continue"
                 onPress={handleBirthdayNext}
+                disabled={!ageValid}
                 style={[s.nextBtn, { marginBottom: keyboardVisible ? spacing[3] : insets.bottom }]}
               />
             </View>
@@ -476,7 +484,7 @@ export default function OnboardingFlow() {
           {step === 5 && (
             <View style={s.stepContainer}>
               <View style={s.body1}>
-                <Headline segments={[{ text: "what's your\nnumber?", color: INK }]} />
+                <Headline segments={[{ text: "What's your\nnumber?", color: INK }]} />
                 <Text style={s.step1Sub}>Help friends find you on Memoria.</Text>
                 <TouchableOpacity style={s.inputWrap} onPress={() => phoneRef.current?.focus()} activeOpacity={1}>
                   <Text style={s.atSign}>include country code, e.g. +1 555 123 4567</Text>
@@ -507,6 +515,88 @@ export default function OnboardingFlow() {
           )}
 
           {step === 6 && (
+            <View style={s.stepContainer}>
+              <ScrollView
+                style={s.contactsList}
+                contentContainerStyle={[s.contactsScrollContent, { paddingBottom: insets.bottom + 80 }]}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                <Headline segments={[{ text: 'Your contacts\non Memoria.', color: INK }]} />
+                {contactsLoading ? (
+                  <View style={s.contactsCenter}>
+                    <ActivityIndicator color={INK} />
+                  </View>
+                ) : (
+                  <>
+                    {contactSuggestions.length > 0 && (
+                      <>
+                        <Text style={s.contactsSectionLabel}>On Memoria</Text>
+                        {contactSuggestions.map(profile => {
+                          const isAdded = addedIds.has(profile.id)
+                          const isAdding = addingId === profile.id
+                          return (
+                            <View key={profile.id} style={s.contactRow}>
+                              <InitialAvatar
+                                name={profile.contactName || profile.display_name || profile.username || '?'}
+                                avatarUrl={profile.avatar_url}
+                                size={62}
+                              />
+                              <View style={s.contactInfo}>
+                                <Text style={s.contactName}>{profile.contactName || profile.display_name}</Text>
+                                <Text style={s.contactHandle}>@{profile.username}</Text>
+                              </View>
+                              <TouchableOpacity
+                                style={[s.addBtn, isAdded && s.addBtnDone]}
+                                onPress={() => !isAdded && handleAddContact(profile.id)}
+                                disabled={isAdded || !!addingId}
+                                activeOpacity={0.7}
+                              >
+                                {isAdding ? (
+                                  <ActivityIndicator size="small" color={INK} />
+                                ) : (
+                                  <Text style={[s.addBtnLabel, isAdded && s.addBtnLabelDone]}>
+                                    {isAdded ? 'Added' : 'Add'}
+                                  </Text>
+                                )}
+                              </TouchableOpacity>
+                            </View>
+                          )
+                        })}
+                      </>
+                    )}
+                    {unmatchedContacts.length > 0 && (
+                      <>
+                        <Text style={[s.contactsSectionLabel, contactSuggestions.length > 0 && { marginTop: spacing[6] }]}>Invite Friends</Text>
+                        {unmatchedContacts.map(contact => (
+                          <View key={contact.phone} style={s.contactRow}>
+                            <InitialAvatar name={contact.name} size={62} />
+                            <View style={s.contactInfo}>
+                              <Text style={s.contactName}>{contact.name}</Text>
+                              <Text style={s.contactHandle}>{contact.phone}</Text>
+                            </View>
+                          </View>
+                        ))}
+                      </>
+                    )}
+                    {contactSuggestions.length === 0 && unmatchedContacts.length === 0 && (
+                      <View style={s.contactsCenter}>
+                        <Text style={s.contactsEmpty}>None of your contacts are on Memoria yet.</Text>
+                      </View>
+                    )}
+                  </>
+                )}
+              </ScrollView>
+              <AuthButton
+                scheme="light"
+                label="Continue"
+                onPress={handleContactsNext}
+                style={[s.nextBtn, { marginBottom: insets.bottom || spacing[4] }]}
+              />
+            </View>
+          )}
+
+          {step === 7 && (
             <View style={s.stepContainer}>
               <View style={s.body3}>
                 <View style={s.visual}>
@@ -563,7 +653,7 @@ const s = StyleSheet.create({
 
   body1: {
     flex: 1,
-    paddingHorizontal: spacing[6],
+    paddingHorizontal: spacing[5],
     paddingTop: spacing[8],
   },
   step1Sub: {
@@ -624,14 +714,14 @@ const s = StyleSheet.create({
     marginBottom: spacing[4],
   },
   avatarCircle: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
   },
   avatarPlaceholder: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
     backgroundColor: `${colors.charcoal}0D`,
     borderWidth: 1.5,
     borderColor: `${colors.charcoal}20`,
@@ -642,7 +732,7 @@ const s = StyleSheet.create({
   avatarOverlay: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    borderRadius: 100,
+    borderRadius: 120,
     backgroundColor: 'rgba(0,0,0,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -659,72 +749,10 @@ const s = StyleSheet.create({
     fontWeight: fontWeight.regular,
   },
 
-  body2: {
-    flex: 1,
-    paddingHorizontal: spacing[6],
-    paddingTop: spacing[6],
-  },
-  drumWrap: {
-    height: DRUM_H,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  selectionBar: {
-    position: 'absolute',
-    top: PAD,
-    left: 0,
-    right: 0,
-    height: ITEM_H,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: 'rgba(27,27,27,0.15)',
-    zIndex: 1,
-  },
-  drumsRow: {
-    flexDirection: 'row',
-    height: DRUM_H,
-  },
-  drum: {
-    flex: 1,
-  },
-  drumContent: {
-    paddingVertical: PAD,
-  },
-  drumItem: {
-    height: ITEM_H,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  drumLabel: {
-    fontSize: 17,
-    color: 'rgba(27,27,27,0.35)',
-    fontWeight: fontWeight.regular,
-  },
-  drumLabelSelected: {
-    fontSize: 18,
-    color: INK,
-    fontWeight: fontWeight.semiBold,
-  },
-  fadeTop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: PAD,
-    zIndex: 2,
-  },
-  fadeBottom: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: PAD,
-    zIndex: 2,
-  },
 
   body3: {
     flex: 1,
-    paddingHorizontal: spacing[6],
+    paddingHorizontal: spacing[5],
     paddingTop: spacing[6],
     justifyContent: 'center',
     alignItems: 'center',
@@ -769,5 +797,73 @@ const s = StyleSheet.create({
   },
   actions: {
     gap: spacing[3],
+  },
+
+  contactsSectionLabel: {
+    fontSize: 13,
+    fontWeight: fontWeight.semiBold,
+    color: INK,
+    textTransform: 'capitalize',
+    letterSpacing: 0.6,
+    marginBottom: spacing[2],
+  },
+  contactsCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contactsEmpty: {
+    fontSize: 15,
+    color: `${colors.charcoal}55`,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  contactsList: {
+    flex: 1,
+    backgroundColor: BG,
+  },
+  contactsScrollContent: {
+    paddingHorizontal: spacing[5],
+    paddingTop: spacing[8],
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing[3],
+    gap: spacing[3],
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: `${colors.charcoal}15`,
+  },
+  contactInfo: { flex: 1 },
+  contactName: {
+    fontSize: 17,
+    fontWeight: fontWeight.semiBold,
+    color: INK,
+  },
+  contactHandle: {
+    fontSize: 12,
+    color: `${colors.charcoal}55`,
+    marginTop: 1,
+  },
+  addBtn: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: 7,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: INK,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  addBtnDone: {
+    borderColor: `${colors.charcoal}30`,
+    backgroundColor: `${colors.charcoal}08`,
+  },
+  addBtnLabel: {
+    fontSize: 13,
+    fontWeight: fontWeight.semiBold,
+    color: INK,
+  },
+  addBtnLabelDone: {
+    color: `${colors.charcoal}55`,
   },
 })

@@ -1,5 +1,5 @@
 import { selectProfile, useAuthStore } from '@/store/auth.store'
-import { spacing } from '@/theme'
+import { colors, spacing } from '@/theme'
 import SegmentedControl from '@expo/ui/community/segmented-control'
 import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -39,7 +39,7 @@ const s = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'transparent',
+    backgroundColor: colors.background,
     paddingHorizontal: spacing[5],
     justifyContent: 'center',
     zIndex: 10,

@@ -162,7 +162,7 @@ const s = StyleSheet.create({
   statLabel: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
 
   section: { gap: spacing[3] },
-  sectionLabel: { fontSize: fontSize.md, fontWeight: fontWeight.semiBold, color: colors.white, paddingLeft: spacing[4] },
+  sectionLabel: { fontSize: 18, fontWeight: fontWeight.bold, color: colors.white, paddingLeft: spacing[4] },
   emptyDrops: { paddingVertical: spacing[10], alignItems: 'center', paddingHorizontal: spacing[8] },
   emptyTitle: { color: colors.textPrimary, fontSize: 17, fontWeight: '600', marginBottom: spacing[2], textAlign: 'center' },
   emptyText: { color: colors.textPrimary, fontSize: 14, textAlign: 'center', lineHeight: 20 },

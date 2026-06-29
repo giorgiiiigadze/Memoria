@@ -195,8 +195,8 @@ const s = StyleSheet.create({
     marginBottom: spacing[5],
   },
   monthLabel: {
-    fontSize: fontSize.md,
-    fontWeight: fontWeight.semiBold,
+    fontSize: 18,
+    fontWeight: fontWeight.bold,
     color: colors.white,
     marginBottom: spacing[3],
     paddingLeft: spacing[4],

@@ -11,13 +11,13 @@ export type NotificationWithMeta = {
   sent_push: boolean
   created_at: string
   actor: { username: string; display_name: string | null; avatar_url: string | null } | null
-  drop: { title: string } | null
+  drop: { title: string; thumbnail_url: string | null } | null
 }
 
 export async function getNotifications(userId: string): Promise<NotificationWithMeta[]> {
   const { data, error } = await supabase
     .from('notifications')
-    .select('*, actor:profiles!actor_id(username, display_name, avatar_url), drop:drops!drop_id(title)')
+    .select('*, actor:profiles!actor_id(username, display_name, avatar_url), drop:drops!drop_id(title, thumbnail_url)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(50)

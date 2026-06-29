@@ -15,7 +15,7 @@ interface AuthState {
   onboardingName: string
   onboardingUsername: string
   onboardingAvatarUrl: string | null
-  onboardingBirthday: string | null
+  onboardingAge: number | null
   onboardingPhone: string | null
 
   // Status flags
@@ -30,7 +30,7 @@ interface AuthState {
   setOnboardingName: (name: string) => void
   setOnboardingUsername: (username: string) => void
   setOnboardingAvatarUrl: (url: string | null) => void
-  setOnboardingBirthday: (birthday: string | null) => void
+  setOnboardingAge: (age: number | null) => void
   setOnboardingPhone: (phone: string | null) => void
   signOut: () => Promise<void>
 }
@@ -43,7 +43,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   onboardingName: '',
   onboardingUsername: '',
   onboardingAvatarUrl: null,
-  onboardingBirthday: null,
+  onboardingAge: null,
   onboardingPhone: null,
   isAuthenticated: false,
   isOnboarded: false,
@@ -88,7 +88,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setOnboardingAvatarUrl: (url) => set({ onboardingAvatarUrl: url }),
 
-  setOnboardingBirthday: (birthday) => set({ onboardingBirthday: birthday }),
+  setOnboardingAge: (age) => set({ onboardingAge: age }),
 
   setOnboardingPhone: (phone) => set({ onboardingPhone: phone }),
 
@@ -119,5 +119,5 @@ export const selectIsOnboarded = (s: AuthState) => s.isOnboarded
 export const selectIsHydrated = (s: AuthState) => s.isHydrated
 export const selectOnboardingName = (s: AuthState) => s.onboardingName
 export const selectOnboardingUsername = (s: AuthState) => s.onboardingUsername
-export const selectOnboardingBirthday = (s: AuthState) => s.onboardingBirthday
+export const selectOnboardingAge = (s: AuthState) => s.onboardingAge
 export const selectOnboardingPhone = (s: AuthState) => s.onboardingPhone

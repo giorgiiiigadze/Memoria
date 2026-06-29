@@ -112,7 +112,7 @@ const s = StyleSheet.create({
     fontSize: fontSize.sm,
     fontWeight: fontWeight.semiBold,
     color: colors.white,
-    paddingHorizontal: spacing[5],
+    paddingHorizontal: spacing[2.5],
     paddingTop: spacing[4],
     paddingBottom: spacing[2],
     textTransform: 'capitalize',

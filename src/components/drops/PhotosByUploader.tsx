@@ -38,6 +38,7 @@ type Props = {
   bottomPad: number
   isLocked?: boolean
   currentUserId?: string
+  emptyMessage?: string
 }
 
 export function PhotosByUploader({
@@ -52,6 +53,7 @@ export function PhotosByUploader({
   bottomPad,
   isLocked,
   currentUserId,
+  emptyMessage,
 }: Props) {
   const { width } = useWindowDimensions()
   const tileSize = Math.floor((width - GAP * (COLS - 1)) / COLS)
@@ -92,21 +94,27 @@ export function PhotosByUploader({
         ) : null}
       </View>
       <View style={s.divider} />
-      <View style={s.grid}>
-        {photos.map(photo => (
-          <MiniPhotoCard
-            key={photo.id}
-            photo={photo}
-            size={tileSize}
-            blurred={!!isLocked && photo.uploader_id !== currentUserId}
-            onPress={() => onSelect(photo)}
-            showUploader
-            isOwn={photo.uploader_id === currentUserId}
-            onDelete={onDelete ? () => onDelete(photo) : undefined}
-            onPin={onPin ? () => onPin(photo) : undefined}
-          />
-        ))}
-      </View>
+      {photos.length === 0 && emptyMessage ? (
+        <View style={s.emptyWrap}>
+          <Text style={s.emptyText}>{emptyMessage}</Text>
+        </View>
+      ) : (
+        <View style={s.grid}>
+          {photos.map(photo => (
+            <MiniPhotoCard
+              key={photo.id}
+              photo={photo}
+              size={tileSize}
+              blurred={!!isLocked && photo.uploader_id !== currentUserId}
+              onPress={() => onSelect(photo)}
+              showUploader
+              isOwn={photo.uploader_id === currentUserId}
+              onDelete={onDelete ? () => onDelete(photo) : undefined}
+              onPin={onPin ? () => onPin(photo) : undefined}
+            />
+          ))}
+        </View>
+      )}
     </ScrollView>
   )
 }
@@ -153,6 +161,17 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: GAP,
+  },
+  emptyWrap: {
+    paddingVertical: spacing[10],
+    paddingHorizontal: spacing[8],
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: colors.white,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 })
 

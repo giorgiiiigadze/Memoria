@@ -1,4 +1,4 @@
-import { getDrop, type DropWithParticipants } from '@/api/drops.api'
+import { deleteDrop, getDrop, type DropWithParticipants } from '@/api/drops.api'
 import { deleteDropPhoto, getDropPhotos, pinPhoto, primeStoryCache, uploadDropPhoto, type PhotoWithUploader } from '@/api/photos.api'
 import { subscribeToDropPhotos } from '@/api/realtime'
 import { PhotosByUploader, PhotosByUploaderSkeleton } from '@/components/drops/PhotosByUploader'
@@ -14,10 +14,11 @@ import { CameraIcon } from '@/components/icons/CameraIcon'
 import { Image as ImageIcon } from 'lucide-react-native'
 import { useCallback, useEffect, useState } from 'react'
 import {
+  ActionSheetIOS,
   ActivityIndicator,
   Alert,
+  Platform,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View
 } from 'react-native'
@@ -140,6 +141,41 @@ export default function DropDetailScreen() {
     }
   }
 
+  const isCreator = !!user && drop?.creator_id === user.id
+
+  function handleMenu() {
+    if (isCreator) {
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          { options: ['Cancel', 'Delete Drop'], destructiveButtonIndex: 1, cancelButtonIndex: 0 },
+          idx => { if (idx === 1) confirmDelete() },
+        )
+      } else {
+        confirmDelete()
+      }
+    }
+  }
+
+  function confirmDelete() {
+    Alert.alert('Delete Drop', 'This will permanently delete the drop and all its photos.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          if (!id) return
+          try {
+            await deleteDrop(id)
+            useDropsStore.getState().setDrops(useDropsStore.getState().drops.filter(d => d.id !== id))
+            router.back()
+          } catch {
+            Alert.alert('Error', 'Could not delete the drop.')
+          }
+        },
+      },
+    ])
+  }
+
   function handlePhotoSelect(photo: PhotoWithUploader) {
     if (!isOpen) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {})
@@ -155,19 +191,6 @@ export default function DropDetailScreen() {
     <View style={s.root}>
       {!photosLoaded ? (
         <PhotosByUploaderSkeleton topInset={topInset} />
-      ) : photos.length === 0 ? (
-        <View style={s.empty}>
-          <Text style={s.emptyTitle}>
-            {isLocked ? 'No photos yet' : 'Nothing here'}
-          </Text>
-          <Text style={s.emptyText}>
-            {isLocked && canUpload
-              ? 'Be the first to add a photo using the camera below.'
-              : isLocked
-              ? 'Participants haven\'t uploaded anything yet.'
-              : 'No photos were uploaded before this drop closed.'}
-          </Text>
-        </View>
       ) : (
         <PhotosByUploader
           photos={photos}
@@ -181,6 +204,13 @@ export default function DropDetailScreen() {
           bottomPad={bottomPad}
           isLocked={isLocked}
           currentUserId={user?.id}
+          emptyMessage={
+            isLocked && canUpload
+              ? 'Be the first to add a photo using the camera below.'
+              : isLocked
+              ? "Participants haven't uploaded anything yet."
+              : 'No photos were uploaded before this drop closed.'
+          }
         />
       )}
 
@@ -189,6 +219,12 @@ export default function DropDetailScreen() {
         <GlassIconButton onPress={() => router.back()}>
           <SymbolView name="chevron.left" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
         </GlassIconButton>
+        <View style={s.headerSpacer} />
+        {isCreator && (
+          <GlassIconButton onPress={handleMenu}>
+            <SymbolView name="ellipsis" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+          </GlassIconButton>
+        )}
       </View>
 
       {canUpload && (
@@ -244,9 +280,6 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing[8] },
-  emptyTitle: { color: colors.textPrimary, fontSize: 17, fontWeight: '600', marginBottom: spacing[2], textAlign: 'center' },
-  emptyText: { color: colors.textPrimary, fontSize: 14, textAlign: 'center', lineHeight: 20 },
 
   captureWrap: {
     position: 'absolute',

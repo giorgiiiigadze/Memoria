@@ -1,7 +1,8 @@
 import type { NotificationWithMeta } from '@/api/notifications.api'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
-import { colors } from '@/theme'
+import { colors, fontSize, spacing } from '@/theme'
 import { notifText, timeAgo } from '@/utils/notifications'
+import { Image } from 'expo-image'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 type Props = {
@@ -32,6 +33,14 @@ export default function NotificationItem({ item, onPress }: Props) {
         <Text style={styles.itemText}>{notifText(item)}</Text>
         <Text style={styles.itemTime}>{timeAgo(item.created_at)}</Text>
       </View>
+
+      {item.drop?.thumbnail_url ? (
+        <Image
+          source={{ uri: item.drop.thumbnail_url }}
+          style={styles.thumbnail}
+          contentFit="cover"
+        />
+      ) : null}
     </TouchableOpacity>
   )
 }
@@ -40,12 +49,12 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing[2.5],
     paddingVertical: 12,
     gap: 12,
     backgroundColor: 'transparent',
   },
-  itemUnread: { backgroundColor: 'rgba(255,255,255,0.05)' },
+  itemUnread: { backgroundColor: colors.surface },
   avatarWrap: {
     position: 'relative',
     flexShrink: 0,
@@ -62,6 +71,7 @@ const styles = StyleSheet.create({
     borderColor: colors.background,
   },
   itemBody: { flex: 1, gap: 3 },
-  itemText: { fontSize: 14, color: '#FFFFFF', lineHeight: 20 },
-  itemTime: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
+  thumbnail: { width: 44, height: 44, borderRadius: 4, flexShrink: 0 },
+  itemText: { fontSize: fontSize.sm, color: colors.white, lineHeight: 20 },
+  itemTime: { fontSize: fontSize.xs, color: colors.textTertiary },
 })

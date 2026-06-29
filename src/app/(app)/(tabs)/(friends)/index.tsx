@@ -1,9 +1,14 @@
+import { findProfilesByPhones } from '@/api/friends.api'
 import { Chip } from '@/components/friends/Chip'
 import { FriendSearchBar } from '@/components/friends/FriendSearchBar'
 import { UserRow, UserRowSkeleton } from '@/components/friends/UserRow'
+import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { useFriends } from '@/hooks/useFriends'
+import { selectUser, useAuthStore } from '@/store/auth.store'
+import { useFriendsStore } from '@/store/friends.store'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
 import type { Profile } from '@/types/database.types'
+import { Contact, ContactField, getPermissionsAsync } from 'expo-contacts'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
@@ -14,14 +19,73 @@ import {
   View,
 } from 'react-native'
 
+const SUGGESTED_LIMIT = 3
+
+type SuggestedProfile = Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url' | 'phone'> & { contactName: string }
+
+function normalizePhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '')
+  if (raw.trim().startsWith('+')) return `+${digits}`
+  if (digits.length === 10) return `+1${digits}`
+  return `+${digits}`
+}
+
 export default function FriendsScreen() {
+  const user = useAuthStore(selectUser)
   const { friends, incoming, outgoing, isLoaded, error, actionLoading, add, accept, decline, search, refresh, retry } = useFriends()
+
+  const [suggested, setSuggested] = useState<SuggestedProfile[]>([])
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
 
   useFocusEffect(
     useCallback(() => {
       refresh()
+      loadSuggested()
     }, [])
   )
+
+  async function loadSuggested() {
+    if (!user) return
+    try {
+      const { status } = await getPermissionsAsync()
+      if (status !== 'granted') return
+
+      const contacts = await Contact.getAllDetails([ContactField.FULL_NAME, ContactField.PHONES])
+      const phoneToName = new Map<string, string>()
+      for (const c of contacts) {
+        if (!c.phones?.length) continue
+        const name = c.fullName ?? 'Unknown'
+        for (const pn of c.phones) {
+          if (!pn.number) continue
+          const normalized = normalizePhone(pn.number)
+          if (normalized.length >= 8) phoneToName.set(normalized, name)
+        }
+      }
+
+      const allPhones = Array.from(phoneToName.keys())
+      const profiles = await findProfilesByPhones(allPhones, user.id)
+
+      const { friends: currentFriends, outgoing: currentOutgoing, incoming: currentIncoming } = useFriendsStore.getState()
+      const friendIds = new Set(currentFriends.map(f => f.id))
+      const pendingIds = new Set(currentOutgoing.map(r => r.profile.id))
+      const incomingIds = new Set(currentIncoming.map(r => r.profile.id))
+
+      const results: SuggestedProfile[] = []
+      const seen = new Set<string>()
+      for (const p of profiles) {
+        if (seen.has(p.id)) continue
+        if (friendIds.has(p.id) || pendingIds.has(p.id) || incomingIds.has(p.id)) continue
+        seen.add(p.id)
+        const contactName = p.phone ? (phoneToName.get(p.phone) ?? p.display_name ?? p.username ?? '') : ''
+        results.push({ ...p, contactName })
+        if (results.length >= SUGGESTED_LIMIT) break
+      }
+      setSuggested(results)
+    } catch {
+      // suggestions are best-effort, fail silently
+    }
+  }
+
   const [query, setQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Profile[]>([])
   const [searching, setSearching] = useState(false)
@@ -50,6 +114,13 @@ export default function FriendsScreen() {
     return 'none' as const
   }
 
+  async function handleAddSuggested(profileId: string) {
+    await add(profileId)
+    setAddedIds(prev => new Set(prev).add(profileId))
+  }
+
+  const visibleSuggested = suggested.filter(p => !addedIds.has(p.id))
+
   return (
     <ScrollView style={s.root} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
@@ -59,15 +130,37 @@ export default function FriendsScreen() {
           onChangeText={setQuery}
           placeholder="Search by username..."
         />
-        <TouchableOpacity
-          style={s.contactsRow}
-          onPress={() => router.push('/(app)/(tabs)/(friends)/contacts')}
-          activeOpacity={0.7}
-        >
-          <Text style={s.contactsLabel}>Find from contacts</Text>
-          <Text style={s.contactsArrow}>›</Text>
-        </TouchableOpacity>
       </View>
+
+      {!isSearchMode && visibleSuggested.length > 0 && (
+        <View style={s.section}>
+          <View style={s.sectionHeader}>
+            <Text style={s.sectionLabel}>Suggested</Text>
+            <TouchableOpacity onPress={() => router.push('/(app)/(tabs)/(friends)/contacts')} activeOpacity={0.7}>
+              <Text style={s.seeAll}>See all</Text>
+            </TouchableOpacity>
+          </View>
+          {visibleSuggested.map(profile => (
+            <View key={profile.id} style={s.row}>
+              <InitialAvatar
+                name={profile.contactName || profile.display_name || profile.username || '?'}
+                avatarUrl={profile.avatar_url}
+                size={62}
+              />
+              <View style={s.rowInfo}>
+                <Text style={s.rowName}>{profile.contactName || profile.display_name}</Text>
+                <Text style={s.rowHandle}>@{profile.username}</Text>
+              </View>
+              <Chip
+                label="Add"
+                variant="white"
+                onPress={() => handleAddSuggested(profile.id)}
+                disabled={actionLoading}
+              />
+            </View>
+          ))}
+        </View>
+      )}
 
       {isSearchMode && (
         <View style={s.section}>
@@ -153,7 +246,10 @@ export default function FriendsScreen() {
           {!isLoaded ? null : friends.length === 0 ? (
             <Text style={s.empty}>No friends yet.{'\n'}Search for people to add.</Text>
           ) : (
-            friends.map(profile => <UserRow key={profile.id} profile={profile} />)
+            <>
+              <Text style={[s.sectionLabel, { marginBottom: spacing[3] }]}>Your friends</Text>
+              {friends.map(profile => <UserRow key={profile.id} profile={profile} />)}
+            </>
           )}
         </View>
       )}
@@ -162,29 +258,22 @@ export default function FriendsScreen() {
   )
 }
 
-
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   content: { paddingBottom: spacing[10], paddingTop: spacing[5], paddingHorizontal: spacing[2.5] },
-  searchWrap: { marginBottom: spacing[6], gap: spacing[3] },
-  contactsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
-  },
-  contactsLabel: { fontSize: fontSize.sm, color: colors.textSecondary },
-  contactsArrow: { fontSize: 18, color: colors.textTertiary, lineHeight: 22 },
+  searchWrap: { marginBottom: spacing[6] },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing[3] },
   section: { marginBottom: spacing[8] },
   sectionLabel: {
-    fontSize: fontSize.md,
+    fontSize: fontSize.sm,
     fontWeight: fontWeight.semiBold,
-    color: colors.white,
-    marginBottom: spacing[3],
+    color: colors.textSecondary,
   },
+  seeAll: { fontSize: fontSize.sm, color: colors.accent },
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: spacing[2] },
+  rowInfo: { flex: 1 },
+  rowName: { fontSize: 17, fontWeight: fontWeight.semiBold, color: colors.white },
+  rowHandle: { fontSize: fontSize.xs, color: colors.textTertiary, marginTop: 1 },
   empty: { fontSize: fontSize.sm, color: colors.textTertiary, textAlign: 'center', paddingVertical: spacing[6], lineHeight: 22 },
   requestActions: { flexDirection: 'row' },
   errorBox: { alignItems: 'center', paddingVertical: spacing[10], gap: spacing[3] },

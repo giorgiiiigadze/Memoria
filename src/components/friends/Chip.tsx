@@ -36,12 +36,12 @@ export function Chip({
 }
 
 const s = StyleSheet.create({
-  chip: { paddingHorizontal: spacing[6], paddingVertical: 13, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
+  chip: { paddingHorizontal: spacing[4], paddingVertical: 8, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
   chipBlue: { backgroundColor: colors.primary },
   chipGreen: { borderWidth: 0.5, borderColor: colors.success },
   chipMuted: { borderWidth: 0.5, borderColor: colors.borderDefault },
   chipWhite: { backgroundColor: colors.white },
-  chipLabel: { fontSize: 15, fontWeight: fontWeight.semiBold },
+  chipLabel: { fontSize: 13, fontWeight: fontWeight.semiBold },
   chipLabelWhite: { color: colors.white },
   chipLabelGreen: { color: colors.success },
   chipLabelMuted: { color: colors.textTertiary },

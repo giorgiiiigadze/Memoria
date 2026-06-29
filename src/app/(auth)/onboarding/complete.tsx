@@ -32,7 +32,7 @@ export default function CompleteScreen() {
   const onboardingName = useAuthStore(s => s.onboardingName)
   const onboardingUsername = useAuthStore(s => s.onboardingUsername)
   const onboardingAvatarUrl = useAuthStore(s => s.onboardingAvatarUrl)
-  const onboardingBirthday = useAuthStore(s => s.onboardingBirthday)
+  const onboardingAge = useAuthStore(s => s.onboardingAge)
   const onboardingPhone = useAuthStore(s => s.onboardingPhone)
   const setProfile = useAuthStore(s => s.setProfile)
   const insets = useSafeAreaInsets()
@@ -54,7 +54,7 @@ export default function CompleteScreen() {
         display_name: displayName,
         ...(onboardingPhone ? { phone: onboardingPhone } : user.phone ? { phone: user.phone } : {}),
         ...(onboardingAvatarUrl ? { avatar_url: onboardingAvatarUrl } : {}),
-        ...(onboardingBirthday ? { birthday: onboardingBirthday } : {}),
+        ...(onboardingAge != null ? { age: onboardingAge } : {}),
       }
 
       const { data: profile, error: upsertErr } = await supabase
