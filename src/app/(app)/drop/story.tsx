@@ -34,7 +34,8 @@ const FILMSTRIP_CLEARANCE = THUMB_SIZE + spacing[2] + spacing[3]
 function sortPhotos(photos: PhotoWithUploader[]) {
   return [...photos].sort((a, b) => {
     if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1
-    return a.sort_order - b.sort_order
+    if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
+    return a.uploaded_at.localeCompare(b.uploaded_at)
   })
 }
 
@@ -124,12 +125,17 @@ export default function StoryScreen() {
 
   async function handlePin() {
     if (!photo) return
+    const photoId = photo.id
     const next = !photo.is_pinned
-    setPhotos(prev => sortPhotos(prev.map(p => p.id === photo.id ? { ...p, is_pinned: next } : p)))
+    const updated = sortPhotos(photos.map(p => p.id === photoId ? { ...p, is_pinned: next } : p))
+    const newIdx = updated.findIndex(p => p.id === photoId)
+    setPhotos(updated)
+    if (newIdx !== -1) setIndex(newIdx)
     try {
-      await pinPhoto(photo.id, next)
+      await pinPhoto(photoId, next)
     } catch {
-      setPhotos(prev => sortPhotos(prev.map(p => p.id === photo.id ? { ...p, is_pinned: !next } : p)))
+      setPhotos(photos)
+      setIndex(index)
       Alert.alert('Error', 'Could not update pin.')
     }
   }

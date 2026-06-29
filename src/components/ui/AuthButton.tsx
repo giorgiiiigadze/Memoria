@@ -71,7 +71,7 @@ export function AuthButton({
 const s = StyleSheet.create({
   base: {
     borderRadius: radii.lg,
-    paddingVertical: 18,
+    paddingVertical: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -92,7 +92,7 @@ const s = StyleSheet.create({
   },
   label: {
     fontSize: fontSize.body,
-    fontWeight: fontWeight.strong,
+    fontWeight: fontWeight.medium,
   },
   labelPrimary: {
     color: colors.ink,

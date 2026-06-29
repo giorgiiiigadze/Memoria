@@ -1,10 +1,10 @@
 import { supabase } from '@/api/client'
-import { AuthButton } from '@/components/ui/AuthButton'
 import { useAuthStore } from '@/store/auth.store'
 import { colors, fontWeight, spacing } from '@/theme'
 import { router } from 'expo-router'
-import { useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { SymbolView } from 'expo-symbols'
+import { useEffect, useRef } from 'react'
+import { Animated, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 async function generateUsername(displayName: string, userId: string): Promise<string> {
@@ -27,34 +27,38 @@ async function generateUsername(displayName: string, userId: string): Promise<st
 }
 
 export default function CompleteScreen() {
-  const user = useAuthStore(s => s.user)
-  const existingProfile = useAuthStore(s => s.profile)
-  const onboardingName = useAuthStore(s => s.onboardingName)
-  const onboardingUsername = useAuthStore(s => s.onboardingUsername)
-  const onboardingAvatarUrl = useAuthStore(s => s.onboardingAvatarUrl)
-  const onboardingAge = useAuthStore(s => s.onboardingAge)
-  const onboardingPhone = useAuthStore(s => s.onboardingPhone)
-  const setProfile = useAuthStore(s => s.setProfile)
   const insets = useSafeAreaInsets()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const opacity = useRef(new Animated.Value(0)).current
 
-  async function handleLetsGo() {
+  useEffect(() => {
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start()
+
+    ensureProfile().then(() => {
+      setTimeout(() => router.replace('/(app)/(tabs)/(home)'), 1400)
+    })
+  }, [])
+
+  async function ensureProfile() {
+    const store = useAuthStore.getState()
+    const user = store.user
     if (!user) return
-    setLoading(true)
-    setError(null)
+    if (store.profile?.display_name) return
 
     try {
-      const displayName = onboardingName.trim() || existingProfile?.display_name || 'You'
-      const username = onboardingUsername.trim() || existingProfile?.username || await generateUsername(displayName, user.id)
+      const displayName = store.onboardingName.trim() || store.profile?.display_name || 'You'
+      const username = store.onboardingUsername.trim() || store.profile?.username || await generateUsername(displayName, user.id)
 
       const payload = {
         id: user.id,
         username,
         display_name: displayName,
-        ...(onboardingPhone ? { phone: onboardingPhone } : user.phone ? { phone: user.phone } : {}),
-        ...(onboardingAvatarUrl ? { avatar_url: onboardingAvatarUrl } : {}),
-        ...(onboardingAge != null ? { age: onboardingAge } : {}),
+        ...(store.onboardingPhone ? { phone: store.onboardingPhone } : user.phone ? { phone: user.phone } : {}),
+        ...(store.onboardingAvatarUrl ? { avatar_url: store.onboardingAvatarUrl } : {}),
+        ...(store.onboardingAge != null ? { age: store.onboardingAge } : {}),
       }
 
       const { data: profile, error: upsertErr } = await supabase
@@ -71,50 +75,25 @@ export default function CompleteScreen() {
             .upsert({ ...payload, username: fallback })
             .select()
             .single()
-          if (err2) throw err2
-          setProfile(profile2)
-        } else {
-          throw upsertErr
+          if (!err2 && profile2) store.setProfile(profile2)
         }
-      } else {
-        setProfile(profile)
+      } else if (profile) {
+        store.setProfile(profile)
       }
-
-      router.replace('/(app)/(tabs)/(home)')
     } catch (e) {
       console.error('[onboarding/complete]', e)
-      setError('Something went wrong. Tap to try again.')
-    } finally {
-      setLoading(false)
     }
   }
 
   return (
     <View style={[s.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-
-      <View style={s.illustrationArea}>
-        {/* swap in your illustration here */}
-      </View>
-
-      <View style={s.textArea}>
-        <Text style={s.headline}>
-          {'welcome to memoria'}
-        </Text>
-        <Text style={s.subtitle}>
-          time to capture moments that matter — together.
-        </Text>
-      </View>
-
-      <View style={s.bottom}>
-        {error ? <Text style={s.error}>{error}</Text> : null}
-        <AuthButton
-          label="let's go"
-          onPress={handleLetsGo}
-          loading={loading}
-          style={s.fullWidth}
-        />
-      </View>
-
+      <Animated.View style={[s.content, { opacity }]}>
+        <View style={s.checkCircle}>
+          <SymbolView name="checkmark" size={28} tintColor={colors.background} resizeMode="scaleAspectFit" />
+        </View>
+        <Text style={s.headline}>Profile created.</Text>
+        <Text style={s.sub}>welcome to memoria</Text>
+      </Animated.View>
     </View>
   )
 }
@@ -123,46 +102,31 @@ const s = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingHorizontal: spacing[2.5],
-  },
-  illustrationArea: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.white,
-    marginTop: spacing[6],
-    marginBottom: spacing[8],
   },
-  textArea: {
+  content: {
     alignItems: 'center',
-    gap: spacing[0],
-    marginBottom: spacing[10],
+    gap: spacing[4],
+  },
+  checkCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.success,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing[2],
   },
   headline: {
-    fontSize: 34,
+    fontSize: 28,
     fontWeight: fontWeight.semiBold,
     color: colors.textPrimary,
     letterSpacing: -0.5,
-    lineHeight: 38,
-    textAlign: 'center',
   },
-  subtitle: {
+  sub: {
     fontSize: 15,
+    color: colors.textSecondary,
     fontWeight: fontWeight.regular,
-    color: colors.white,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  bottom: {
-    gap: spacing[2],
-    paddingBottom: spacing[2],
-  },
-  error: {
-    fontSize: 13,
-    color: colors.error,
-    textAlign: 'center',
-  },
-  fullWidth: {
-    alignSelf: 'stretch',
   },
 })

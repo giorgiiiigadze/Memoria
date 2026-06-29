@@ -82,9 +82,11 @@ export default function RootLayout() {
         subscribeToNotifications(session.user.id),
       ]
 
-      // Profile setup incomplete — always route back to finish it
+      // Profile setup incomplete — sign out and return to auth so the user
+      // re-enters their credentials before reaching profile setup
       if (!profile?.display_name) {
-        router.replace('/(auth)/onboarding')
+        await supabase.auth.signOut()
+        router.replace('/(auth)')
         return
       }
 

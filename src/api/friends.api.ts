@@ -6,6 +6,8 @@ export type FriendRequest = {
   profile: Profile
 }
 
+export type Friend = Profile & { friendsSince: string }
+
 export async function searchUsers(query: string, myId: string): Promise<Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url'>[]> {
   const q = query.trim().replace(/[(),]/g, '')
   if (!q) return []
@@ -19,20 +21,22 @@ export async function searchUsers(query: string, myId: string): Promise<Pick<Pro
   return (data ?? []) as unknown as Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url'>[]
 }
 
-export async function getFriends(myId: string): Promise<Profile[]> {
+export async function getFriends(myId: string): Promise<Friend[]> {
   const { data, error } = await supabase
     .from('friendships')
     .select(`
-      *,
+      requester_id,
+      updated_at,
       requester:profiles!friendships_requester_id_fkey(id, username, display_name, avatar_url),
       addressee:profiles!friendships_addressee_id_fkey(id, username, display_name, avatar_url)
     `)
     .eq('status', 'accepted')
     .or(`requester_id.eq.${myId},addressee_id.eq.${myId}`)
   if (error) throw error
-  return (data ?? []).map((f: any) =>
-    f.requester_id === myId ? f.addressee : f.requester
-  )
+  return (data ?? []).map((f: any) => ({
+    ...(f.requester_id === myId ? f.addressee : f.requester),
+    friendsSince: f.updated_at,
+  })) as Friend[]
 }
 
 export async function getIncomingRequests(myId: string): Promise<FriendRequest[]> {

@@ -2,7 +2,7 @@ import { supabase } from '@/api/client'
 import { AuthButton } from '@/components/ui/AuthButton'
 import { useAuthStore } from '@/store/auth.store'
 import { colors, fontWeight, radii, spacing } from '@/theme'
-import { router, Stack } from 'expo-router'
+import { router } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { useState } from 'react'
 import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
@@ -75,7 +75,6 @@ export default function LandingScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ animation: 'fade' }} />
     <KeyboardAvoidingView
       style={s.root}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -173,7 +172,7 @@ const s = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: spacing[5],
+    paddingHorizontal: spacing[4],
     paddingBottom: spacing[8],
     paddingTop: spacing[5],
     gap: spacing[4],

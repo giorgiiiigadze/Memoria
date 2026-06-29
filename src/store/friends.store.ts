@@ -1,14 +1,14 @@
-import type { FriendRequest } from '@/api/friends.api'
+import type { Friend, FriendRequest } from '@/api/friends.api'
 import type { Profile } from '@/types/database.types'
 import { create } from 'zustand'
 
 interface FriendsState {
-  friends: Profile[]
+  friends: Friend[]
   incoming: FriendRequest[]
   outgoing: FriendRequest[]
   isLoaded: boolean
   error: string | null
-  setFriends: (friends: Profile[]) => void
+  setFriends: (friends: Friend[]) => void
   setIncoming: (incoming: FriendRequest[]) => void
   setOutgoing: (outgoing: FriendRequest[]) => void
   setIsLoaded: (loaded: boolean) => void

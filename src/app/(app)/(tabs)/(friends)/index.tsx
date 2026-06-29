@@ -145,7 +145,7 @@ export default function FriendsScreen() {
               <InitialAvatar
                 name={profile.contactName || profile.display_name || profile.username || '?'}
                 avatarUrl={profile.avatar_url}
-                size={62}
+                size={48}
               />
               <View style={s.rowInfo}>
                 <Text style={s.rowName}>{profile.contactName || profile.display_name}</Text>
@@ -247,8 +247,8 @@ export default function FriendsScreen() {
             <Text style={s.empty}>No friends yet.{'\n'}Search for people to add.</Text>
           ) : (
             <>
-              <Text style={[s.sectionLabel, { marginBottom: spacing[3] }]}>Your friends</Text>
-              {friends.map(profile => <UserRow key={profile.id} profile={profile} />)}
+              {visibleSuggested.length > 0 && <Text style={s.sectionLabel}>Your friends</Text>}
+              {friends.map(profile => <UserRow key={profile.id} profile={profile} since={profile.friendsSince} />)}
             </>
           )}
         </View>
@@ -267,7 +267,10 @@ const s = StyleSheet.create({
   sectionLabel: {
     fontSize: fontSize.sm,
     fontWeight: fontWeight.semiBold,
-    color: colors.textSecondary,
+    color: colors.white,
+    paddingTop: spacing[4],
+    paddingBottom: spacing[2],
+    textTransform: 'capitalize',
   },
   seeAll: { fontSize: fontSize.sm, color: colors.accent },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: spacing[2] },

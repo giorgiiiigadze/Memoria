@@ -5,7 +5,7 @@ import { CARD_RADIUS } from '@/constants/drops'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { useDropsStore } from '@/store/drops.store'
 import { colors, fontWeight, spacing } from '@/theme'
-import { fmtDropDate } from '@/utils/date'
+import { dropTimeLabel } from '@/utils/date'
 import { shareDrop } from '@/utils/share'
 import { Button, Host, Menu } from '@expo/ui/swift-ui'
 import { labelStyle, tint } from '@expo/ui/swift-ui/modifiers'
@@ -26,7 +26,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
   const primary = showIdentity ? creatorName : drop.title
   const secondary = showIdentity ? drop.title : null
 
-  const dateLabel = fmtDropDate(drop.state, drop.open_date)
+  const dateLabel = dropTimeLabel(drop.state, drop.open_date)
   const showAvatar = !!(creatorAvatar || creatorName)
   const isCreator = user?.id === drop.creator?.id
 
@@ -163,7 +163,7 @@ const s = StyleSheet.create({
     color: colors.white,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: fontWeight.regular,
     color: colors.textMuted,
     marginTop: 1,

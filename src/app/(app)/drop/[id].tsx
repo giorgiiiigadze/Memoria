@@ -27,7 +27,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 function sortPhotos(photos: PhotoWithUploader[]) {
   return [...photos].sort((a, b) => {
     if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1
-    return a.sort_order - b.sort_order
+    if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
+    return a.uploaded_at.localeCompare(b.uploaded_at)
   })
 }
 
@@ -121,7 +122,7 @@ export default function DropDetailScreen() {
             try {
               await deleteDropPhoto(photo.id, photo.storage_path)
             } catch {
-              setPhotos(prev => [...prev, photo].sort((a, b) => a.sort_order - b.sort_order))
+              setPhotos(prev => sortPhotos([...prev, photo]))
               Alert.alert('Delete Failed', 'Could not delete the photo. Please try again.')
             }
           },

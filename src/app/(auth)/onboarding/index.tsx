@@ -18,6 +18,7 @@ import {
   Animated,
   Keyboard,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -118,6 +119,7 @@ export default function OnboardingFlow() {
   const phoneDigits = phone.replace(/\D/g, '')
   const phoneValid = phoneDigits.length >= 7 && phoneDigits.length <= 15
 
+  const [profileCreating, setProfileCreating] = useState(false)
   const [contactsLoading, setContactsLoading] = useState(false)
   const [contactSuggestions, setContactSuggestions] = useState<SuggestedProfile[]>([])
   const [unmatchedContacts, setUnmatchedContacts] = useState<UnmatchedContact[]>([])
@@ -173,6 +175,14 @@ export default function OnboardingFlow() {
     } finally {
       setContactsLoading(false)
     }
+  }
+
+  async function handleInvite(phone: string) {
+    const message = "Hey! I'm using Memoria to share photo memories with friends. Come join me!"
+    const sep = Platform.OS === 'ios' ? '&' : '?'
+    const url = `sms:${phone}${sep}body=${encodeURIComponent(message)}`
+    const canOpen = await Linking.canOpenURL(url)
+    if (canOpen) Linking.openURL(url)
   }
 
   async function handleAddContact(profileId: string) {
@@ -267,17 +277,48 @@ export default function OnboardingFlow() {
     goToStep(5)
   }
 
-  function handlePhoneNext() {
-    const digits = phone.replace(/\D/g, '')
-    if (digits.length >= 7) {
-      setOnboardingPhone(`+${digits}`)
+  async function createProfileEarly(phone: string | null) {
+    const user = useAuthStore.getState().user
+    if (!user) return
+    const store = useAuthStore.getState()
+    const displayName = store.onboardingName.trim() || 'You'
+    const uname = store.onboardingUsername.trim()
+    if (!uname) return
+    setProfileCreating(true)
+    try {
+      const payload = {
+        id: user.id,
+        username: uname,
+        display_name: displayName,
+        ...(phone ? { phone } : {}),
+        ...(store.onboardingAvatarUrl ? { avatar_url: store.onboardingAvatarUrl } : {}),
+        ...(store.onboardingAge != null ? { age: store.onboardingAge } : {}),
+      }
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .upsert(payload)
+        .select()
+        .single()
+      if (!error && profile) store.setProfile(profile)
+    } catch {
+      // non-fatal — complete.tsx will retry on "let's go"
+    } finally {
+      setProfileCreating(false)
     }
+  }
+
+  async function handlePhoneNext() {
+    const digits = phone.replace(/\D/g, '')
+    const normalized = digits.length >= 7 ? `+${digits}` : null
+    if (normalized) setOnboardingPhone(normalized)
+    await createProfileEarly(normalized)
     loadContactSuggestions()
     goToStep(6)
   }
 
   function handlePhoneSkip() {
     setOnboardingPhone(null)
+    createProfileEarly(null) // fire-and-forget; contacts load async gives it time to finish
     loadContactSuggestions()
     goToStep(6)
   }
@@ -405,7 +446,7 @@ const step6Headline: Segment[] = [
                 </TouchableOpacity>
               </View>
               <AuthButton scheme="light"
-                label={availStatus === 'checking' ? 'Checking…' : 'Continue'}
+                label={availStatus === 'checking' ? 'Checking' : 'Continue'}
                 onPress={handleUsernameNext}
                 disabled={availStatus !== 'available'}
                 style={[s.nextBtn, { marginBottom: keyboardVisible ? spacing[3] : insets.bottom }]}
@@ -506,9 +547,10 @@ const step6Headline: Segment[] = [
               </View>
               <AuthButton
                 scheme="light"
-                label="Continue"
+                label={profileCreating ? 'Setting up…' : 'Continue'}
                 onPress={handlePhoneNext}
-                disabled={!phoneValid}
+                disabled={!phoneValid || profileCreating}
+                loading={profileCreating}
                 style={[s.nextBtn, { marginBottom: keyboardVisible ? spacing[3] : insets.bottom }]}
               />
             </View>
@@ -540,7 +582,7 @@ const step6Headline: Segment[] = [
                               <InitialAvatar
                                 name={profile.contactName || profile.display_name || profile.username || '?'}
                                 avatarUrl={profile.avatar_url}
-                                size={62}
+                                size={48}
                               />
                               <View style={s.contactInfo}>
                                 <Text style={s.contactName}>{profile.contactName || profile.display_name}</Text>
@@ -570,11 +612,18 @@ const step6Headline: Segment[] = [
                         <Text style={[s.contactsSectionLabel, contactSuggestions.length > 0 && { marginTop: spacing[6] }]}>Invite Friends</Text>
                         {unmatchedContacts.map(contact => (
                           <View key={contact.phone} style={s.contactRow}>
-                            <InitialAvatar name={contact.name} size={62} />
+                            <InitialAvatar name={contact.name} size={48} />
                             <View style={s.contactInfo}>
                               <Text style={s.contactName}>{contact.name}</Text>
                               <Text style={s.contactHandle}>{contact.phone}</Text>
                             </View>
+                            <TouchableOpacity
+                              style={s.addBtn}
+                              onPress={() => handleInvite(contact.phone)}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={s.addBtnLabel}>Invite</Text>
+                            </TouchableOpacity>
                           </View>
                         ))}
                       </>
@@ -653,7 +702,7 @@ const s = StyleSheet.create({
 
   body1: {
     flex: 1,
-    paddingHorizontal: spacing[5],
+    paddingHorizontal: spacing[4],
     paddingTop: spacing[8],
   },
   step1Sub: {
@@ -698,7 +747,7 @@ const s = StyleSheet.create({
     color: colors.success,
   },
   nextBtn: {
-    marginHorizontal: spacing[6],
+    marginHorizontal: spacing[4],
   },
 
   avatarSubtitle: {
@@ -752,7 +801,7 @@ const s = StyleSheet.create({
 
   body3: {
     flex: 1,
-    paddingHorizontal: spacing[5],
+    paddingHorizontal: spacing[4],
     paddingTop: spacing[6],
     justifyContent: 'center',
     alignItems: 'center',
@@ -823,7 +872,7 @@ const s = StyleSheet.create({
     backgroundColor: BG,
   },
   contactsScrollContent: {
-    paddingHorizontal: spacing[5],
+    paddingHorizontal: spacing[4],
     paddingTop: spacing[8],
   },
   contactRow: {
@@ -831,8 +880,6 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing[3],
     gap: spacing[3],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: `${colors.charcoal}15`,
   },
   contactInfo: { flex: 1 },
   contactName: {
