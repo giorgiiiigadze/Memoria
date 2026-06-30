@@ -26,6 +26,7 @@ export default function HomeLayout() {
           ...transparentHeaderOptions,
           headerTitle: 'Notifications',
           headerBackTitle: 'Home',
+          animation: 'slide_from_right',
         }}
       />
     </Stack>

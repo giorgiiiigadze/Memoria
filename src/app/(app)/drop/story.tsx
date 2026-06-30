@@ -205,7 +205,7 @@ export default function StoryScreen() {
       >
         <View style={s.headerRow}>
           <GlassIconButton onPress={goBack}>
-            <SymbolView name="chevron.down" size={16} tintColor={colors.white} resizeMode="scaleAspectFit" />
+            <SymbolView name="chevron.down" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
           </GlassIconButton>
 
           <Text style={s.headerTitle} numberOfLines={1}>{timeAgo(photo.uploaded_at)}</Text>

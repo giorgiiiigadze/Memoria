@@ -70,11 +70,11 @@ export function DropHeaderMenu({ id, plain, photo, onPin, onSave }: DropHeaderMe
     >
       {plain ? (
         <View style={s.plainBtn}>
-          <SymbolView name="ellipsis" size={20} tintColor={colors.white} resizeMode="scaleAspectFit" />
+          <SymbolView name="ellipsis" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
         </View>
       ) : (
         <GlassIconButton>
-          <SymbolView name="ellipsis" size={20} tintColor={colors.white} resizeMode="scaleAspectFit" />
+          <SymbolView name="ellipsis" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
         </GlassIconButton>
       )}
     </MenuView>

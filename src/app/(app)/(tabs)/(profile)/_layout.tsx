@@ -11,7 +11,13 @@ export default function ProfileLayout() {
           contentStyle: { backgroundColor: colors.background },
           animation: 'slide_from_right',
         }}
-      />
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen
+          name="settings"
+          options={{ presentation: 'modal', animation: 'slide_from_bottom', contentStyle: { backgroundColor: colors.surfaceGrouped }, headerShown: true }}
+        />
+      </Stack>
     </View>
   )
 }

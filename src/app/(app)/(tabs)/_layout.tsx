@@ -31,7 +31,7 @@ export default function TabsLayout() {
 
         <NativeTabs.Trigger name="(profile)">
           <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
-          <NativeTabs.Trigger.Icon sf="person.crop.circle.fill" md="account_circle" />
+          <NativeTabs.Trigger.Icon sf="person.fill" md="account_circle" />
         </NativeTabs.Trigger>
       </NativeTabs>
     </TabBarContext>

@@ -11,7 +11,6 @@ import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { CameraIcon } from '@/components/icons/CameraIcon'
-import { Image as ImageIcon } from 'lucide-react-native'
 import { useCallback, useEffect, useState } from 'react'
 import {
   ActionSheetIOS,
@@ -237,7 +236,7 @@ export default function DropDetailScreen() {
               disabled={capturing}
               activeOpacity={0.8}
             >
-              <ImageIcon size={18} color={colors.bone} />
+              <SymbolView name="photo" size={18} tintColor={colors.bone} resizeMode="scaleAspectFit" />
             </TouchableOpacity>
           )}
 

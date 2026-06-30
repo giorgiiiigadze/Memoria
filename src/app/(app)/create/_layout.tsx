@@ -1,19 +1,7 @@
+import { ModalCloseButton } from '@/components/ui/ModalCloseButton'
 import { colors } from '@/theme'
-import { router, Stack } from 'expo-router'
-import { SymbolView } from 'expo-symbols'
-import { Pressable, StyleSheet, View } from 'react-native'
-
-function CloseButton() {
-  return (
-    <Pressable
-      onPress={() => router.dismiss()}
-      hitSlop={12}
-      style={({ pressed }) => pressed && s.pressed}
-    >
-      <SymbolView name="xmark" size={20} tintColor={colors.white} />
-    </Pressable>
-  )
-}
+import { Stack } from 'expo-router'
+import { View } from 'react-native'
 
 export default function CreateLayout() {
   return (
@@ -30,7 +18,7 @@ export default function CreateLayout() {
       <Stack.Screen
         name="index"
         options={{
-          headerLeft: () => <CloseButton />,
+          headerLeft: () => <ModalCloseButton />,
           headerBackVisible: false,
           headerTitle: 'New drop',
           headerTitleStyle: { color: colors.white },
@@ -40,7 +28,3 @@ export default function CreateLayout() {
     </View>
   )
 }
-
-const s = StyleSheet.create({
-  pressed: { opacity: 0.6 },
-})

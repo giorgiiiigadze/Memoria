@@ -22,7 +22,7 @@ Memoria is a mobile app (iOS + Android) built with **Expo v56** (managed workflo
 | Routing | Expo Router 56.2.7 (file-based) |
 | State | Zustand 5.0.13 |
 | Backend | Supabase (auth, db, storage, realtime) |
-| Icons | lucide-react-native + @expo/vector-icons + expo-symbols |
+| Icons | expo-symbols (SF Symbols) + @expo/vector-icons |
 | Styling | React Native StyleSheet (no CSS framework) |
 | Notifications | expo-notifications + Supabase Realtime |
 | Edge Functions | Deno (Supabase) |
@@ -42,13 +42,13 @@ Memoria/
 │   │       ├── _layout.tsx     # NativeTabs with 5 tabs
 │   │       ├── (home)/         # Feed of drops
 │   │       ├── (friends)/      # Friend management
-│   │       ├── (create)/       # Create new drop
+│   │       ├── create/         # Create new drop (modal)
 │   │       ├── (calendar)/     # Calendar view of drops
 │   │       ├── (profile)/      # User profile
-│   │       └── drop/           # Drop detail: [id].tsx, gallery.tsx, upload.tsx
+│   │       └── drop/           # Drop detail: [id].tsx, story.tsx
 │   ├── components/
-│   │   ├── ui/                 # Atomic: Button, BigInput, AuthStepLayout, Dots, InfoRow, Onboarding*
-│   │   ├── drops/              # DropCard
+│   │   ├── ui/                 # Atomic: BigInput, AuthStepLayout, Dots, InfoRow, GlassIconButton, ModalCloseButton, Onboarding*
+│   │   ├── drops/              # DropCard, PhotosByUploader, MiniDropCard
 │   │   └── friends/            # UserRow, Chip
 │   ├── api/
 │   │   ├── client.ts           # Supabase client (SecureStore adapter)
@@ -68,7 +68,6 @@ Memoria/
 │   │   └── useNotifications.ts # push token registration, listeners
 │   ├── lib/
 │   │   └── auth/
-│   │       ├── providers.ts    # Phone OTP, Apple/Google OAuth stubs
 │   │       └── sessions.ts     # SecureStore adapter for Supabase
 │   ├── theme/
 │   │   ├── index.ts            # Re-exports all tokens

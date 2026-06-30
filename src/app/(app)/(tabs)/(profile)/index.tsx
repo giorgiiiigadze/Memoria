@@ -3,10 +3,10 @@ import { MiniDropGrid, MiniDropGridSkeleton } from '@/components/drops/MiniDropC
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
 import { selectDropsLoaded, useDropsStore } from '@/store/drops.store'
-import { colors, fontSize, fontWeight, spacing } from '@/theme'
+import { colors, fontWeight, spacing } from '@/theme'
 import { router, Stack, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -84,7 +84,7 @@ export default function ProfileScreen() {
           tintColor={colors.white}
           onPress={() => router.push('/(app)/(tabs)/(profile)/settings' as any)}
         >
-          <Stack.Toolbar.Icon sf="gearshape.fill" />
+          <Stack.Toolbar.Icon sf="gear" />
         </Stack.Toolbar.Button>
       </Stack.Toolbar>
 
