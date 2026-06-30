@@ -1,8 +1,7 @@
-import { GlassContainer, GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
+import { GlassSurface } from '@/components/ui/GlassSurface'
+import { glass } from '@/theme'
 import type { ReactNode } from 'react'
-import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native'
-
-const glassAvailable = isGlassEffectAPIAvailable()
+import { StyleSheet, type ViewStyle } from 'react-native'
 
 type Props = {
   children: ReactNode
@@ -19,36 +18,18 @@ export function GlassIconButton({
   style,
   colorScheme = 'light',
 }: Props) {
-  if (glassAvailable) {
-    const glassView = (
-      <GlassView isInteractive colorScheme={colorScheme} style={[s.btn, style]}>
-        {children}
-      </GlassView>
-    )
-    return (
-      <GlassContainer>
-        {onPress ? (
-          <Pressable onPress={onPress} disabled={disabled}>
-            {glassView}
-          </Pressable>
-        ) : glassView}
-      </GlassContainer>
-    )
-  }
-
-  if (onPress) {
-    return (
-      <Pressable
-        onPress={onPress}
-        disabled={disabled}
-        style={({ pressed }) => [s.btn, s.fallback, style, pressed && s.pressed]}
-      >
-        {children}
-      </Pressable>
-    )
-  }
-
-  return <View style={[s.btn, s.fallback, style]}>{children}</View>
+  return (
+    <GlassSurface
+      onPress={onPress}
+      disabled={disabled}
+      isInteractive
+      colorScheme={colorScheme}
+      style={[s.btn, style]}
+      fallbackStyle={s.fallback}
+    >
+      {children}
+    </GlassSurface>
+  )
 }
 
 const s = StyleSheet.create({
@@ -60,11 +41,8 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   fallback: {
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: glass.fallback.floating,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  pressed: {
-    opacity: 0.7,
+    borderColor: glass.fallback.floatingBorder,
   },
 })

@@ -2,14 +2,14 @@ import { findProfilesByPhones } from '@/api/friends.api'
 import { Chip } from '@/components/friends/Chip'
 import { FriendSearchBar } from '@/components/friends/FriendSearchBar'
 import { UserRow, UserRowSkeleton } from '@/components/friends/UserRow'
+import { GlassSurface } from '@/components/ui/GlassSurface'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { useFriends } from '@/hooks/useFriends'
 import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
 import { useFriendsStore } from '@/store/friends.store'
-import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
+import { colors, fontSize, fontWeight, glass, radii, spacing } from '@/theme'
 import type { Profile } from '@/types/database.types'
 import { Contact, ContactField, getPermissionsAsync } from 'expo-contacts'
-import { GlassContainer, GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
 import { router, useFocusEffect } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -20,8 +20,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-
-const glassAvailable = isGlassEffectAPIAvailable()
 
 const SUGGESTED_LIMIT = 3
 
@@ -142,43 +140,26 @@ export default function FriendsScreen() {
       </View>
 
       {!isSearchMode && (
-        glassAvailable ? (
-          <GlassContainer>
-            <TouchableOpacity onPress={handleInviteFriends} activeOpacity={0.85}>
-              <GlassView
-                isInteractive
-                colorScheme="dark"
-                glassEffectStyle="regular"
-                tintColor="rgba(255,255,255,0.08)"
-                style={s.inviteCard}
-              >
-                <InitialAvatar
-                  name={profile?.display_name || profile?.username || '?'}
-                  avatarUrl={profile?.avatar_url}
-                  size={40}
-                />
-                <View style={s.inviteText}>
-                  <Text style={s.inviteTitle}>Invite your friends</Text>
-                  <Text style={s.inviteSubtitle}>Invite your people. Fill a Drop together.</Text>
-                </View>
-                <SymbolView name="square.and.arrow.up" size={26} tintColor={colors.white} />
-              </GlassView>
-            </TouchableOpacity>
-          </GlassContainer>
-        ) : (
-          <TouchableOpacity style={[s.inviteCard, s.inviteCardFallback]} onPress={handleInviteFriends} activeOpacity={0.85}>
-            <InitialAvatar
-              name={profile?.display_name || profile?.username || '?'}
-              avatarUrl={profile?.avatar_url}
-              size={40}
-            />
-            <View style={s.inviteText}>
-              <Text style={s.inviteTitle}>Invite your friends</Text>
-              <Text style={s.inviteSubtitle}>Share Memoria and build capsules together</Text>
-            </View>
-            <SymbolView name="square.and.arrow.up" size={26} tintColor={colors.white} />
-          </TouchableOpacity>
-        )
+        <GlassSurface
+          onPress={handleInviteFriends}
+          isInteractive
+          colorScheme="dark"
+          tintColor={glass.tint.panel}
+          style={s.inviteCard}
+          fallbackStyle={s.inviteCardFallback}
+          pressedOpacity={0.85}
+        >
+          <InitialAvatar
+            name={profile?.display_name || profile?.username || '?'}
+            avatarUrl={profile?.avatar_url}
+            size={40}
+          />
+          <View style={s.inviteText}>
+            <Text style={s.inviteTitle}>Invite your friends</Text>
+            <Text style={s.inviteSubtitle}>Invite your people. Fill a Drop together.</Text>
+          </View>
+          <SymbolView name="square.and.arrow.up" size={26} tintColor={colors.white} />
+        </GlassSurface>
       )}
 
       {!isSearchMode && visibleSuggested.length > 0 && (
@@ -331,7 +312,7 @@ const s = StyleSheet.create({
     gap: spacing[3],
   },
   inviteCardFallback: {
-    backgroundColor: colors.surfaceCard,
+    backgroundColor: glass.fallback.panel,
   },
   inviteText: { flex: 1 },
   inviteTitle: {

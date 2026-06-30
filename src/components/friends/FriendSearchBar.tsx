@@ -1,16 +1,14 @@
 import { SearchIcon } from '@/components/icons/SearchIcon'
-import { colors, fontSize } from '@/theme'
-import { GlassContainer, GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
+import { GlassSurface } from '@/components/ui/GlassSurface'
+import { colors, fontSize, glass } from '@/theme'
 import { SymbolView } from 'expo-symbols'
-import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, TextInput, TouchableOpacity } from 'react-native'
 
 interface FriendSearchBarProps {
   value: string
   onChangeText: (text: string) => void
   placeholder?: string
 }
-
-const glassAvailable = isGlassEffectAPIAvailable()
 
 export function FriendSearchBar({
   value,
@@ -34,42 +32,26 @@ export function FriendSearchBar({
       />
       {value.length > 0 && (
         <TouchableOpacity onPress={() => onChangeText('')} hitSlop={10} activeOpacity={0.8}>
-          {glassAvailable ? (
-            <GlassView
-              style={s.clearBtn}
-              glassEffectStyle="regular"
-              colorScheme="dark"
-              tintColor="rgba(0,0,0,0.25)"
-              isInteractive
-            >
-              <SymbolView name="xmark" size={10} tintColor={colors.textSecondary} weight="semibold" />
-            </GlassView>
-          ) : (
-            <View style={[s.clearBtn, s.clearBtnFallback]}>
-              <SymbolView name="xmark" size={10} tintColor={colors.textSecondary} weight="semibold" />
-            </View>
-          )}
+          <GlassSurface
+            style={s.clearBtn}
+            fallbackStyle={s.clearBtnFallback}
+            colorScheme="dark"
+            tintColor={glass.tint.control}
+            isInteractive
+            withContainer={false}
+          >
+            <SymbolView name="xmark" size={10} tintColor={colors.textSecondary} weight="semibold" />
+          </GlassSurface>
         </TouchableOpacity>
       )}
     </>
   )
 
-  if (glassAvailable) {
-    return (
-      <GlassContainer>
-        <GlassView
-          style={s.wrap}
-          glassEffectStyle="regular"
-          colorScheme="dark"
-          tintColor="rgba(255,255,255,0.08)"
-        >
-          {content}
-        </GlassView>
-      </GlassContainer>
-    )
-  }
-
-  return <View style={[s.wrap, s.fallback]}>{content}</View>
+  return (
+    <GlassSurface style={s.wrap} fallbackStyle={s.fallback} colorScheme="dark" tintColor={glass.tint.panel}>
+      {content}
+    </GlassSurface>
+  )
 }
 
 const s = StyleSheet.create({
@@ -83,9 +65,9 @@ const s = StyleSheet.create({
     paddingRight: 12,
   },
   fallback: {
-    backgroundColor: colors.surfaceInput,
-    borderWidth: 0.5,
-    borderColor: colors.borderDefault,
+    backgroundColor: glass.fallback.panel,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: glass.fallback.panelBorder,
   },
   input: {
     flex: 1,
@@ -101,6 +83,6 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   clearBtnFallback: {
-    backgroundColor: colors.surfaceRaised,
+    backgroundColor: glass.fallback.control,
   },
 })
