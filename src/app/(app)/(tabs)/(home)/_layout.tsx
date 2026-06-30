@@ -9,6 +9,7 @@ export default function HomeLayout() {
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: 'transparent' },
+        animation: 'none',
       }}
     >
       <Stack.Screen

@@ -4,12 +4,14 @@ import { FriendSearchBar } from '@/components/friends/FriendSearchBar'
 import { UserRow, UserRowSkeleton } from '@/components/friends/UserRow'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { useFriends } from '@/hooks/useFriends'
-import { selectUser, useAuthStore } from '@/store/auth.store'
+import { selectProfile, selectUser, useAuthStore } from '@/store/auth.store'
 import { useFriendsStore } from '@/store/friends.store'
-import { colors, fontSize, fontWeight, spacing } from '@/theme'
+import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
 import type { Profile } from '@/types/database.types'
 import { Contact, ContactField, getPermissionsAsync } from 'expo-contacts'
+import { GlassContainer, GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
 import { router, useFocusEffect } from 'expo-router'
+import { SymbolView } from 'expo-symbols'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ScrollView,
@@ -18,6 +20,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+
+const glassAvailable = isGlassEffectAPIAvailable()
 
 const SUGGESTED_LIMIT = 3
 
@@ -32,6 +36,7 @@ function normalizePhone(raw: string): string {
 
 export default function FriendsScreen() {
   const user = useAuthStore(selectUser)
+  const profile = useAuthStore(selectProfile)
   const { friends, incoming, outgoing, isLoaded, error, actionLoading, add, accept, decline, search, refresh, retry } = useFriends()
 
   const [suggested, setSuggested] = useState<SuggestedProfile[]>([])
@@ -107,6 +112,10 @@ export default function FriendsScreen() {
 
   const isSearchMode = query.trim().length >= 2
 
+  function handleInviteFriends() {
+    router.push('/(app)/(tabs)/(friends)/invite')
+  }
+
   function relationshipStatus(userId: string) {
     if (friends.some(f => f.id === userId)) return 'friends' as const
     if (outgoing.some(r => r.profile.id === userId)) return 'pending' as const
@@ -131,6 +140,46 @@ export default function FriendsScreen() {
           placeholder="Search by username..."
         />
       </View>
+
+      {!isSearchMode && (
+        glassAvailable ? (
+          <GlassContainer>
+            <TouchableOpacity onPress={handleInviteFriends} activeOpacity={0.85}>
+              <GlassView
+                isInteractive
+                colorScheme="dark"
+                glassEffectStyle="regular"
+                tintColor="rgba(255,255,255,0.08)"
+                style={s.inviteCard}
+              >
+                <InitialAvatar
+                  name={profile?.display_name || profile?.username || '?'}
+                  avatarUrl={profile?.avatar_url}
+                  size={40}
+                />
+                <View style={s.inviteText}>
+                  <Text style={s.inviteTitle}>Invite your friends</Text>
+                  <Text style={s.inviteSubtitle}>Invite your people. Fill a Drop together.</Text>
+                </View>
+                <SymbolView name="square.and.arrow.up" size={26} tintColor={colors.white} />
+              </GlassView>
+            </TouchableOpacity>
+          </GlassContainer>
+        ) : (
+          <TouchableOpacity style={[s.inviteCard, s.inviteCardFallback]} onPress={handleInviteFriends} activeOpacity={0.85}>
+            <InitialAvatar
+              name={profile?.display_name || profile?.username || '?'}
+              avatarUrl={profile?.avatar_url}
+              size={40}
+            />
+            <View style={s.inviteText}>
+              <Text style={s.inviteTitle}>Invite your friends</Text>
+              <Text style={s.inviteSubtitle}>Share Memoria and build capsules together</Text>
+            </View>
+            <SymbolView name="square.and.arrow.up" size={26} tintColor={colors.white} />
+          </TouchableOpacity>
+        )
+      )}
 
       {!isSearchMode && visibleSuggested.length > 0 && (
         <View style={s.section}>
@@ -182,9 +231,9 @@ export default function FriendsScreen() {
               return (
                 <UserRow key={user.id} profile={user} right={
                   status === 'friends' ? (
-                    <Chip label="Friends" variant="muted" />
+                    <Chip label="Friends" variant="card" />
                   ) : status === 'pending' ? (
-                    <Chip label="Pending" variant="muted" />
+                    <Chip label="Pending" variant="card" />
                   ) : status === 'incoming' ? (
                     <Chip
                       label="Accept"
@@ -271,6 +320,30 @@ const s = StyleSheet.create({
     paddingTop: spacing[4],
     paddingBottom: spacing[2],
     textTransform: 'capitalize',
+  },
+  inviteCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: radii.lg,
+    paddingVertical: spacing[4],
+    paddingHorizontal: spacing[4],
+    marginBottom: spacing[6],
+    gap: spacing[3],
+  },
+  inviteCardFallback: {
+    backgroundColor: colors.surfaceCard,
+  },
+  inviteText: { flex: 1 },
+  inviteTitle: {
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semiBold,
+    color: colors.textPrimary,
+  },
+  inviteSubtitle: {
+    fontSize: fontSize.sm,
+    color: colors.textTertiary,
+    marginTop: 2,
+    lineHeight: 20,
   },
   seeAll: { fontSize: fontSize.sm, color: colors.accent },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: spacing[2] },

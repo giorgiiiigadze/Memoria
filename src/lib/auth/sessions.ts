@@ -9,12 +9,16 @@ import * as SecureStore from 'expo-secure-store'
  *
  * Usage: createClient(url, key, { auth: { storage: supabaseStorageAdapter } })
  */
+function isContextLost(error: unknown): boolean {
+  return error instanceof Error && error.message.includes('AppContextLost')
+}
+
 export const supabaseStorageAdapter = {
   getItem: async (key: string): Promise<string | null> => {
     try {
       return await SecureStore.getItemAsync(key)
     } catch (error) {
-      console.error('[session] Storage adapter getItem failed:', error)
+      if (!isContextLost(error)) console.error('[session] Storage adapter getItem failed:', error)
       return null
     }
   },
@@ -22,14 +26,14 @@ export const supabaseStorageAdapter = {
     try {
       await SecureStore.setItemAsync(key, value)
     } catch (error) {
-      console.error('[session] Storage adapter setItem failed:', error)
+      if (!isContextLost(error)) console.error('[session] Storage adapter setItem failed:', error)
     }
   },
   removeItem: async (key: string): Promise<void> => {
     try {
       await SecureStore.deleteItemAsync(key)
     } catch (error) {
-      console.error('[session] Storage adapter removeItem failed:', error)
+      if (!isContextLost(error)) console.error('[session] Storage adapter removeItem failed:', error)
     }
   },
 }

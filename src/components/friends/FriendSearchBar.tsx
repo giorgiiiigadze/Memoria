@@ -1,6 +1,6 @@
 import { SearchIcon } from '@/components/icons/SearchIcon'
 import { colors, fontSize } from '@/theme'
-import { GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
+import { GlassContainer, GlassView, isGlassEffectAPIAvailable } from 'expo-glass-effect'
 import { SymbolView } from 'expo-symbols'
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 
@@ -56,14 +56,16 @@ export function FriendSearchBar({
 
   if (glassAvailable) {
     return (
-      <GlassView
-        style={s.wrap}
-        glassEffectStyle="regular"
-        colorScheme="dark"
-        tintColor="rgba(0,0,0,0.18)"
-      >
-        {content}
-      </GlassView>
+      <GlassContainer>
+        <GlassView
+          style={s.wrap}
+          glassEffectStyle="regular"
+          colorScheme="dark"
+          tintColor="rgba(255,255,255,0.08)"
+        >
+          {content}
+        </GlassView>
+      </GlassContainer>
     )
   }
 

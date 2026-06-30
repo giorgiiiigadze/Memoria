@@ -19,6 +19,7 @@ export const colors = {
   // Grouped / modal surfaces (Apple secondarySystemGrouped / tertiarySystemGrouped)
   surfaceGrouped: '#1C1C1E',
   surfaceGroupedElevated: '#2C2C2E',
+  surfaceCard: '#2C2C2C',
 
   // Text
   textPrimary: '#F2EEE6',

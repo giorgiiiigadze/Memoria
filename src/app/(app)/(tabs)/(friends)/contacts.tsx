@@ -1,9 +1,11 @@
 import { findProfilesByPhones, sendRequest, getFriends, getOutgoingRequests } from '@/api/friends.api'
 import { Chip } from '@/components/friends/Chip'
 import { UserRowSkeleton } from '@/components/friends/UserRow'
+import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
 import { selectUser, useAuthStore } from '@/store/auth.store'
 import { colors, fontSize, fontWeight, spacing } from '@/theme'
+import { SymbolView } from 'expo-symbols'
 import type { Profile } from '@/types/database.types'
 import { Contact, ContactField, getPermissionsAsync, requestPermissionsAsync } from 'expo-contacts'
 import { router } from 'expo-router'
@@ -177,9 +179,9 @@ export default function ContactsScreen() {
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>
       <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={12} activeOpacity={0.7}>
-          <Text style={s.back}>← Back</Text>
-        </TouchableOpacity>
+        <GlassIconButton onPress={() => router.back()}>
+          <SymbolView name="chevron.left" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+        </GlassIconButton>
         <Text style={s.title}>Find Friends</Text>
         <View style={{ width: 60 }} />
       </View>
@@ -274,7 +276,6 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.borderSubtle,
   },
-  back: { fontSize: fontSize.sm, color: colors.accent, width: 60 },
   title: { fontSize: fontSize.md, fontWeight: fontWeight.semiBold, color: colors.textPrimary },
   content: { padding: spacing[4] },
   listContent: { paddingHorizontal: spacing[4], paddingBottom: spacing[10] },
