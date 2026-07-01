@@ -161,22 +161,6 @@ export default function StoryScreen() {
             paddingTop: insets.top + 44 + spacing[2],
             paddingBottom: insets.bottom + FILMSTRIP_CLEARANCE,
           }]}>
-            {photo.uploader && (
-              <View style={s.uploaderRow}>
-                <InitialAvatar
-                  name={photo.uploader.display_name ?? photo.uploader.username ?? '?'}
-                  avatarUrl={photo.uploader.avatar_url}
-                  size={36}
-                />
-                <View>
-                  <Text style={s.uploaderName} numberOfLines={1}>
-                    {photo.uploader.display_name ?? photo.uploader.username}
-                  </Text>
-                  <Text style={s.uploaderTime}>{timeAgo(photo.uploaded_at)}</Text>
-                </View>
-              </View>
-            )}
-
             <View style={s.photoWrap}>
               <Image
                 source={{ uri: photo.cdn_url }}
@@ -205,10 +189,24 @@ export default function StoryScreen() {
       >
         <View style={s.headerRow}>
           <GlassIconButton onPress={goBack}>
-            <SymbolView name="chevron.down" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+            <SymbolView name="chevron.down" size={18} tintColor={colors.white} weight="semibold" resizeMode="scaleAspectFit" />
           </GlassIconButton>
 
-          <Text style={s.headerTitle} numberOfLines={1}>{timeAgo(photo.uploaded_at)}</Text>
+          {photo.uploader && (
+            <View style={s.headerUploader}>
+              <InitialAvatar
+                name={photo.uploader.display_name ?? photo.uploader.username ?? '?'}
+                avatarUrl={photo.uploader.avatar_url}
+                size={38}
+              />
+              <View style={s.headerUploaderText}>
+                <Text style={s.uploaderName} numberOfLines={1}>
+                  {photo.uploader.display_name ?? photo.uploader.username}
+                </Text>
+                <Text style={s.uploaderTime}>{timeAgo(photo.uploaded_at)}</Text>
+              </View>
+            </View>
+          )}
 
           <DropHeaderMenu id={dropId ?? ''} photo={photo} onPin={handlePin} onSave={handleSave} />
         </View>
@@ -266,11 +264,15 @@ const s = StyleSheet.create({
     paddingBottom: spacing[2],
     gap: spacing[2],
   },
-  uploaderRow: {
+  headerUploader: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing[2],
-    paddingHorizontal: spacing[1],
+  },
+  headerUploaderText: {
+    flexShrink: 1,
   },
   uploaderName: {
     fontSize: 14,
@@ -281,13 +283,6 @@ const s = StyleSheet.create({
     fontSize: 12,
     color: colors.textOverlay,
     marginTop: 1,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: fontWeight.semiBold,
-    color: colors.white,
-    textAlign: 'center',
   },
 
   photoWrap: {

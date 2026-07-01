@@ -10,7 +10,7 @@ export function ModalCloseButton() {
       hitSlop={12}
       style={({ pressed }) => pressed && s.pressed}
     >
-      <SymbolView name="xmark" size={20} tintColor={colors.white} />
+      <SymbolView name="xmark" size={20} tintColor={colors.white} weight="semibold" />
     </Pressable>
   )
 }

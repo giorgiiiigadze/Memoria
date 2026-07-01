@@ -1,5 +1,5 @@
 import { InitialAvatar } from '@/components/ui/InitialAvatar'
-import { colors, fontSize, fontWeight, spacing } from '@/theme'
+import { colors, fontSize, fontWeight, radii, spacing } from '@/theme'
 import type { Profile } from '@/types/database.types'
 import { friendDuration } from '@/utils/date'
 import type { ReactNode } from 'react'
@@ -46,6 +46,9 @@ export function UserRowSkeleton() {
         <View style={s.skeletonName} />
         <View style={s.skeletonHandle} />
       </View>
+      <View style={s.rowRight}>
+        <View style={s.skeletonChip} />
+      </View>
     </Animated.View>
   )
 }
@@ -64,16 +67,22 @@ const s = StyleSheet.create({
     backgroundColor: colors.surfaceRaised,
   },
   skeletonName: {
-    height: 13,
+    height: 12,
     width: 120,
-    borderRadius: 6,
+    borderRadius: 4,
     backgroundColor: colors.surfaceRaised,
-    marginBottom: 7,
+    marginBottom: 4,
   },
   skeletonHandle: {
-    height: 11,
+    height: 12,
     width: 80,
-    borderRadius: 5,
+    borderRadius: 3,
+    backgroundColor: colors.surfaceRaised,
+  },
+  skeletonChip: {
+    width: 68,
+    height: 26,
+    borderRadius: radii.full,
     backgroundColor: colors.surfaceRaised,
   },
 })

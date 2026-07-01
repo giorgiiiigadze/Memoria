@@ -27,7 +27,7 @@ export function AuthStepLayout({ heading, footer, children, topStyle }: Props) {
     >
       <View style={styles.backWrap}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={12} activeOpacity={0.7}>
-          <SymbolView name="chevron.left" size={22} tintColor={colors.white} />
+          <SymbolView name="chevron.left" size={22} tintColor={colors.white} weight="semibold" />
         </TouchableOpacity>
       </View>
 

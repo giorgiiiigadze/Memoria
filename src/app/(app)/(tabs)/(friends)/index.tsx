@@ -152,13 +152,13 @@ export default function FriendsScreen() {
           <InitialAvatar
             name={profile?.display_name || profile?.username || '?'}
             avatarUrl={profile?.avatar_url}
-            size={40}
+            size={34}
           />
           <View style={s.inviteText}>
             <Text style={s.inviteTitle}>Invite your friends</Text>
             <Text style={s.inviteSubtitle}>Invite your people. Fill a Drop together.</Text>
           </View>
-          <SymbolView name="square.and.arrow.up" size={26} tintColor={colors.white} />
+          <SymbolView name="square.and.arrow.up" size={26} tintColor={colors.white} weight="semibold" />
         </GlassSurface>
       )}
 

@@ -38,7 +38,7 @@ export function OnboardingStepHeader({ step, total, onBack, onSkip, tint = color
       <View style={s.row}>
         <View style={[s.backSlot, !onBack && s.hidden]}>
           <GlassIconButton onPress={onBack ?? (() => {})} colorScheme={glassScheme}>
-            <SymbolView name="chevron.left" size={18} tintColor={tint} resizeMode="scaleAspectFit" />
+            <SymbolView name="chevron.left" size={18} tintColor={tint} weight="semibold" resizeMode="scaleAspectFit" />
           </GlassIconButton>
         </View>
 

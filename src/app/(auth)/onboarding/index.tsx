@@ -380,7 +380,7 @@ const step6Headline: Segment[] = [
             <View style={s.stepContainer}>
               <View style={s.body1}>
                 <Headline segments={step1Headline} />
-                <Text style={s.step1Sub}>What should we call you?</Text>
+                <Text style={s.step1Sub}>What should friends call you?</Text>
                 <TouchableOpacity
                   style={s.inputWrap}
                   onPress={() => inputRef.current?.focus()}
@@ -422,7 +422,6 @@ const step6Headline: Segment[] = [
                   onPress={() => usernameRef.current?.focus()}
                   activeOpacity={1}
                 >
-                  <Text style={s.atSign}>@</Text>
                   <TextInput
                     ref={usernameRef}
                     style={s.input}
@@ -440,8 +439,15 @@ const step6Headline: Segment[] = [
                   />
                   {usernameError ? (
                     <Text style={s.usernameHint}>{usernameError}</Text>
+                  ) : availStatus === 'checking' ? (
+                    <Text style={s.usernameHint}>Checking availability…</Text>
                   ) : availStatus === 'taken' ? (
                     <Text style={[s.usernameHint, s.usernameHintError]}>Username taken</Text>
+                  ) : availStatus === 'available' ? (
+                    <View style={s.usernameAvailRow}>
+                      <SymbolView name="checkmark.seal.fill" size={18} tintColor={colors.success} weight="semibold" resizeMode="scaleAspectFit" />
+                      <Text style={[s.usernameHint, s.usernameHintOk, s.usernameHintInline]}>Username available</Text>
+                    </View>
                   ) : null}
                 </TouchableOpacity>
               </View>
@@ -469,7 +475,7 @@ const step6Headline: Segment[] = [
                     <Image source={{ uri: avatarUri }} style={s.avatarCircle} contentFit="cover" />
                   ) : (
                     <View style={s.avatarPlaceholder}>
-                      <SymbolView name="camera" size={32} tintColor={`${INK}55`} resizeMode="scaleAspectFit" />
+                      <SymbolView name="camera" size={32} tintColor={`${INK}55`} weight="semibold" resizeMode="scaleAspectFit" />
                     </View>
                   )}
                   {avatarUploading && (
@@ -729,14 +735,14 @@ const s = StyleSheet.create({
   },
   atSign: {
     fontSize: 15,
-    fontWeight: fontWeight.medium,
+    fontWeight: fontWeight.semiBold,
     color: `${colors.charcoal}55`,
     textAlign: 'center',
     marginBottom: spacing[1],
   },
   usernameHint: {
     marginTop: spacing[3],
-    fontSize: 13,
+    fontSize: 15,
     color: `${colors.charcoal}55`,
     textAlign: 'center',
   },
@@ -745,6 +751,16 @@ const s = StyleSheet.create({
   },
   usernameHintOk: {
     color: colors.success,
+  },
+  usernameAvailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[1],
+    marginTop: spacing[3],
+  },
+  usernameHintInline: {
+    marginTop: 0,
   },
   nextBtn: {
     marginHorizontal: spacing[4],

@@ -217,12 +217,12 @@ export default function DropDetailScreen() {
       {/* Custom header */}
       <View style={[s.header, { paddingTop: insets.top }]} pointerEvents="box-none">
         <GlassIconButton onPress={() => router.back()}>
-          <SymbolView name="chevron.left" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+          <SymbolView name="chevron.left" size={18} tintColor={colors.white} weight="semibold" resizeMode="scaleAspectFit" />
         </GlassIconButton>
         <View style={s.headerSpacer} />
         {isCreator && (
           <GlassIconButton onPress={handleMenu}>
-            <SymbolView name="ellipsis" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+            <SymbolView name="ellipsis" size={18} tintColor={colors.white} weight="semibold" resizeMode="scaleAspectFit" />
           </GlassIconButton>
         )}
       </View>
@@ -236,7 +236,7 @@ export default function DropDetailScreen() {
               disabled={capturing}
               activeOpacity={0.8}
             >
-              <SymbolView name="photo" size={18} tintColor={colors.bone} resizeMode="scaleAspectFit" />
+              <SymbolView name="photo" size={18} tintColor={colors.bone} weight="semibold" resizeMode="scaleAspectFit" />
             </TouchableOpacity>
           )}
 

@@ -162,6 +162,7 @@ export default function CreateScreen() {
                       name="checkmark.circle.fill"
                       size={22}
                       tintColor={colors.blue}
+                      weight="semibold"
                     />
                   )}
                 </TouchableOpacity>

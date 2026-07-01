@@ -8,7 +8,7 @@ import { colors, fontWeight, spacing } from '@/theme'
 import { dropTimeLabel } from '@/utils/date'
 import { shareDrop } from '@/utils/share'
 import { Button, Host, Menu } from '@expo/ui/swift-ui'
-import { labelStyle, tint } from '@expo/ui/swift-ui/modifiers'
+import { font, labelStyle, tint } from '@expo/ui/swift-ui/modifiers'
 import { AntDesign } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
@@ -80,7 +80,7 @@ export function DropCard({ drop, showCreator = true }: { drop: DropWithParticipa
           <Menu
             label="Drop options"
             systemImage="ellipsis"
-            modifiers={[labelStyle('iconOnly'), tint(colors.white)]}
+            modifiers={[labelStyle('iconOnly'), tint(colors.white), font({ weight: 'semibold' })]}
           >
             <Button
               label="Share"

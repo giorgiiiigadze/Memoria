@@ -1,4 +1,4 @@
-import { colors, transparentHeaderOptions } from '@/theme'
+import { colors, fontWeight, transparentHeaderOptions } from '@/theme'
 import { Stack } from 'expo-router'
 import { View } from 'react-native'
 
@@ -17,6 +17,11 @@ export default function HomeLayout() {
         options={{
           ...transparentHeaderOptions,
           headerTitle: 'Memoria',
+          headerTitleStyle: {
+            ...transparentHeaderOptions.headerTitleStyle,
+            fontSize: 22,
+            fontWeight: fontWeight.bold,
+          },
         }}
       />
 

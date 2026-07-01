@@ -180,7 +180,7 @@ export default function ContactsScreen() {
     <View style={[s.root, { paddingTop: insets.top }]}>
       <View style={s.header}>
         <GlassIconButton onPress={() => router.back()}>
-          <SymbolView name="chevron.left" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+          <SymbolView name="chevron.left" size={18} tintColor={colors.white} weight="semibold" resizeMode="scaleAspectFit" />
         </GlassIconButton>
         <Text style={s.title}>Find Friends</Text>
         <View style={{ width: 60 }} />

@@ -139,6 +139,7 @@ export default function LandingScreen() {
                   name="checkmark"
                   size={14}
                   tintColor={colors.ink}
+                  weight="semibold"
                   resizeMode="scaleAspectFit"
                 />
               )}

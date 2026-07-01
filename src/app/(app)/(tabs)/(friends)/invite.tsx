@@ -1,7 +1,7 @@
 import { GlassIconButton } from '@/components/ui/GlassIconButton'
 import { TabBarContext } from '@/context/TabBarContext'
 import { selectProfile, useAuthStore } from '@/store/auth.store'
-import { avatarColors, colors } from '@/theme/colors'
+import { colors } from '@/theme/colors'
 import { fontSize, fontWeight, radii, spacing } from '@/theme'
 import { BlurView } from 'expo-blur'
 import { Image } from 'expo-image'
@@ -10,14 +10,6 @@ import { SymbolView } from 'expo-symbols'
 import { useCallback, useContext } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-
-function pickColor(name: string): string {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return avatarColors[Math.abs(hash) % avatarColors.length]
-}
 
 export default function InviteScreen() {
   const insets = useSafeAreaInsets()
@@ -29,29 +21,29 @@ export default function InviteScreen() {
     return () => setIsTabBarHidden(false)
   }, []))
 
-  const fallbackColor = pickColor(profile?.display_name ?? profile?.username ?? '')
-
   return (
     <View style={s.root}>
       {profile?.avatar_url ? (
-        <Image
-          source={{ uri: profile.avatar_url }}
-          style={StyleSheet.absoluteFill}
-          contentFit="cover"
-        />
+        <>
+          <Image
+            source={{ uri: profile.avatar_url }}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+          />
+          <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
+        </>
       ) : (
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: fallbackColor }]} />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
       )}
-      <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
       <View style={[StyleSheet.absoluteFill, s.dimOverlay]} />
 
       <View style={[s.inner, { paddingTop: insets.top + spacing[4] }]}>
         <View style={s.header}>
           <GlassIconButton onPress={() => router.back()}>
-            <SymbolView name="xmark" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+            <SymbolView name="xmark" size={18} tintColor={colors.white} weight="semibold" resizeMode="scaleAspectFit" />
           </GlassIconButton>
           <GlassIconButton>
-            <SymbolView name="qrcode.viewfinder" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+            <SymbolView name="qrcode.viewfinder" size={18} tintColor={colors.white} weight="semibold" resizeMode="scaleAspectFit" />
           </GlassIconButton>
         </View>
 

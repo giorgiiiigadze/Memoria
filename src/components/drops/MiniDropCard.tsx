@@ -83,7 +83,7 @@ function MiniDropCard({ drop, hPad = H_PAD, backTitle, isCreator, onPin, cols = 
 
         {drop.is_pinned && (
           <View style={s.dropPinBadge} pointerEvents="none">
-            <SymbolView name="pin.fill" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+            <SymbolView name="pin.fill" size={18} tintColor={colors.white} weight="semibold" resizeMode="scaleAspectFit" />
           </View>
         )}
       </View>
@@ -139,7 +139,7 @@ export function MiniPhotoCard({ photo, size, blurred, onPress, showUploader, isO
       </LinearGradient>
       {photo.is_pinned && (
         <View style={s.pinBadge} pointerEvents="none">
-          <SymbolView name="pin.fill" size={18} tintColor={colors.white} resizeMode="scaleAspectFit" />
+          <SymbolView name="pin.fill" size={18} tintColor={colors.white} weight="semibold" resizeMode="scaleAspectFit" />
         </View>
       )}
     </View>

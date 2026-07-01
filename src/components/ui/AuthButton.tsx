@@ -92,7 +92,7 @@ const s = StyleSheet.create({
   },
   label: {
     fontSize: fontSize.body,
-    fontWeight: fontWeight.medium,
+    fontWeight: fontWeight.semiBold,
   },
   labelPrimary: {
     color: colors.ink,
